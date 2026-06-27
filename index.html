@@ -1,209 +1,422 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FONOSAUR</title>
-<meta name="description" content="FONOSAUR — listen to Traversal. New release 2026.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#0a0908; --bone:#e8e0d4; --dim:#8a8176; --faint:#322d27;
-  --blue:#3b8bff; --purple:#8b5cf6; --bronze:#a06820; --green:#00cc50;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{
-  background:var(--bg); color:var(--bone);
-  font-family:'JetBrains Mono',ui-monospace,monospace;
-  min-height:100vh; min-height:100dvh;
-  display:flex; align-items:center; justify-content:center;
-  padding:3rem 1.5rem; -webkit-font-smoothing:antialiased;
-}
-.wrap{width:100%; max-width:380px; display:flex; flex-direction:column; align-items:center; text-align:center}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FONOSAUR</title>
+    <meta
+      name="description"
+      content="FONOSAUR — listen to Traversal. New release 2026."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0a0908;
+        --bone: #e8e0d4;
+        --dim: #8a8176;
+        --faint: #322d27;
+        --blue: #3b8bff;
+        --purple: #8b5cf6;
+        --bronze: #a06820;
+        --green: #00cc50;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        background: var(--bg);
+        color: var(--bone);
+        font-family: "JetBrains Mono", ui-monospace, monospace;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 3rem 1.5rem;
+        -webkit-font-smoothing: antialiased;
+      }
+      .wrap {
+        width: 100%;
+        max-width: 380px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
 
-.mark{
-  font-family:'Unbounded',sans-serif;
-  font-size:clamp(1.7rem,9vw,2.6rem);
-  line-height:.9; letter-spacing:-0.01em;
-  margin-bottom:1rem;
-}
-.mark .fono{font-weight:200; color:var(--bone)}
-.mark .saur{font-weight:700; animation:drift 10s ease infinite}
-@keyframes drift{
-  0%,100%{color:var(--blue);  text-shadow:0 0 20px rgba(59,139,255,.15)}
-  25%    {color:var(--purple);text-shadow:0 0 20px rgba(139,92,246,.15)}
-  50%    {color:var(--bronze);text-shadow:0 0 20px rgba(160,104,32,.2)}
-  75%    {color:var(--green); text-shadow:0 0 22px rgba(0,204,80,.18)}
-}
-@media (prefers-reduced-motion:reduce){
-  .mark .saur{animation:none; color:var(--green)}
-}
-.tagline{
-  font-family:'Unbounded',sans-serif; font-weight:300;
-  font-size:0.8rem; letter-spacing:0.03em; color:var(--bone); margin-bottom:0.4rem;
-}
-.sub{font-size:0.7rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--dim)}
+      .mark {
+        font-family: "Unbounded", sans-serif;
+        font-size: clamp(1.7rem, 9vw, 2.6rem);
+        line-height: 0.9;
+        letter-spacing: -0.01em;
+        margin-bottom: 1rem;
+      }
+      .mark .fono {
+        font-weight: 200;
+        color: var(--bone);
+      }
+      .mark .saur {
+        font-weight: 700;
+        animation: drift 10s ease infinite;
+      }
+      @keyframes drift {
+        0%,
+        100% {
+          color: var(--blue);
+          text-shadow: 0 0 20px rgba(59, 139, 255, 0.15);
+        }
+        25% {
+          color: var(--purple);
+          text-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+        }
+        50% {
+          color: var(--bronze);
+          text-shadow: 0 0 20px rgba(160, 104, 32, 0.2);
+        }
+        75% {
+          color: var(--green);
+          text-shadow: 0 0 22px rgba(0, 204, 80, 0.18);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .mark .saur {
+          animation: none;
+          color: var(--green);
+        }
+      }
+      .tagline {
+        font-family: "Unbounded", sans-serif;
+        font-weight: 300;
+        font-size: 0.8rem;
+        letter-spacing: 0.03em;
+        color: var(--bone);
+        margin-bottom: 0.4rem;
+      }
+      .sub {
+        font-size: 0.7rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--dim);
+      }
 
-/* link stack */
-.stack{width:100%; display:flex; flex-direction:column; gap:0.6rem; margin-top:2.2rem}
-.stack a{
-  display:block; width:100%; padding:0.95rem 1rem;
-  border:1px solid var(--faint); border-radius:6px;
-  color:var(--bone); text-decoration:none;
-  font-size:0.82rem; letter-spacing:0.05em;
-  transition:border-color .16s ease, background .16s ease, color .16s ease;
-}
-.stack a:hover, .stack a:focus-visible{
-  border-color:var(--green); color:var(--green);
-  background:rgba(61,220,132,0.04); outline:none;
-}
+      /* link stack */
+      .stack {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        margin-top: 2.2rem;
+      }
+      .stack a {
+        display: block;
+        width: 100%;
+        padding: 0.95rem 1rem;
+        border: 1px solid var(--faint);
+        border-radius: 6px;
+        color: var(--bone);
+        text-decoration: none;
+        font-size: 0.82rem;
+        letter-spacing: 0.05em;
+        transition:
+          border-color 0.16s ease,
+          background 0.16s ease,
+          color 0.16s ease;
+      }
+      .stack a:hover,
+      .stack a:focus-visible {
+        border-color: var(--blue);
+        color: var(--blue);
+        background: rgba(59, 139, 255, 0.06);
+        outline: none;
+      }
 
-/* mailing list — quieter than the buttons */
-.notify{width:100%; margin-top:2rem; padding-top:1.6rem; border-top:1px solid var(--faint)}
-.notify p{font-size:0.72rem; color:var(--dim); margin-bottom:0.8rem; letter-spacing:0.02em}
-.field{display:flex; gap:0.45rem}
-.field input{
-  flex:1; min-width:0; background:transparent; border:1px solid var(--faint);
-  border-radius:6px; color:var(--bone); font-family:inherit; font-size:0.78rem; padding:0.6rem 0.7rem;
-}
-.field input::placeholder{color:var(--dim)}
-.field input:focus{outline:none; border-color:var(--green)}
-.field button{
-  background:var(--bone); color:var(--bg); border:1px solid var(--bone); border-radius:6px;
-  font-family:inherit; font-weight:500; font-size:0.72rem; letter-spacing:0.03em;
-  padding:0 0.9rem; cursor:pointer; white-space:nowrap;
-  transition:background .16s ease, border-color .16s ease;
-}
-.field button:hover, .field button:focus-visible{background:var(--green); border-color:var(--green); outline:none}
-.note{font-size:0.7rem; color:var(--green); margin-top:0.7rem; min-height:1rem}
+      /* mailing list — quieter than the buttons */
+      .notify {
+        width: 100%;
+        margin-top: 2rem;
+        padding-top: 1.6rem;
+        border-top: 1px solid var(--faint);
+      }
+      .notify p {
+        font-size: 0.72rem;
+        color: var(--dim);
+        margin-bottom: 0.8rem;
+        letter-spacing: 0.02em;
+      }
+      .field {
+        display: flex;
+        gap: 0.45rem;
+      }
+      .field input {
+        flex: 1;
+        min-width: 0;
+        background: transparent;
+        border: 1px solid var(--faint);
+        border-radius: 6px;
+        color: var(--bone);
+        font-family: inherit;
+        font-size: 0.78rem;
+        padding: 0.6rem 0.7rem;
+      }
+      .field input::placeholder {
+        color: var(--dim);
+      }
+      .field input:focus {
+        outline: none;
+        border-color: var(--blue);
+      }
+      .field button {
+        background: var(--bone);
+        color: var(--bg);
+        border: 1px solid var(--bone);
+        border-radius: 6px;
+        font-family: inherit;
+        font-weight: 500;
+        font-size: 0.72rem;
+        letter-spacing: 0.03em;
+        padding: 0 0.9rem;
+        cursor: pointer;
+        white-space: nowrap;
+        transition:
+          background 0.16s ease,
+          border-color 0.16s ease;
+      }
+      .field button:hover,
+      .field button:focus-visible {
+        background: var(--blue);
+        border-color: var(--blue);
+        outline: none;
+      }
+      .note {
+        font-size: 0.7rem;
+        color: var(--blue);
+        margin-top: 0.7rem;
+        min-height: 1rem;
+      }
 
-footer{margin-top:2.4rem; font-size:0.62rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--faint)}
+      footer {
+        margin-top: 2.4rem;
+        font-size: 0.62rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--faint);
+      }
 
-#dust{position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none}
-.wrap{position:relative; z-index:1}
+      #dust {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+        pointer-events: none;
+      }
+      .wrap {
+        position: relative;
+        z-index: 1;
+      }
 
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
-</style>
-</head>
-<body>
-  <canvas id="dust" aria-hidden="true"></canvas>
-  <main class="wrap">
-    <h1 class="mark"><span class="fono">FONO</span><span class="saur">SAUR</span></h1>
-    <p class="sub">Traversal — EP · 2022</p>
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="dust" aria-hidden="true"></canvas>
+    <main class="wrap">
+      <h1 class="mark">
+        <span class="fono">FONO</span><span class="saur">SAUR</span>
+      </h1>
+      <p class="sub">Traversal — EP · 2022</p>
 
-    <nav class="stack" id="stack" aria-label="Listen"></nav>
+      <nav class="stack" id="stack" aria-label="Listen"></nav>
 
-    <section class="notify" aria-label="Mailing list">
-      <p>New release 2026 — be first to hear it.</p>
-      <form class="field" id="signup">
-        <input type="email" name="email" placeholder="your@email.com" required aria-label="Email address">
-        <button type="submit">Notify me</button>
-      </form>
-      <p class="note" id="note" role="status" aria-live="polite"></p>
-    </section>
+      <section class="notify" aria-label="Mailing list">
+        <p>New release 2026 — be first to hear it.</p>
+        <form class="field" id="signup">
+          <input
+            type="email"
+            name="email"
+            placeholder="your@email.com"
+            required
+            aria-label="Email address"
+          />
+          <button type="submit">Notify me</button>
+        </form>
+        <p class="note" id="note" role="status" aria-live="polite"></p>
+      </section>
 
-    <footer>© 2026 FONOSAUR</footer>
-  </main>
+      <footer>© 2026 FONOSAUR</footer>
+    </main>
 
-<script>
-/* =========================================================================
+    <script>
+      /* =========================================================================
    FONOSAUR — holding page config. Edit ONLY this block.
    Paste each link from your CD Baby dashboard. Leave "" and that button
    simply won't show — so there are never any dead links.
    ========================================================================= */
-const CONFIG = {
-  links: {
-    "Spotify":      "https://open.spotify.com/album/2OtQAfwSaabg4yJiWJpD5t",
-    "Apple Music":  "https://music.apple.com/us/album/traversal-ep/1616402193",
-    "Amazon Music": "https://music.amazon.co.uk/albums/B09WM13NS3",
-    "Bandcamp":     "https://fonosaur.bandcamp.com/album/traversal-ep",
-    "YouTube":      "https://www.youtube.com/@fonosaur"
-  },
-  mailingListAction: "https://buttondown.com/api/emails/embed-subscribe/fonosaur",
-  mailingListFieldName: "email",  // Buttondown uses "email"
-  contactEmail: "fonosaur@gmail.com"
-};
-/* ===================== end config ======================================== */
+      const CONFIG = {
+        links: {
+          Spotify: "https://open.spotify.com/album/2OtQAfwSaabg4yJiWJpD5t",
+          "Apple Music":
+            "https://music.apple.com/us/album/traversal-ep/1616402193",
+          "Amazon Music": "https://music.amazon.co.uk/albums/B09WM13NS3",
+          Bandcamp: "https://fonosaur.bandcamp.com/album/traversal-ep",
+          YouTube: "https://www.youtube.com/@fonosaur",
+        },
+        mailingListAction:
+          "https://buttondown.com/api/emails/embed-subscribe/fonosaur",
+        mailingListFieldName: "email", // Buttondown uses "email"
+        contactEmail: "fonosaur@gmail.com",
+      };
+      /* ===================== end config ======================================== */
 
-(function(){
-  const stack = document.getElementById('stack');
-  let any = false;
-  Object.entries(CONFIG.links).forEach(([name,url])=>{
-    if(!url) return; any = true;
-    const a = document.createElement('a');
-    a.href = url; a.target = "_blank"; a.rel = "noopener noreferrer"; a.textContent = name;
-    stack.appendChild(a);
-  });
-  if(!any) stack.innerHTML = '<span style="color:var(--dim);font-size:0.78rem">Links coming soon</span>';
+      (function () {
+        const stack = document.getElementById("stack");
+        let any = false;
+        Object.entries(CONFIG.links).forEach(([name, url]) => {
+          if (!url) return;
+          any = true;
+          const a = document.createElement("a");
+          a.href = url;
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          a.textContent = name;
+          stack.appendChild(a);
+        });
+        if (!any)
+          stack.innerHTML =
+            '<span style="color:var(--dim);font-size:0.78rem">Links coming soon</span>';
 
-  const form = document.getElementById('signup');
-  const note = document.getElementById('note');
-  const input = form.querySelector('input');
-  if(CONFIG.mailingListAction){
-    form.action = CONFIG.mailingListAction; form.method = "post"; form.target = "_blank";
-    if(CONFIG.mailingListFieldName !== "email") input.name = CONFIG.mailingListFieldName;
-    const embed = document.createElement('input');
-    embed.type = "hidden"; embed.name = "embed"; embed.value = "1";
-    form.appendChild(embed);
-    form.addEventListener('submit',()=>{ note.textContent = "Almost there — check your inbox to confirm."; });
-  } else {
-    form.addEventListener('submit',(e)=>{
-      e.preventDefault();
-      const v = input.value.trim(); if(!v) return;
-      window.location.href = "mailto:"+CONFIG.contactEmail+"?subject="+encodeURIComponent("Notify me — FONOSAUR")+"&body="+encodeURIComponent("Add me to the list: "+v);
-      note.textContent = "Opening your mail app…";
-    });
-  }
-})();
+        const form = document.getElementById("signup");
+        const note = document.getElementById("note");
+        const input = form.querySelector("input");
+        if (CONFIG.mailingListAction) {
+          form.action = CONFIG.mailingListAction;
+          form.method = "post";
+          form.target = "_blank";
+          if (CONFIG.mailingListFieldName !== "email")
+            input.name = CONFIG.mailingListFieldName;
+          const embed = document.createElement("input");
+          embed.type = "hidden";
+          embed.name = "embed";
+          embed.value = "1";
+          form.appendChild(embed);
+          form.addEventListener("submit", () => {
+            note.textContent = "Almost there — check your inbox to confirm.";
+          });
+        } else {
+          form.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const v = input.value.trim();
+            if (!v) return;
+            window.location.href =
+              "mailto:" +
+              CONFIG.contactEmail +
+              "?subject=" +
+              encodeURIComponent("Notify me — FONOSAUR") +
+              "&body=" +
+              encodeURIComponent("Add me to the list: " + v);
+            note.textContent = "Opening your mail app…";
+          });
+        }
+      })();
 
-/* ---- ambient dust: slow suspended sediment behind the content ---- */
-(function(){
-  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const cv = document.getElementById('dust');
-  const ctx = cv.getContext('2d');
-  const PAL = ['232,224,212','59,139,255','139,92,246','0,204,80','160,104,32']; // bone + the 4 drift colours
-  let motes = [], raf = null, dpr = Math.min(window.devicePixelRatio||1, 2);
+      /* ---- ambient dust: slow suspended sediment behind the content ---- */
+      (function () {
+        if (
+          window.matchMedia &&
+          window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        )
+          return;
+        const cv = document.getElementById("dust");
+        const ctx = cv.getContext("2d");
+        const PAL = [
+          "232,224,212",
+          "59,139,255",
+          "139,92,246",
+          "0,204,80",
+          "160,104,32",
+        ]; // bone + the 4 drift colours
+        let motes = [],
+          raf = null,
+          dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-  function size(){
-    cv.width = innerWidth*dpr; cv.height = innerHeight*dpr;
-    cv.style.width = innerWidth+'px'; cv.style.height = innerHeight+'px';
-    ctx.setTransform(dpr,0,0,dpr,0,0);
-  }
-  function seed(){
-    motes = [];
-    const n = Math.min(46, Math.round(innerWidth/24));
-    for(let i=0;i<n;i++){
-      motes.push({
-        x:Math.random()*innerWidth, y:Math.random()*innerHeight,
-        r:Math.random()*1.4+0.4, vy:-(Math.random()*0.16+0.04),
-        sway:Math.random()*0.5+0.1, ph:Math.random()*Math.PI*2,
-        a:Math.random()*0.32+0.07,
-        c: Math.random()<0.16 ? PAL[1+Math.floor(Math.random()*4)] : PAL[0]
-      });
-    }
-  }
-  function draw(){
-    ctx.clearRect(0,0,innerWidth,innerHeight);
-    for(const m of motes){
-      m.y += m.vy; m.ph += 0.01; m.x += Math.sin(m.ph)*m.sway*0.3;
-      if(m.y < -4){ m.y = innerHeight+4; m.x = Math.random()*innerWidth; }
-      ctx.beginPath();
-      ctx.fillStyle = `rgba(${m.c},${m.a})`;
-      ctx.arc(m.x,m.y,m.r,0,Math.PI*2); ctx.fill();
-    }
-    raf = requestAnimationFrame(draw);
-  }
-  size(); seed(); draw();
-  let rt; addEventListener('resize',()=>{ clearTimeout(rt); rt=setTimeout(()=>{ size(); seed(); }, 150); });
-  // pause when tab is hidden to save battery
-  document.addEventListener('visibilitychange',()=>{
-    if(document.hidden){ cancelAnimationFrame(raf); raf=null; }
-    else if(!raf){ draw(); }
-  });
-})();
-</script>
-</body>
+        function size() {
+          cv.width = innerWidth * dpr;
+          cv.height = innerHeight * dpr;
+          cv.style.width = innerWidth + "px";
+          cv.style.height = innerHeight + "px";
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+        function seed() {
+          motes = [];
+          const n = Math.min(46, Math.round(innerWidth / 24));
+          for (let i = 0; i < n; i++) {
+            motes.push({
+              x: Math.random() * innerWidth,
+              y: Math.random() * innerHeight,
+              r: Math.random() * 1.4 + 0.4,
+              vy: -(Math.random() * 0.16 + 0.04),
+              sway: Math.random() * 0.5 + 0.1,
+              ph: Math.random() * Math.PI * 2,
+              a: Math.random() * 0.32 + 0.07,
+              c:
+                Math.random() < 0.16
+                  ? PAL[1 + Math.floor(Math.random() * 4)]
+                  : PAL[0],
+            });
+          }
+        }
+        function draw() {
+          ctx.clearRect(0, 0, innerWidth, innerHeight);
+          for (const m of motes) {
+            m.y += m.vy;
+            m.ph += 0.01;
+            m.x += Math.sin(m.ph) * m.sway * 0.3;
+            if (m.y < -4) {
+              m.y = innerHeight + 4;
+              m.x = Math.random() * innerWidth;
+            }
+            ctx.beginPath();
+            ctx.fillStyle = `rgba(${m.c},${m.a})`;
+            ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          raf = requestAnimationFrame(draw);
+        }
+        size();
+        seed();
+        draw();
+        let rt;
+        addEventListener("resize", () => {
+          clearTimeout(rt);
+          rt = setTimeout(() => {
+            size();
+            seed();
+          }, 150);
+        });
+        // pause when tab is hidden to save battery
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            cancelAnimationFrame(raf);
+            raf = null;
+          } else if (!raf) {
+            draw();
+          }
+        });
+      })();
+    </script>
+  </body>
 </html>
