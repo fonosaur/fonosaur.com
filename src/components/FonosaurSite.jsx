@@ -376,7 +376,9 @@ function Listen() {
           src="https://bandcamp.com/EmbeddedPlayer/album=2601440823/size=large/bgcol=333333/linkcol=ffffff/artwork=small/tracklist=true/transparent=true/"
           seamless
         >
-          <a href="https://fonosaur.bandcamp.com/album/traversal-ep">Traversal - EP by Fonosaur</a>
+          <a href="https://fonosaur.bandcamp.com/album/traversal-ep">
+            Traversal - EP by Fonosaur
+          </a>
         </iframe>
       </div>
       <div
@@ -1118,8 +1120,7 @@ export default function FonosaurSite({ notes = [] }) {
   };
 
   const renderZone = (id) => {
-    if (id === "listen")
-      return <Listen />;
+    if (id === "listen") return <Listen />;
     if (id === "explore") return <Explore onGame={openGame} notes={notes} />;
     if (id === "create") return <Create />;
     if (id === "collect") return <Collect />;
