@@ -10,12 +10,12 @@ import { config, fields, collection } from "@keystatic/core";
  *    Set `repo` below to your repo, and see SETUP.md for the auth step.
  */
 export default config({
-  storage:
-    process.env.NODE_ENV === "production" &&
-    process.env.KEYSTATIC_GITHUB_CLIENT_ID
-      ? { kind: "github", repo: "fonosaur/fonosaur.com" }
-      : { kind: "local" },
-
+  storage: {
+    kind: "cloud",
+  },
+  cloud: {
+    project: "fonosaur/fonosaur-site",
+  },
   ui: { brand: { name: "FONOSAUR" } },
 
   collections: {
