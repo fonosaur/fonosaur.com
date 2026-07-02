@@ -347,15 +347,7 @@ const Eyebrow = ({ color, children }) => (
   </div>
 );
 
-function Listen({ onPlay, playing }) {
-  const tracks = [
-    "Heavy",
-    "Loving Woman",
-    "Engolo",
-    "I Know",
-    "Our City",
-    "Come Home",
-  ];
+function Listen() {
   return (
     <div>
       <Eyebrow color={C.sub}>Traversal EP · 2022 · 6 tracks</Eyebrow>
@@ -370,61 +362,22 @@ function Listen({ onPlay, playing }) {
       >
         Traversal
       </h2>
-      <button
-        onClick={onPlay}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 9,
-          background: C.text,
-          color: C.bg,
-          border: "none",
-          borderRadius: 999,
-          padding: "12px 22px",
-          fontSize: 15,
-          fontWeight: 700,
-          cursor: "pointer",
-          marginBottom: 24,
-        }}
-      >
-        {playing ? <Pause size={16} /> : <Play size={16} />}{" "}
-        {playing ? "Pause" : "Play the EP"}
-      </button>
       <div
         style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-          border: `1px solid ${C.line}`,
           borderRadius: 12,
           overflow: "hidden",
           marginBottom: 22,
+          border: `1px solid ${C.line}`,
         }}
       >
-        {tracks.map((t, i) => (
-          <div
-            key={t}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              padding: "14px 16px",
-              background: C.panel,
-            }}
-          >
-            <span
-              style={{
-                fontFamily: "'Space Mono', monospace",
-                color: C.sub,
-                fontSize: 12,
-                width: 18,
-              }}
-            >
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            <span style={{ fontSize: 15 }}>{t}</span>
-          </div>
-        ))}
+        <iframe
+          title="Traversal EP on Bandcamp"
+          style={{ border: 0, width: "100%", height: 406 }}
+          src="https://bandcamp.com/EmbeddedPlayer/album=2601440823/size=large/bgcol=333333/linkcol=ffffff/artwork=small/tracklist=true/transparent=true/"
+          seamless
+        >
+          <a href="https://fonosaur.bandcamp.com/album/traversal-ep">Traversal - EP by Fonosaur</a>
+        </iframe>
       </div>
       <div
         style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 26 }}
@@ -944,7 +897,7 @@ export default function FonosaurSite({ notes = [] }) {
   );
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(false);
-  const [progress, setProgress] = useState(0.18);
+  const [progress, setProgress] = useState(0);
   const [warpKey, setWarpKey] = useState(0);
   const [activeKey, setActiveKey] = useState(null);
   const [gameOpen, setGameOpen] = useState(false);
@@ -1166,7 +1119,7 @@ export default function FonosaurSite({ notes = [] }) {
 
   const renderZone = (id) => {
     if (id === "listen")
-      return <Listen onPlay={togglePlay} playing={playing} />;
+      return <Listen />;
     if (id === "explore") return <Explore onGame={openGame} notes={notes} />;
     if (id === "create") return <Create />;
     if (id === "collect") return <Collect />;
@@ -1323,86 +1276,6 @@ export default function FonosaurSite({ notes = [] }) {
             </button>
           </div>
         </header>
-        <div
-          style={{
-            position: "fixed",
-            bottom: 16,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 8,
-            width: "min(440px, calc(100vw - 32px))",
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            background: "rgba(18,18,21,0.94)",
-            border: `1px solid ${C.line}`,
-            borderRadius: 14,
-            padding: "10px 14px",
-          }}
-        >
-          <button
-            onClick={togglePlay}
-            style={{
-              display: "flex",
-              background: C.text,
-              color: C.bg,
-              border: "none",
-              borderRadius: 999,
-              padding: 8,
-              cursor: "pointer",
-            }}
-          >
-            {playing ? <Pause size={15} /> : <Play size={15} />}
-          </button>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginBottom: 5,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 600,
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                Engolo — FONOSAUR
-              </span>
-              <span
-                style={{
-                  fontFamily: "'Space Mono', monospace",
-                  fontSize: 11,
-                  color: C.sub,
-                  marginLeft: 8,
-                }}
-              >
-                {mm}:{ss}
-              </span>
-            </div>
-            <div
-              style={{
-                height: 3,
-                background: C.line,
-                borderRadius: 2,
-                overflow: "hidden",
-              }}
-            >
-              <div
-                style={{
-                  height: "100%",
-                  width: `${progress * 100}%`,
-                  background: accent,
-                  borderRadius: 2,
-                }}
-              />
-            </div>
-          </div>
-        </div>
       </>
     );
   };
