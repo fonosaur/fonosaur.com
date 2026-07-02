@@ -1,11 +1,10 @@
+import path from "path";
 import { createReader } from "@keystatic/core/reader";
 import keystaticConfig from "../../keystatic.config";
 
-// The Reader API is a Node API — only call these from Server Components / route handlers.
-export const reader = createReader(process.cwd(), {
-  ...keystaticConfig,
-  storage: { kind: "local" }, // always read from local files, even in production
-});
+// Always read from local files at build time, regardless of the admin's cloud storage.
+const localConfig = { ...keystaticConfig, storage: { kind: "local" as const } };
+export const reader = createReader(path.join(process.cwd()), localConfig);
 
 export async function getLatestFieldNotes(limit = 4) {
   const all = await reader.collections.fieldNotes.all();

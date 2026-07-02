@@ -1,7 +1,7 @@
 import FonosaurSite from "@/components/FonosaurSite";
 import { getLatestFieldNotes } from "@/lib/notes";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 // Server Component: read field notes at request/build time, hand them to the
 // interactive (client) shell as plain serialisable data.

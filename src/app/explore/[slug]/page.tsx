@@ -5,7 +5,7 @@ import Markdoc from "@markdoc/markdoc";
 import { getFieldNote, getAllFieldNoteSlugs } from "@/lib/notes";
 import { NoteMedia } from "@/components/note-media";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-static";
 
 const C = { sub: "#8a8a92", text: "#e8e8ea", blue: "#3b8bff", line: "#26262b" };
 
