@@ -2,20 +2,17 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import {
-  Play,
-  Pause,
   Volume2,
   VolumeX,
   Mail,
   ShoppingBag,
   Gamepad2,
   Disc,
-  Share2,
   Headphones,
   Compass,
   ChevronRight,
-  X,
 } from "lucide-react";
+import { youtubeId } from "@/components/note-media";
 
 /* ============================================================================
  * FONOSAUR — unified responsive site
@@ -32,6 +29,7 @@ const C = {
   text: "#e8e8ea",
   blue: "#3b8bff",
   purple: "#8b5cf6",
+  amber: "#ff8a3d",
   bronze: "#a06820",
   green: "#00cc50",
 };
@@ -55,6 +53,12 @@ const ZONES = {
     tag: "play",
     desc: "Play with the sounds behind the music",
   },
+  play: {
+    label: "Play",
+    accent: C.amber,
+    tag: "game",
+    desc: "Dino Sling, ready when you are",
+  },
   collect: {
     label: "Collect",
     accent: C.bronze,
@@ -68,12 +72,13 @@ const ZONES = {
     desc: "Occasional updates",
   },
 };
-const ORDER = ["listen", "explore", "create", "collect", "follow"];
-const MAIN = ["listen", "explore", "create", "collect"];
+const ORDER = ["listen", "explore", "create", "play", "collect", "follow"];
+const MAIN = ["listen", "explore", "create", "play", "collect"];
 const ICON = {
   listen: Headphones,
   explore: Compass,
   create: Disc,
+  play: Gamepad2,
   collect: ShoppingBag,
   follow: Mail,
 };
@@ -82,7 +87,8 @@ const DESK_POS = {
   listen: { col: 0, row: 0 },
   explore: { col: -1, row: 0 },
   create: { col: 1, row: 0 },
-  collect: { col: 0, row: 1 },
+  play: { col: -1, row: 1 },
+  collect: { col: 1, row: 1 },
   follow: { col: 0, row: -1 },
 };
 
@@ -107,6 +113,11 @@ const FRAME = {
   transform: "translateX(-50%)",
   width: "min(480px,100vw)",
 };
+const AMBIENT_TRACKS = [
+  "/audio/londonstreet.mp3",
+  "/audio/naijamarket.mp3",
+  "/audio/naijastreet.mp3",
+];
 
 /* --------------------------------------------------------------- ambient dust */
 function Dust({ reduced }) {
@@ -305,9 +316,18 @@ function Warp({ trigger, color, reduced }) {
 
 /* ------------------------------------------------------- compass indicator */
 function CompassMini({ active }) {
-  const node = (id, x, y) => {
+  const points = {
+    follow: [29, 12],
+    explore: [14, 27],
+    listen: [29, 29],
+    create: [44, 27],
+    play: [20, 45],
+    collect: [38, 45],
+  };
+  const node = (id) => {
     const on = active === id;
     const a = ZONES[id].accent;
+    const [x, y] = points[id];
     return (
       <circle
         cx={x}
@@ -322,12 +342,46 @@ function CompassMini({ active }) {
   };
   return (
     <svg width="54" height="54" viewBox="0 0 58 58" aria-hidden>
-      <line x1="29" y1="14" x2="29" y2="44" stroke="#26262b" strokeWidth="1" />
-      <line x1="14" y1="29" x2="44" y2="29" stroke="#26262b" strokeWidth="1" />
-      {node("follow", 29, 14)} {node("collect", 29, 44)}
-      {node("explore", 14, 29)} {node("create", 44, 29)}{" "}
-      {node("listen", 29, 29)}
+      <line x1="29" y1="29" x2="29" y2="12" stroke="#26262b" strokeWidth="1" />
+      <line x1="29" y1="29" x2="14" y2="27" stroke="#26262b" strokeWidth="1" />
+      <line x1="29" y1="29" x2="44" y2="27" stroke="#26262b" strokeWidth="1" />
+      <line x1="29" y1="29" x2="20" y2="45" stroke="#26262b" strokeWidth="1" />
+      <line x1="29" y1="29" x2="38" y2="45" stroke="#26262b" strokeWidth="1" />
+      {node("follow")}
+      {node("explore")}
+      {node("listen")}
+      {node("create")}
+      {node("play")}
+      {node("collect")}
     </svg>
+  );
+}
+
+function AmbientToggle({ active, onToggle, compact = false }) {
+  return (
+    <button
+      onClick={onToggle}
+      aria-pressed={active}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: compact ? 6 : 8,
+        background: active ? "rgba(0,204,80,0.14)" : "rgba(20,20,23,0.7)",
+        border: `1px solid ${active ? C.green : C.line}`,
+        borderRadius: 999,
+        padding: compact ? "8px 11px" : "9px 14px",
+        color: active ? C.green : C.sub,
+        cursor: "pointer",
+        fontFamily: "'Space Mono', monospace",
+        fontSize: compact ? 10 : 11,
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {active ? <Volume2 size={compact ? 14 : 15} /> : <VolumeX size={compact ? 14 : 15} />}
+      <span>{active ? "Ambient On" : "Ambient Off"}</span>
+    </button>
   );
 }
 
@@ -372,8 +426,8 @@ function Listen() {
       >
         <iframe
           title="Traversal EP on Bandcamp"
-          style={{ border: 0, width: "100%", height: 406 }}
-          src="https://bandcamp.com/EmbeddedPlayer/album=2601440823/size=large/bgcol=333333/linkcol=ffffff/artwork=small/tracklist=true/transparent=true/"
+          style={{ border: 0, width: "100%", height: 740 }}
+          src="https://bandcamp.com/EmbeddedPlayer/album=2601440823/size=large/bgcol=333333/linkcol=ffffff/artwork=big/tracklist=true/transparent=true/"
           seamless
         >
           <a href="https://fonosaur.bandcamp.com/album/traversal-ep">
@@ -382,42 +436,55 @@ function Listen() {
         </iframe>
       </div>
       <div
-        style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 26 }}
+        style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 26, justifyContent: "center" }}
       >
         {[
           {
             label: "Spotify",
             href: "https://open.spotify.com/album/2OtQAfwSaabg4yJiWJpD5t",
+            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.5 17.3c-.2.3-.6.4-1 .2-2.7-1.6-6-2-10-1.1-.4.1-.7-.1-.8-.5-.1-.4.1-.7.5-.8 4.3-1 8-.6 11 1.2.4.2.5.6.3 1zm1.5-3.3c-.3.4-.8.5-1.2.3-3-1.9-7.7-2.4-11.3-1.3-.5.1-1-.1-1.1-.6-.1-.5.1-1 .6-1.1 4.1-1.3 9.2-.7 12.7 1.5.3.2.5.7.3 1.2zm.1-3.4c-3.7-2.2-9.7-2.4-13.2-1.3-.5.2-1.1-.1-1.3-.6-.2-.5.1-1.1.6-1.3 4-1.2 10.6-1 14.8 1.5.5.3.6.9.4 1.4-.3.5-.9.6-1.3.3z"/></svg>,
           },
           {
             label: "Apple Music",
             href: "https://music.apple.com/us/album/traversal-ep/1616402193",
+            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.99 6.07c0-.87-.06-1.74-.24-2.6a5.4 5.4 0 00-1.27-2.24A5.27 5.27 0 0020.24.05C19.4-.06 18.54 0 17.68 0H6.3c-.87 0-1.73.01-2.58.22A5.28 5.28 0 001.5 1.5 5.28 5.28 0 00.22 3.72C.01 4.57 0 5.43 0 6.3v11.4c0 .85.04 1.71.24 2.55a5.35 5.35 0 001.27 2.24c.65.66 1.4 1.1 2.24 1.27.86.2 1.72.24 2.6.24h11.3c.87 0 1.74-.03 2.58-.24a5.35 5.35 0 002.24-1.27c.66-.65 1.1-1.4 1.27-2.24.21-.84.25-1.7.25-2.55V6.07zM17.5 17.97c0 .62-.2 1.17-.56 1.63a2.83 2.83 0 01-1.42.99c-.44.14-.9.2-1.35.16a2.3 2.3 0 01-1.24-.44 2.27 2.27 0 01-.82-1.64c-.04-.6.12-1.15.45-1.62.33-.47.78-.8 1.32-1l1.12-.4V10.5l-5.5 1.7v6.43c0 .63-.19 1.19-.55 1.65a2.84 2.84 0 01-1.43 1c-.44.14-.9.19-1.35.15a2.3 2.3 0 01-1.24-.44A2.3 2.3 0 014.7 19.4c-.04-.6.12-1.16.45-1.63.34-.47.79-.8 1.33-1l1.12-.42V8.82c0-.4.1-.76.33-1.07.22-.3.52-.5.87-.58l6.7-1.94c.2-.06.4-.06.58 0 .19.04.35.14.46.29a.8.8 0 01.17.5l-.01 11.95z"/></svg>,
           },
           {
             label: "Amazon Music",
             href: "https://music.amazon.co.uk/albums/B09WM13NS3",
+            icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M.045 18.02c.07-.116.196-.048.283.003 2.66 1.55 5.57 2.37 8.674 2.37 2.518 0 5.208-.6 7.592-1.74.122-.054.284-.116.384.013.1.13.012.303-.09.4-1.506 1.15-3.841 2.09-6.104 2.667-2.264.577-4.378.67-6.382.296C2.59 21.69 1.12 21.12.05 20.51c-.12-.07-.133-.3-.005-.49zm14.19-1.2c-.18-.22-.424-.17-.625-.088-.67.27-1.386.42-1.96.42-.756 0-1.14-.35-1.14-.95 0-1.29 1.44-1.59 2.89-1.59h.37v-.38c0-.44-.01-.88-.16-1.2-.15-.33-.49-.54-.95-.54-.14 0-.3.01-.45.05-.39.09-.4.45-.56.45-.14 0-.53-.35-.53-.65 0-.54.93-1.08 2.04-1.08 1.63 0 2.24.87 2.24 2.29v2.52c0 .36.2.53.2.76 0 .18-.63.66-.88.66-.18 0-.33-.13-.43-.32l-.07-.17zm-1.33-2.2h-.26c-.84 0-1.68.2-1.68.96 0 .44.27.68.7.68.45 0 .88-.27 1.15-.64l.09-.14v-.86zm5.72 2.93c-.25-.03-.46-.16-.58-.39l-1.86-3.55.02-.05 1.7-2.83c.1-.17.26-.3.49-.3.28 0 .6.22.6.47 0 .08-.03.16-.08.25l-1.36 2.16 1.6 3.14c.04.08.06.15.06.22 0 .26-.3.55-.55.55-.02 0-.03 0-.04 0z"/><path d="M21.7 19.56c-1.89 1.4-4.63 2.15-6.99 2.15-3.31 0-6.29-1.22-8.54-3.26-.18-.16-.02-.38.19-.26 2.43 1.42 5.44 2.27 8.55 2.27 2.1 0 4.4-.43 6.52-1.33.32-.14.59.21.27.43z"/><path d="M22.58 18.54c-.24-.31-1.6-.15-2.2-.07-.19.02-.21-.14-.05-.26 1.08-.76 2.86-.54 3.06-.28.21.25-.05 2.01-.81 2.85-.15.13-.29.06-.22-.11.22-.54.71-1.75.22-2.13z"/></svg>,
           },
           {
             label: "Bandcamp",
             href: "https://fonosaur.bandcamp.com/album/traversal-ep",
+            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M0 18.75l7.44-13.5H24l-7.44 13.5z"/></svg>,
           },
-          { label: "YouTube", href: "https://www.youtube.com/@fonosaur" },
+          {
+            label: "YouTube",
+            href: "https://www.youtube.com/@fonosaur",
+            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31.3 31.3 0 000 12a31.3 31.3 0 00.5 5.8 3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1c.4-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>,
+          },
         ].map((d) => (
           <a
             key={d.label}
             href={d.href}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={d.label}
+            title={d.label}
             style={{
-              fontSize: 13,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 38,
+              height: 38,
               color: C.sub,
               border: `1px solid ${C.line}`,
               borderRadius: 999,
-              padding: "9px 15px",
               textDecoration: "none",
             }}
           >
-            {d.label}
+            {d.icon}
           </a>
         ))}
       </div>
@@ -449,7 +516,7 @@ function Listen() {
   );
 }
 
-function Explore({ onGame, notes = [] }) {
+function Explore({ notes = [] }) {
   const fmt = (d) =>
     d
       ? new Date(d).toLocaleDateString("en-GB", {
@@ -472,65 +539,7 @@ function Explore({ onGame, notes = [] }) {
       >
         Things I've been exploring
       </h2>
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-          marginBottom: 18,
-        }}
-      >
-        {notes.length ? (
-          notes.map((n) => (
-            <a
-              key={n.slug}
-              href={`/explore/${n.slug}`}
-              style={{
-                textDecoration: "none",
-                background: C.panel,
-                border: `1px solid ${C.line}`,
-                borderRadius: 12,
-                padding: "16px 18px",
-                display: "block",
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: "'Space Mono', monospace",
-                  fontSize: 11,
-                  color: C.blue,
-                  letterSpacing: "0.12em",
-                  marginBottom: 7,
-                }}
-              >
-                {fmt(n.entry.publishedAt)}
-                {n.entry.tags && n.entry.tags.length
-                  ? " · " + n.entry.tags.join(" · ")
-                  : ""}
-              </div>
-              <div
-                style={{
-                  fontSize: 16,
-                  fontWeight: 600,
-                  marginBottom: 6,
-                  color: C.text,
-                }}
-              >
-                {n.entry.title}
-              </div>
-              {n.entry.summary && (
-                <div style={{ fontSize: 14, color: C.sub, lineHeight: 1.55 }}>
-                  {n.entry.summary}
-                </div>
-              )}
-            </a>
-          ))
-        ) : (
-          <p style={{ color: C.sub, fontSize: 14 }}>
-            First field notes coming soon.
-          </p>
-        )}
-      </div>
+      {false && (
       <button
         onClick={onGame}
         style={{
@@ -544,6 +553,7 @@ function Explore({ onGame, notes = [] }) {
           border: `1px solid ${C.blue}`,
           borderRadius: 12,
           padding: "16px 18px",
+          marginBottom: 24,
         }}
       >
         <Gamepad2 size={22} color={C.blue} />
@@ -566,34 +576,202 @@ function Explore({ onGame, notes = [] }) {
           Play
         </span>
       </button>
+      )}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 24,
+          marginBottom: 24,
+        }}
+      >
+        {notes.length ? (
+          notes.map((n) => {
+            const leadYouTubeId =
+              n.entry.leadMedia?.type === "youtube"
+                ? youtubeId(n.entry.leadMedia.url)
+                : null;
+            return (
+            <article key={n.slug}>
+              <div
+                style={{
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: 11,
+                  color: C.blue,
+                  letterSpacing: "0.12em",
+                  marginBottom: 7,
+                }}
+              >
+                {fmt(n.entry.publishedAt)}
+                {n.entry.tags && n.entry.tags.length
+                  ? " · " + n.entry.tags.join(" · ")
+                  : ""}
+              </div>
+              <div
+                style={{
+                  fontSize: 18,
+                  fontWeight: 600,
+                  marginBottom: 8,
+                  color: C.text,
+                }}
+              >
+                {n.entry.title}
+              </div>
+              {(n.entry.cover || n.entry.leadMedia) && (
+                <div style={{ marginBottom: 12, borderRadius: 10, overflow: "hidden" }}>
+                  {n.entry.cover ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={n.entry.cover} alt="" style={{ width: "100%", display: "block", borderRadius: 10 }} />
+                  ) : n.entry.leadMedia?.type === "image" ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={n.entry.leadMedia.src} alt="" style={{ width: "100%", display: "block", borderRadius: 10 }} />
+                  ) : leadYouTubeId ? (
+                    <iframe
+                      title={n.entry.title}
+                      src={`https://www.youtube-nocookie.com/embed/${leadYouTubeId}`}
+                      style={{ width: "100%", aspectRatio: "16/9", border: 0, borderRadius: 10 }}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : n.entry.leadMedia?.type === "video" ? (
+                    <video src={n.entry.leadMedia.src} controls style={{ width: "100%", borderRadius: 10 }} />
+                  ) : null}
+                </div>
+              )}
+              {n.entry.summary && (
+                <div style={{ fontSize: 15, color: C.sub, lineHeight: 1.6, marginBottom: 8 }}>
+                  {n.entry.summary}
+                </div>
+              )}
+              <a
+                href={`/explore/${n.slug}`}
+                style={{
+                  fontSize: 13,
+                  color: C.blue,
+                  textDecoration: "none",
+                  fontWeight: 600,
+                }}
+              >
+                Read more →
+              </a>
+              <div style={{ borderBottom: `1px solid ${C.line}`, marginTop: 20 }} />
+            </article>
+          );
+          })
+        ) : (
+          <p style={{ color: C.sub, fontSize: 14 }}>
+            First field notes coming soon.
+          </p>
+        )}
+      </div>
     </div>
   );
 }
 
 function Create() {
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "min(82vh, 780px)",
-        borderRadius: 16,
-        overflow: "hidden",
-        border: `1px solid ${C.line}`,
-        background: C.bg,
-      }}
-    >
-      <iframe
-        title="Create"
-        src="/create.html"
-        sandbox="allow-scripts allow-same-origin allow-clipboard-write"
+    <div>
+      <Eyebrow color={C.purple}>Create Â· instrument</Eyebrow>
+      <h2
+        style={{
+          fontFamily: "'Unbounded', sans-serif",
+          fontWeight: 200,
+          fontSize: "clamp(28px,8vw,42px)",
+          margin: "0 0 10px",
+          lineHeight: 1.05,
+        }}
+      >
+        Fonosaur pad deck
+      </h2>
+      <p
+        style={{
+          color: C.sub,
+          fontSize: 15,
+          lineHeight: 1.6,
+          margin: "0 0 20px",
+          maxWidth: 420,
+        }}
+      >
+        Tap through the textures and build a quick loop from the sounds behind
+        the record.
+      </p>
+      <div
         style={{
           width: "100%",
-          height: "100%",
-          border: 0,
-          display: "block",
+          height: "min(72vh, 720px)",
+          borderRadius: 16,
+          overflow: "hidden",
+          border: `1px solid ${C.line}`,
           background: C.bg,
         }}
-      />
+      >
+        <iframe
+          title="Create"
+          src="/create.html"
+          sandbox="allow-scripts allow-same-origin allow-clipboard-write"
+          style={{
+            width: "100%",
+            height: "100%",
+            border: 0,
+            display: "block",
+            background: C.bg,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function PlayZone() {
+  return (
+    <div>
+      <Eyebrow color={C.amber}>Play Â· Dino Sling</Eyebrow>
+      <h2
+        style={{
+          fontFamily: "'Unbounded', sans-serif",
+          fontWeight: 200,
+          fontSize: "clamp(28px,8vw,42px)",
+          margin: "0 0 10px",
+          lineHeight: 1.05,
+        }}
+      >
+        Dino Sling
+      </h2>
+      <p
+        style={{
+          color: C.sub,
+          fontSize: 15,
+          lineHeight: 1.6,
+          margin: "0 0 20px",
+          maxWidth: 420,
+        }}
+      >
+        A quick sling-shot duel against the computer. Easy to start, hard to
+        stop.
+      </p>
+      <div
+        style={{
+          width: "100%",
+          height: "min(72vh, 720px)",
+          borderRadius: 16,
+          overflow: "hidden",
+          border: `1px solid ${C.line}`,
+          background: C.bg,
+        }}
+      >
+        <iframe
+          title="Dino Sling"
+          src="/dino-sling.html"
+          sandbox="allow-scripts allow-same-origin"
+          style={{
+            width: "100%",
+            height: "100%",
+            border: 0,
+            display: "block",
+            background: "#000",
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -637,8 +815,7 @@ function Collect() {
           margin: "0 auto",
         }}
       >
-        Tees, hoodies, football shirts, caps, prints, notebooks, mugs and totes
-        — launching with the new EP. Follow to hear when it lands.
+        Merch soon come.
       </p>
     </div>
   );
@@ -677,9 +854,8 @@ function Follow() {
         style={{
           display: "flex",
           gap: 8,
-          marginBottom: 16,
           maxWidth: 440,
-          margin: "0 auto 16px",
+          margin: "0 auto",
         }}
       >
         <input
@@ -717,39 +893,12 @@ function Follow() {
           <Mail size={16} /> Join
         </button>
       </form>
-      <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-        {[
-          {
-            label: "Spotify",
-            href: "https://open.spotify.com/album/2OtQAfwSaabg4yJiWJpD5t",
-          },
-          { label: "Bandcamp", href: "https://fonosaur.bandcamp.com" },
-          { label: "Instagram", href: "#" },
-        ].map((s) => (
-          <a
-            key={s.label}
-            href={s.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              fontSize: 13,
-              color: C.sub,
-              border: `1px solid ${C.line}`,
-              borderRadius: 999,
-              padding: "9px 15px",
-              textDecoration: "none",
-            }}
-          >
-            {s.label}
-          </a>
-        ))}
-      </div>
     </div>
   );
 }
 
 /* ------------------------------------------------------------- mobile hub */
-function Hub({ go, onPlay, playing }) {
+function Hub({ go }) {
   return (
     <div
       style={{
@@ -775,26 +924,6 @@ function Hub({ go, onPlay, playing }) {
           <span style={{ fontWeight: 200 }}>FONO</span>
           <span className="saur">SAUR</span>
         </h1>
-        <button
-          onClick={onPlay}
-          style={{
-            marginTop: 22,
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 9,
-            background: C.text,
-            color: C.bg,
-            border: "none",
-            borderRadius: 999,
-            padding: "11px 22px",
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: "pointer",
-          }}
-        >
-          {playing ? <Pause size={16} /> : <Play size={16} />}{" "}
-          {playing ? "Pause" : "Enter the world"}
-        </button>
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {MAIN.map((id) => {
@@ -897,12 +1026,9 @@ export default function FonosaurSite({ notes = [] }) {
   const [screen, setScreen] = useState(() =>
     isMobileNow() ? "hub" : "listen",
   );
-  const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [ambientOn, setAmbientOn] = useState(false);
   const [warpKey, setWarpKey] = useState(0);
   const [activeKey, setActiveKey] = useState(null);
-  const [gameOpen, setGameOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [size, setSize] = useState(() => ({
     w: typeof window !== "undefined" ? window.innerWidth : 1200,
@@ -912,12 +1038,14 @@ export default function FonosaurSite({ notes = [] }) {
     typeof window !== "undefined" &&
     window.matchMedia &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const ambient = useRef({
+    el: null,
+    fade: 0,
+  });
+  const lastAmbientSrc = useRef(null);
   const audio = useRef({
     ctx: null,
     master: null,
-    drone: [],
-    droneGain: null,
-    on: false,
   });
   const scrollRef = useRef(null);
 
@@ -931,13 +1059,6 @@ export default function FonosaurSite({ notes = [] }) {
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
   }, []);
-  useEffect(() => {
-    const id = setInterval(
-      () => setProgress((p) => (playing ? (p + 0.0016) % 1 : p)),
-      120,
-    );
-    return () => clearInterval(id);
-  }, [playing]);
   useEffect(() => setMounted(true), []);
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
@@ -950,117 +1071,11 @@ export default function FonosaurSite({ notes = [] }) {
     if (!Ctx) return a;
     const ctx = new Ctx();
     const master = ctx.createGain();
-    master.gain.value = muted ? 0 : 0.5;
+    master.gain.value = 0.5;
     master.connect(ctx.destination);
     a.ctx = ctx;
     a.master = master;
     return a;
-  };
-  const startDrone = () => {
-    const a = ensure();
-    if (!a.ctx || a.on) return;
-    try {
-      a.ctx.resume();
-    } catch (e) {}
-    const g = a.ctx.createGain();
-    g.gain.value = 0;
-    g.connect(a.master);
-    const lp = a.ctx.createBiquadFilter();
-    lp.type = "lowpass";
-    lp.frequency.value = 620;
-    lp.connect(g);
-    a.drone = [55, 82.4, 110].map((f, i) => {
-      const o = a.ctx.createOscillator();
-      o.type = i === 0 ? "sine" : "triangle";
-      o.frequency.value = f;
-      o.detune.value = (i - 1) * 5;
-      o.connect(lp);
-      o.start();
-      return o;
-    });
-    const lfo = a.ctx.createOscillator();
-    lfo.frequency.value = 0.07;
-    const lg = a.ctx.createGain();
-    lg.gain.value = 0.025;
-    lfo.connect(lg);
-    lg.connect(g.gain);
-    lfo.start();
-    g.gain.setTargetAtTime(0.07, a.ctx.currentTime, 1.6);
-    a.droneGain = g;
-    a.on = true;
-  };
-  const duck = (on) => {
-    const a = audio.current;
-    if (a.droneGain && a.ctx)
-      a.droneGain.gain.setTargetAtTime(
-        on ? 0.015 : 0.07,
-        a.ctx.currentTime,
-        0.2,
-      );
-  };
-  const siren = () => {
-    const a = ensure();
-    if (!a.ctx) return;
-    const t = a.ctx.currentTime;
-    const o = a.ctx.createOscillator();
-    const bp = a.ctx.createBiquadFilter();
-    bp.type = "bandpass";
-    bp.frequency.value = 760;
-    bp.Q.value = 7;
-    const g = a.ctx.createGain();
-    o.type = "sawtooth";
-    o.frequency.setValueAtTime(820, t);
-    o.frequency.exponentialRampToValueAtTime(280, t + 0.5);
-    o.connect(bp);
-    bp.connect(g);
-    g.connect(a.master);
-    g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(0.1, t + 0.03);
-    g.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
-    o.start(t);
-    o.stop(t + 0.65);
-  };
-  const travel = () => {
-    const a = ensure();
-    if (!a.ctx) return;
-    const t = a.ctx.currentTime;
-    const dur = 1.2;
-    const buf = a.ctx.createBuffer(
-      1,
-      Math.floor(a.ctx.sampleRate * dur),
-      a.ctx.sampleRate,
-    );
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-    const src = a.ctx.createBufferSource();
-    src.buffer = buf;
-    const bp = a.ctx.createBiquadFilter();
-    bp.type = "bandpass";
-    bp.Q.value = 1.1;
-    bp.frequency.setValueAtTime(280, t);
-    bp.frequency.exponentialRampToValueAtTime(2200, t + 0.55);
-    bp.frequency.exponentialRampToValueAtTime(360, t + dur);
-    const ng = a.ctx.createGain();
-    ng.gain.setValueAtTime(0, t);
-    ng.gain.linearRampToValueAtTime(0.1, t + 0.18);
-    ng.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    src.connect(bp);
-    bp.connect(ng);
-    ng.connect(a.master);
-    src.start(t);
-    src.stop(t + dur);
-    const vo = a.ctx.createOscillator();
-    const vg = a.ctx.createGain();
-    vo.type = "sine";
-    vo.frequency.setValueAtTime(196, t);
-    vo.frequency.linearRampToValueAtTime(262, t + dur * 0.7);
-    vg.gain.setValueAtTime(0, t);
-    vg.gain.linearRampToValueAtTime(0.04, t + 0.25);
-    vg.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    vo.connect(vg);
-    vg.connect(a.master);
-    vo.start(t);
-    vo.stop(t + dur);
   };
   const pad = (freq) => {
     const a = ensure();
@@ -1078,59 +1093,110 @@ export default function FonosaurSite({ notes = [] }) {
     o.start(t);
     o.stop(t + 0.55);
   };
-  const togglePlay = () => {
-    startDrone();
-    setPlaying((p) => !p);
-    if (audio.current.droneGain)
-      audio.current.droneGain.gain.setTargetAtTime(
-        playing ? 0 : 0.07,
-        audio.current.ctx.currentTime,
-        0.3,
-      );
+  const stopAmbientFade = () => {
+    if (ambient.current.fade) {
+      cancelAnimationFrame(ambient.current.fade);
+      ambient.current.fade = 0;
+    }
   };
-  const toggleMute = () => {
-    setMuted((m) => {
-      const nm = !m;
-      if (audio.current.master)
-        audio.current.master.gain.setTargetAtTime(
-          nm ? 0 : 0.5,
-          audio.current.ctx.currentTime,
-          0.1,
-        );
-      return nm;
-    });
+  const fadeAmbient = (target, done) => {
+    const el = ambient.current.el;
+    if (!el) {
+      if (done) done();
+      return;
+    }
+    stopAmbientFade();
+    const startVolume = el.volume;
+    const startedAt = performance.now();
+    const duration = 420;
+    const tick = (now) => {
+      const progress = Math.min(1, (now - startedAt) / duration);
+      el.volume = startVolume + (target - startVolume) * progress;
+      if (progress < 1) {
+        ambient.current.fade = requestAnimationFrame(tick);
+        return;
+      }
+      ambient.current.fade = 0;
+      if (done) done();
+    };
+    ambient.current.fade = requestAnimationFrame(tick);
+  };
+  const teardownAmbient = () => {
+    const el = ambient.current.el;
+    if (!el) return;
+    stopAmbientFade();
+    try {
+      el.pause();
+      el.removeAttribute("src");
+      el.load();
+    } catch (e) {}
+    ambient.current.el = null;
+  };
+  const chooseAmbientTrack = () => {
+    if (!AMBIENT_TRACKS.length) return null;
+    if (AMBIENT_TRACKS.length === 1) return AMBIENT_TRACKS[0];
+    const options = AMBIENT_TRACKS.filter((src) => src !== lastAmbientSrc.current);
+    return options[(Math.random() * options.length) | 0] || AMBIENT_TRACKS[0];
+  };
+  const stopAmbient = () => {
+    setAmbientOn(false);
+    if (!ambient.current.el) return;
+    fadeAmbient(0, teardownAmbient);
+  };
+  const startAmbient = () => {
+    const src = chooseAmbientTrack();
+    if (!src) return;
+    teardownAmbient();
+    const el = new window.Audio();
+    el.preload = "none";
+    el.loop = true;
+    el.volume = 0;
+    el.src = src;
+    ambient.current.el = el;
+    lastAmbientSrc.current = src;
+    setAmbientOn(true);
+    const fail = () => {
+      if (ambient.current.el === el) {
+        teardownAmbient();
+        setAmbientOn(false);
+      }
+    };
+    el.addEventListener("error", fail, { once: true });
+    const started = el.play();
+    if (started && typeof started.then === "function") {
+      started.then(() => fadeAmbient(0.34)).catch(fail);
+      return;
+    }
+    fadeAmbient(0.34);
+  };
+  const toggleAmbient = () => {
+    if (ambientOn) {
+      stopAmbient();
+      return;
+    }
+    startAmbient();
   };
 
   const go = (target) => {
     if (target === screen) return;
-    startDrone();
-    if (!playing) setPlaying(true);
-    siren();
-    travel();
     setWarpKey((k) => k + 1);
     setScreen(target);
-  };
-  const openGame = () => {
-    setGameOpen(true);
-    duck(true);
-  };
-  const closeGame = () => {
-    setGameOpen(false);
-    duck(false);
   };
 
   const renderZone = (id) => {
     if (id === "listen") return <Listen />;
-    if (id === "explore") return <Explore onGame={openGame} notes={notes} />;
+    if (id === "explore") return <Explore notes={notes} />;
     if (id === "create") return <Create />;
+    if (id === "play") return <PlayZone />;
     if (id === "collect") return <Collect />;
     if (id === "follow") return <Follow />;
     return null;
   };
 
   const accent = ZONES[screen]?.accent || "#e8e8ea";
-  const mm = String(Math.floor((progress * 210) / 60)).padStart(2, "0");
-  const ss = String(Math.floor((progress * 210) % 60)).padStart(2, "0");
+  const compactMobileTabs = size.w < 410;
+
+  useEffect(() => () => teardownAmbient(), []);
 
   /* --------------------------- desktop compass --------------------------- */
   const EASE = "cubic-bezier(.66,0,.2,1)";
@@ -1179,7 +1245,7 @@ export default function FonosaurSite({ notes = [] }) {
                   <div
                     style={{
                       width: "100%",
-                      maxWidth: id === "create" ? 960 : 620,
+                        maxWidth: id === "create" || id === "play" ? 960 : 620,
                     }}
                   >
                     {renderZone(id)}
@@ -1256,25 +1322,12 @@ export default function FonosaurSite({ notes = [] }) {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 10,
+              gap: 12,
               flexShrink: 0,
             }}
           >
             <CompassMini active={screen} />
-            <button
-              onClick={toggleMute}
-              style={{
-                display: "flex",
-                background: "rgba(20,20,23,0.7)",
-                border: `1px solid ${C.line}`,
-                borderRadius: 10,
-                padding: 9,
-                color: C.sub,
-                cursor: "pointer",
-              }}
-            >
-              {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-            </button>
+            <AmbientToggle active={ambientOn} onToggle={toggleAmbient} />
           </div>
         </header>
       </>
@@ -1309,17 +1362,20 @@ export default function FonosaurSite({ notes = [] }) {
                 border: "none",
                 cursor: "pointer",
                 padding: 0,
+                display: "flex",
+                alignItems: "center",
                 fontFamily: "'Unbounded', sans-serif",
                 fontSize: 14,
                 letterSpacing: "0.12em",
                 color: C.text,
                 whiteSpace: "nowrap",
+                lineHeight: 1,
               }}
             >
               <span style={{ fontWeight: 200 }}>FONO</span>
               <span style={{ fontWeight: 700 }}>SAUR</span>
             </button>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span
                 style={{
                   fontFamily: "'Space Mono', monospace",
@@ -1331,19 +1387,11 @@ export default function FonosaurSite({ notes = [] }) {
               >
                 {z.label}
               </span>
-              <button
-                onClick={toggleMute}
-                style={{
-                  display: "flex",
-                  background: "transparent",
-                  border: "none",
-                  color: C.sub,
-                  cursor: "pointer",
-                  padding: 0,
-                }}
-              >
-                {muted ? <VolumeX size={17} /> : <Volume2 size={17} />}
-              </button>
+              <AmbientToggle
+                active={ambientOn}
+                onToggle={toggleAmbient}
+                compact
+              />
             </div>
           </div>
         )}
@@ -1369,7 +1417,7 @@ export default function FonosaurSite({ notes = [] }) {
               <div
                 style={{ ...FRAME, position: "relative", minHeight: "100dvh" }}
               >
-                <Hub go={go} onPlay={togglePlay} playing={playing} />
+                <Hub go={go} />
               </div>
             ) : (
               <div
@@ -1387,84 +1435,6 @@ export default function FonosaurSite({ notes = [] }) {
         </div>
         {inZone && (
           <div style={{ position: "fixed", bottom: 0, zIndex: 20, ...FRAME }}>
-            {playing && (
-              <div
-                style={{
-                  margin: "0 12px 8px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 11,
-                  background: "rgba(18,18,21,0.96)",
-                  border: `1px solid ${C.line}`,
-                  borderRadius: 12,
-                  padding: "9px 12px",
-                }}
-              >
-                <button
-                  onClick={togglePlay}
-                  style={{
-                    display: "flex",
-                    background: C.text,
-                    color: C.bg,
-                    border: "none",
-                    borderRadius: 999,
-                    padding: 7,
-                    cursor: "pointer",
-                    flexShrink: 0,
-                  }}
-                >
-                  {playing ? <Pause size={14} /> : <Play size={14} />}
-                </button>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      marginBottom: 4,
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 12,
-                        fontWeight: 600,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      Engolo — FONOSAUR
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: "'Space Mono', monospace",
-                        fontSize: 10,
-                        color: C.sub,
-                        marginLeft: 8,
-                      }}
-                    >
-                      {mm}:{ss}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      height: 2.5,
-                      background: C.line,
-                      borderRadius: 2,
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        height: "100%",
-                        width: `${progress * 100}%`,
-                        background: z.accent,
-                        borderRadius: 2,
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
             <div
               style={{
                 display: "flex",
@@ -1486,25 +1456,28 @@ export default function FonosaurSite({ notes = [] }) {
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
-                      gap: 4,
+                      gap: compactMobileTabs ? 0 : 4,
                       background: "transparent",
                       border: "none",
                       cursor: "pointer",
-                      padding: "4px 0",
+                      padding: compactMobileTabs ? "6px 0" : "4px 0",
                       color: on ? a : C.sub,
                     }}
+                    aria-label={ZONES[id].label}
                   >
                     <Ic size={20} />
-                    <span
-                      style={{
-                        fontFamily: "'Space Mono', monospace",
-                        fontSize: 8.5,
-                        letterSpacing: "0.08em",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      {ZONES[id].label}
-                    </span>
+                    {!compactMobileTabs && (
+                      <span
+                        style={{
+                          fontFamily: "'Space Mono', monospace",
+                          fontSize: 8.5,
+                          letterSpacing: "0.08em",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {ZONES[id].label}
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -1512,24 +1485,16 @@ export default function FonosaurSite({ notes = [] }) {
           </div>
         )}
         {!inZone && (
-          <button
-            onClick={toggleMute}
+          <div
             style={{
               position: "fixed",
               top: 16,
               zIndex: 20,
               right: "max(16px, calc(50% - 240px + 16px))",
-              display: "flex",
-              background: "rgba(20,20,23,0.7)",
-              border: `1px solid ${C.line}`,
-              borderRadius: 10,
-              padding: 9,
-              color: C.sub,
-              cursor: "pointer",
             }}
           >
-            {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-          </button>
+            <AmbientToggle active={ambientOn} onToggle={toggleAmbient} compact />
+          </div>
         )}
       </>
     );
@@ -1568,64 +1533,6 @@ export default function FonosaurSite({ notes = [] }) {
       <Warp trigger={warpKey} color={accent} reduced={reduced} />
 
       {isMobile ? renderMobile() : renderDesktop()}
-
-      {gameOpen && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 40,
-            background: C.bg,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "14px 18px",
-              borderBottom: `1px solid ${C.line}`,
-            }}
-          >
-            <span
-              style={{
-                fontFamily: "'Space Mono', monospace",
-                fontSize: 12,
-                letterSpacing: "0.2em",
-                textTransform: "uppercase",
-                color: C.blue,
-              }}
-            >
-              Dino Sling
-            </span>
-            <button
-              onClick={closeGame}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                background: "transparent",
-                border: `1px solid ${C.line}`,
-                color: C.text,
-                borderRadius: 999,
-                padding: "7px 13px",
-                cursor: "pointer",
-                fontSize: 13,
-              }}
-            >
-              <X size={15} /> Close
-            </button>
-          </div>
-          <iframe
-            title="Dino Sling"
-            src="/dino-sling.html"
-            sandbox="allow-scripts allow-same-origin"
-            style={{ flex: 1, width: "100%", border: 0, background: "#000" }}
-          />
-        </div>
-      )}
     </div>
   );
 }

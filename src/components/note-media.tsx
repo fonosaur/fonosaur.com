@@ -13,7 +13,7 @@ type MediaItem =
   | { discriminant: "mixcloud"; value: { url: string } };
 
 // --- URL helpers for the embeds ---
-function youtubeId(url: string) {
+export function youtubeId(url: string) {
   const m = url.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([\w-]{11})/);
   return m?.[1] ?? null;
 }
