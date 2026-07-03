@@ -15,7 +15,7 @@ import {
 import { youtubeId } from "@/components/note-media";
 
 /* ============================================================================
- * FONOSAUR — unified responsive site
+ * FONOSAUR â€” unified responsive site
  * Desktop: the compass (Listen at centre, fly to rooms, visible top menu).
  * Mobile:  the World hub (atmospheric landing, full-screen zones, bottom tabs).
  * One state model, one audio engine, one warp, one set of zone content.
@@ -39,7 +39,7 @@ const ZONES = {
     label: "Listen",
     accent: "#e8e8ea",
     tag: "releases",
-    desc: "The music — and where to hear it",
+    desc: "Music and where to hear it",
   },
   explore: {
     label: "Explore",
@@ -51,27 +51,28 @@ const ZONES = {
     label: "Create",
     accent: C.purple,
     tag: "play",
-    desc: "Play with the sounds behind the music",
+    desc: "Play with the sounds",
   },
   play: {
     label: "Play",
     accent: C.amber,
     tag: "game",
-    desc: "Dino Sling, ready when you are",
+    desc: "Dino Sling, ready to play",
   },
   collect: {
     label: "Collect",
     accent: C.bronze,
     tag: "coming soon",
-    desc: "Launching with the new EP",
+    desc: "Merch on the way",
   },
   follow: {
     label: "Follow",
     accent: C.green,
     tag: "updates",
-    desc: "Occasional updates",
+    desc: "Email updates, occasionally",
   },
 };
+
 const ORDER = ["listen", "explore", "create", "play", "collect", "follow"];
 const MAIN = ["listen", "explore", "create", "play", "collect"];
 const ICON = {
@@ -101,12 +102,12 @@ const PADS = [
   { k: "H", n: "VOX", f: 392 },
 ];
 const GLIMPSES = [
-  { g: "linear-gradient(135deg,#2a1d12,#3a2a18)", c: "market · dawn" },
-  { g: "linear-gradient(135deg,#10241a,#16342a)", c: "foliage · rain" },
-  { g: "linear-gradient(135deg,#1a1828,#241e3a)", c: "records · find" },
-  { g: "linear-gradient(135deg,#281418,#3a1a20)", c: "tape · hiss" },
-  { g: "linear-gradient(135deg,#122430,#16303a)", c: "water · field" },
-  { g: "linear-gradient(135deg,#201810,#2c2414)", c: "crates · brass" },
+  { g: "linear-gradient(135deg,#2a1d12,#3a2a18)", c: "market Â· dawn" },
+  { g: "linear-gradient(135deg,#10241a,#16342a)", c: "foliage Â· rain" },
+  { g: "linear-gradient(135deg,#1a1828,#241e3a)", c: "records Â· find" },
+  { g: "linear-gradient(135deg,#281418,#3a1a20)", c: "tape Â· hiss" },
+  { g: "linear-gradient(135deg,#122430,#16303a)", c: "water Â· field" },
+  { g: "linear-gradient(135deg,#201810,#2c2414)", c: "crates Â· brass" },
 ];
 const FRAME = {
   left: "50%",
@@ -405,10 +406,10 @@ const Eyebrow = ({ color, children }) => (
   </div>
 );
 
-function Listen() {
+function Listen({ isMobile = false }) {
   return (
     <div>
-      <Eyebrow color={C.sub}>Traversal EP · 2022 · 6 tracks</Eyebrow>
+      <Eyebrow color={C.sub}>Traversal EP / 2022 / 6 tracks</Eyebrow>
       <h2
         style={{
           fontFamily: "'Unbounded', sans-serif",
@@ -430,7 +431,7 @@ function Listen() {
       >
         <iframe
           title="Traversal EP on Bandcamp"
-          style={{ border: 0, width: "100%", height: 740 }}
+          style={{ border: 0, width: "100%", height: isMobile ? 680 : 820 }}
           src="https://bandcamp.com/EmbeddedPlayer/album=2601440823/size=large/bgcol=333333/linkcol=ffffff/artwork=big/tracklist=true/transparent=true/"
           seamless
         >
@@ -449,99 +450,34 @@ function Listen() {
         }}
       >
         {[
-          {
-            label: "Spotify",
-            href: "https://open.spotify.com/album/2OtQAfwSaabg4yJiWJpD5t",
-            icon: (
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.5 17.3c-.2.3-.6.4-1 .2-2.7-1.6-6-2-10-1.1-.4.1-.7-.1-.8-.5-.1-.4.1-.7.5-.8 4.3-1 8-.6 11 1.2.4.2.5.6.3 1zm1.5-3.3c-.3.4-.8.5-1.2.3-3-1.9-7.7-2.4-11.3-1.3-.5.1-1-.1-1.1-.6-.1-.5.1-1 .6-1.1 4.1-1.3 9.2-.7 12.7 1.5.3.2.5.7.3 1.2zm.1-3.4c-3.7-2.2-9.7-2.4-13.2-1.3-.5.2-1.1-.1-1.3-.6-.2-.5.1-1.1.6-1.3 4-1.2 10.6-1 14.8 1.5.5.3.6.9.4 1.4-.3.5-.9.6-1.3.3z" />
-              </svg>
-            ),
-          },
-          {
-            label: "Apple Music",
-            href: "https://music.apple.com/us/album/traversal-ep/1616402193",
-            icon: (
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M23.99 6.07c0-.87-.06-1.74-.24-2.6a5.4 5.4 0 00-1.27-2.24A5.27 5.27 0 0020.24.05C19.4-.06 18.54 0 17.68 0H6.3c-.87 0-1.73.01-2.58.22A5.28 5.28 0 001.5 1.5 5.28 5.28 0 00.22 3.72C.01 4.57 0 5.43 0 6.3v11.4c0 .85.04 1.71.24 2.55a5.35 5.35 0 001.27 2.24c.65.66 1.4 1.1 2.24 1.27.86.2 1.72.24 2.6.24h11.3c.87 0 1.74-.03 2.58-.24a5.35 5.35 0 002.24-1.27c.66-.65 1.1-1.4 1.27-2.24.21-.84.25-1.7.25-2.55V6.07zM17.5 17.97c0 .62-.2 1.17-.56 1.63a2.83 2.83 0 01-1.42.99c-.44.14-.9.2-1.35.16a2.3 2.3 0 01-1.24-.44 2.27 2.27 0 01-.82-1.64c-.04-.6.12-1.15.45-1.62.33-.47.78-.8 1.32-1l1.12-.4V10.5l-5.5 1.7v6.43c0 .63-.19 1.19-.55 1.65a2.84 2.84 0 01-1.43 1c-.44.14-.9.19-1.35.15a2.3 2.3 0 01-1.24-.44A2.3 2.3 0 014.7 19.4c-.04-.6.12-1.16.45-1.63.34-.47.79-.8 1.33-1l1.12-.42V8.82c0-.4.1-.76.33-1.07.22-.3.52-.5.87-.58l6.7-1.94c.2-.06.4-.06.58 0 .19.04.35.14.46.29a.8.8 0 01.17.5l-.01 11.95z" />
-              </svg>
-            ),
-          },
-          {
-            label: "Amazon Music",
-            href: "https://music.amazon.co.uk/albums/B09WM13NS3",
-            icon: (
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M.045 18.02c.07-.116.196-.048.283.003 2.66 1.55 5.57 2.37 8.674 2.37 2.518 0 5.208-.6 7.592-1.74.122-.054.284-.116.384.013.1.13.012.303-.09.4-1.506 1.15-3.841 2.09-6.104 2.667-2.264.577-4.378.67-6.382.296C2.59 21.69 1.12 21.12.05 20.51c-.12-.07-.133-.3-.005-.49zm14.19-1.2c-.18-.22-.424-.17-.625-.088-.67.27-1.386.42-1.96.42-.756 0-1.14-.35-1.14-.95 0-1.29 1.44-1.59 2.89-1.59h.37v-.38c0-.44-.01-.88-.16-1.2-.15-.33-.49-.54-.95-.54-.14 0-.3.01-.45.05-.39.09-.4.45-.56.45-.14 0-.53-.35-.53-.65 0-.54.93-1.08 2.04-1.08 1.63 0 2.24.87 2.24 2.29v2.52c0 .36.2.53.2.76 0 .18-.63.66-.88.66-.18 0-.33-.13-.43-.32l-.07-.17zm-1.33-2.2h-.26c-.84 0-1.68.2-1.68.96 0 .44.27.68.7.68.45 0 .88-.27 1.15-.64l.09-.14v-.86zm5.72 2.93c-.25-.03-.46-.16-.58-.39l-1.86-3.55.02-.05 1.7-2.83c.1-.17.26-.3.49-.3.28 0 .6.22.6.47 0 .08-.03.16-.08.25l-1.36 2.16 1.6 3.14c.04.08.06.15.06.22 0 .26-.3.55-.55.55-.02 0-.03 0-.04 0z" />
-                <path d="M21.7 19.56c-1.89 1.4-4.63 2.15-6.99 2.15-3.31 0-6.29-1.22-8.54-3.26-.18-.16-.02-.38.19-.26 2.43 1.42 5.44 2.27 8.55 2.27 2.1 0 4.4-.43 6.52-1.33.32-.14.59.21.27.43z" />
-                <path d="M22.58 18.54c-.24-.31-1.6-.15-2.2-.07-.19.02-.21-.14-.05-.26 1.08-.76 2.86-.54 3.06-.28.21.25-.05 2.01-.81 2.85-.15.13-.29.06-.22-.11.22-.54.71-1.75.22-2.13z" />
-              </svg>
-            ),
-          },
-          {
-            label: "Bandcamp",
-            href: "https://fonosaur.bandcamp.com/album/traversal-ep",
-            icon: (
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M0 18.75l7.44-13.5H24l-7.44 13.5z" />
-              </svg>
-            ),
-          },
-          {
-            label: "YouTube",
-            href: "https://www.youtube.com/@fonosaur",
-            icon: (
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31.3 31.3 0 000 12a31.3 31.3 0 00.5 5.8 3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1c.4-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z" />
-              </svg>
-            ),
-          },
-        ].map((d) => (
+          ["Spotify", "https://open.spotify.com/album/2OtQAfwSaabg4yJiWJpD5t"],
+          [
+            "Apple Music",
+            "https://music.apple.com/us/album/traversal-ep/1616402193",
+          ],
+          ["Amazon Music", "https://music.amazon.co.uk/albums/B09WM13NS3"],
+          ["Bandcamp", "https://fonosaur.bandcamp.com/album/traversal-ep"],
+          ["YouTube", "https://www.youtube.com/@fonosaur"],
+        ].map(([label, href]) => (
           <a
-            key={d.label}
-            href={d.href}
+            key={label}
+            href={href}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label={d.label}
-            title={d.label}
             style={{
-              display: "flex",
+              display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 38,
-              height: 38,
+              minHeight: 38,
+              padding: "0 14px",
               color: C.sub,
               border: `1px solid ${C.line}`,
               borderRadius: 999,
               textDecoration: "none",
+              fontSize: 13,
             }}
           >
-            {d.icon}
+            {label}
           </a>
         ))}
       </div>
@@ -566,13 +502,12 @@ function Listen() {
           Next release
         </div>
         <div style={{ fontSize: 14, color: C.sub, lineHeight: 1.6 }}>
-          New music is on the way. Follow to hear it first.
+          New music is on the way. Join the list for first word.
         </div>
       </div>
     </div>
   );
 }
-
 function Explore({ notes = [] }) {
   const fmt = (d) =>
     d
@@ -584,7 +519,7 @@ function Explore({ notes = [] }) {
       : "";
   return (
     <div>
-      <Eyebrow color={C.blue}>Explore · field notes</Eyebrow>
+      <Eyebrow color={C.blue}>Explore / field notes</Eyebrow>
       <h2
         style={{
           fontFamily: "'Unbounded', sans-serif",
@@ -594,46 +529,8 @@ function Explore({ notes = [] }) {
           lineHeight: 1.05,
         }}
       >
-        Things I've been exploring
+        Field notes
       </h2>
-      {false && (
-        <button
-          onClick={onGame}
-          style={{
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            textAlign: "left",
-            cursor: "pointer",
-            background: "rgba(59,139,255,0.08)",
-            border: `1px solid ${C.blue}`,
-            borderRadius: 12,
-            padding: "16px 18px",
-            marginBottom: 24,
-          }}
-        >
-          <Gamepad2 size={22} color={C.blue} />
-          <span style={{ flex: 1 }}>
-            <span
-              style={{
-                display: "block",
-                fontSize: 15,
-                fontWeight: 600,
-                color: C.text,
-              }}
-            >
-              Dino Sling
-            </span>
-            <span style={{ display: "block", fontSize: 13, color: C.sub }}>
-              A quick game — you against the computer.
-            </span>
-          </span>
-          <span style={{ fontSize: 13, color: C.blue, fontWeight: 600 }}>
-            Play
-          </span>
-        </button>
-      )}
       <div
         style={{
           display: "flex",
@@ -661,7 +558,7 @@ function Explore({ notes = [] }) {
                 >
                   {fmt(n.entry.publishedAt)}
                   {n.entry.tags && n.entry.tags.length
-                    ? " · " + n.entry.tags.join(" · ")
+                    ? " / " + n.entry.tags.join(" / ")
                     : ""}
                 </div>
                 <div
@@ -739,7 +636,7 @@ function Explore({ notes = [] }) {
                   </div>
                 )}
                 <a
-                  href={`/explore/${n.slug}`}
+                  href={/explore/}
                   style={{
                     fontSize: 13,
                     color: C.blue,
@@ -747,7 +644,7 @@ function Explore({ notes = [] }) {
                     fontWeight: 600,
                   }}
                 >
-                  Read more →
+                  Read more {"->"}
                 </a>
                 <div
                   style={{ borderBottom: `1px solid ${C.line}`, marginTop: 20 }}
@@ -756,19 +653,16 @@ function Explore({ notes = [] }) {
             );
           })
         ) : (
-          <p style={{ color: C.sub, fontSize: 14 }}>
-            First field notes coming soon.
-          </p>
+          <p style={{ color: C.sub, fontSize: 14 }}>First notes soon.</p>
         )}
       </div>
     </div>
   );
 }
-
 function Create() {
   return (
     <div>
-      <Eyebrow color={C.purple}>Create Â· instrument</Eyebrow>
+      <Eyebrow color={C.purple}>Create / instrument</Eyebrow>
       <h2
         style={{
           fontFamily: "'Unbounded', sans-serif",
@@ -789,8 +683,7 @@ function Create() {
           maxWidth: 420,
         }}
       >
-        Tap through the textures and build a quick loop from the sounds behind
-        the record.
+        Build a quick loop from the sounds around the record.
       </p>
       <div
         style={{
@@ -818,11 +711,10 @@ function Create() {
     </div>
   );
 }
-
 function PlayZone() {
   return (
     <div>
-      <Eyebrow color={C.amber}>Play Â· Dino Sling</Eyebrow>
+      <Eyebrow color={C.amber}>Play / Dino Sling</Eyebrow>
       <h2
         style={{
           fontFamily: "'Unbounded', sans-serif",
@@ -843,8 +735,7 @@ function PlayZone() {
           maxWidth: 420,
         }}
       >
-        A quick sling-shot duel against the computer. Easy to start, hard to
-        stop.
+        Launch Dino Sling and take on the computer.
       </p>
       <div
         style={{
@@ -872,7 +763,6 @@ function PlayZone() {
     </div>
   );
 }
-
 function Collect() {
   return (
     <div style={{ textAlign: "center", paddingTop: 8 }}>
@@ -886,7 +776,7 @@ function Collect() {
           lineHeight: 1.05,
         }}
       >
-        Coming soon
+        Merch soon
       </h2>
       <div
         style={{
@@ -912,12 +802,11 @@ function Collect() {
           margin: "0 auto",
         }}
       >
-        Merch soon come.
+        Prints, shirts, and other bits are on the way.
       </p>
     </div>
   );
 }
-
 function Follow() {
   return (
     <div style={{ textAlign: "center", paddingTop: 8 }}>
@@ -931,7 +820,7 @@ function Follow() {
           lineHeight: 1.1,
         }}
       >
-        Stay in touch
+        Join the list
       </h2>
       <p
         style={{
@@ -939,10 +828,11 @@ function Follow() {
           fontSize: 15,
           lineHeight: 1.6,
           marginBottom: 26,
+          maxWidth: 420,
+          marginInline: "auto",
         }}
       >
-        I'll only email when there's new music, Field Notes, or something worth
-        sharing.
+        Emails for new music, field notes, and the occasional useful update.
       </p>
       <form
         action="https://buttondown.com/api/emails/embed-subscribe/fonosaur"
@@ -950,9 +840,11 @@ function Follow() {
         target="_blank"
         style={{
           display: "flex",
+          flexWrap: "wrap",
           gap: 8,
           maxWidth: 440,
           margin: "0 auto",
+          justifyContent: "center",
         }}
       >
         <input
@@ -961,7 +853,8 @@ function Follow() {
           placeholder="you@email.com"
           required
           style={{
-            flex: 1,
+            flex: "1 1 240px",
+            minWidth: 0,
             background: C.panel,
             border: `1px solid ${C.line}`,
             borderRadius: 10,
@@ -976,7 +869,9 @@ function Follow() {
           style={{
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
             gap: 7,
+            minHeight: 48,
             background: C.green,
             color: C.bg,
             border: "none",
@@ -993,7 +888,6 @@ function Follow() {
     </div>
   );
 }
-
 /* ------------------------------------------------------------- mobile hub */
 function Hub({ go }) {
   return (
@@ -1007,14 +901,14 @@ function Hub({ go }) {
         boxSizing: "border-box",
       }}
     >
-      <div style={{ textAlign: "center", marginBottom: 34 }}>
+      <div style={{ textAlign: "center", marginBottom: 28 }}>
         <h1
           style={{
             fontFamily: "'Unbounded', sans-serif",
-            fontSize: "clamp(40px,15vw,68px)",
+            fontSize: "clamp(34px,12vw,54px)",
             margin: 0,
             lineHeight: 0.92,
-            letterSpacing: "0.02em",
+            letterSpacing: "0",
             whiteSpace: "nowrap",
           }}
         >
@@ -1096,7 +990,7 @@ function Hub({ go }) {
           gap: 9,
           cursor: "pointer",
           background: "rgba(0,204,80,0.08)",
-          border: `1px solid ${C.green}`,
+          border: `1px solid ${C.line}`,
           color: C.green,
           borderRadius: 14,
           padding: "14px",
@@ -1112,7 +1006,6 @@ function Hub({ go }) {
     </div>
   );
 }
-
 /* ------------------------------------------------------------------- app */
 const isMobileNow = () =>
   typeof window !== "undefined" &&
@@ -1283,7 +1176,7 @@ export default function FonosaurSite({ notes = [] }) {
   };
 
   const renderZone = (id) => {
-    if (id === "listen") return <Listen />;
+    if (id === "listen") return <Listen isMobile={isMobile} />;
     if (id === "explore") return <Explore notes={notes} />;
     if (id === "create") return <Create />;
     if (id === "play") return <PlayZone />;
