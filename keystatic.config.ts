@@ -46,10 +46,9 @@ export default config({
         tags: fields.multiselect({
           label: "Tags",
           options: [
-            { label: "Finds", value: "finds" },
-            { label: "Foley", value: "foley" },
+            { label: "Archive", value: "archive" },
+            { label: "Field Recording", value: "field-recording" },
             { label: "Process", value: "process" },
-            { label: "Photo", value: "photo" },
             { label: "Live", value: "live" },
             { label: "Release", value: "release" },
           ],
