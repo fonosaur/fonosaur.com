@@ -48,6 +48,7 @@ export default config({
           options: [
             { label: "Archive", value: "archive" },
             { label: "Field Recording", value: "field-recording" },
+            { label: "Finds", value: "finds" },
             { label: "Process", value: "process" },
             { label: "Live", value: "live" },
             { label: "Release", value: "release" },

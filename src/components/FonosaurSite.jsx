@@ -636,7 +636,7 @@ function Explore({ notes = [] }) {
                   </div>
                 )}
                 <a
-                  href={/explore/}
+                  href={`/explore/${n.slug}`}
                   style={{
                     fontSize: 13,
                     color: C.blue,
