@@ -119,6 +119,7 @@ const AMBIENT_TRACKS = [
   "/audio/naijamarket.mp3",
   "/audio/naijastreet.mp3",
 ];
+const AMBIENT_VOLUME = 0.16;
 
 /* --------------------------------------------------------------- ambient dust */
 function Dust({ reduced }) {
@@ -1156,10 +1157,10 @@ export default function FonosaurSite({ notes = [] }) {
     el.addEventListener("error", fail, { once: true });
     const started = el.play();
     if (started && typeof started.then === "function") {
-      started.then(() => fadeAmbient(0.34)).catch(fail);
+      started.then(() => fadeAmbient(AMBIENT_VOLUME)).catch(fail);
       return;
     }
-    fadeAmbient(0.34);
+    fadeAmbient(AMBIENT_VOLUME);
   };
   const toggleAmbient = () => {
     if (ambientOn) {
