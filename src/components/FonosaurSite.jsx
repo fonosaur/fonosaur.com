@@ -379,7 +379,11 @@ function AmbientToggle({ active, onToggle, compact = false }) {
         whiteSpace: "nowrap",
       }}
     >
-      {active ? <Volume2 size={compact ? 14 : 15} /> : <VolumeX size={compact ? 14 : 15} />}
+      {active ? (
+        <Volume2 size={compact ? 14 : 15} />
+      ) : (
+        <VolumeX size={compact ? 14 : 15} />
+      )}
       <span>{active ? "Ambient On" : "Ambient Off"}</span>
     </button>
   );
@@ -436,33 +440,86 @@ function Listen() {
         </iframe>
       </div>
       <div
-        style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 26, justifyContent: "center" }}
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 10,
+          marginBottom: 26,
+          justifyContent: "center",
+        }}
       >
         {[
           {
             label: "Spotify",
             href: "https://open.spotify.com/album/2OtQAfwSaabg4yJiWJpD5t",
-            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.5 17.3c-.2.3-.6.4-1 .2-2.7-1.6-6-2-10-1.1-.4.1-.7-.1-.8-.5-.1-.4.1-.7.5-.8 4.3-1 8-.6 11 1.2.4.2.5.6.3 1zm1.5-3.3c-.3.4-.8.5-1.2.3-3-1.9-7.7-2.4-11.3-1.3-.5.1-1-.1-1.1-.6-.1-.5.1-1 .6-1.1 4.1-1.3 9.2-.7 12.7 1.5.3.2.5.7.3 1.2zm.1-3.4c-3.7-2.2-9.7-2.4-13.2-1.3-.5.2-1.1-.1-1.3-.6-.2-.5.1-1.1.6-1.3 4-1.2 10.6-1 14.8 1.5.5.3.6.9.4 1.4-.3.5-.9.6-1.3.3z"/></svg>,
+            icon: (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.6 0 12 0zm5.5 17.3c-.2.3-.6.4-1 .2-2.7-1.6-6-2-10-1.1-.4.1-.7-.1-.8-.5-.1-.4.1-.7.5-.8 4.3-1 8-.6 11 1.2.4.2.5.6.3 1zm1.5-3.3c-.3.4-.8.5-1.2.3-3-1.9-7.7-2.4-11.3-1.3-.5.1-1-.1-1.1-.6-.1-.5.1-1 .6-1.1 4.1-1.3 9.2-.7 12.7 1.5.3.2.5.7.3 1.2zm.1-3.4c-3.7-2.2-9.7-2.4-13.2-1.3-.5.2-1.1-.1-1.3-.6-.2-.5.1-1.1.6-1.3 4-1.2 10.6-1 14.8 1.5.5.3.6.9.4 1.4-.3.5-.9.6-1.3.3z" />
+              </svg>
+            ),
           },
           {
             label: "Apple Music",
             href: "https://music.apple.com/us/album/traversal-ep/1616402193",
-            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.99 6.07c0-.87-.06-1.74-.24-2.6a5.4 5.4 0 00-1.27-2.24A5.27 5.27 0 0020.24.05C19.4-.06 18.54 0 17.68 0H6.3c-.87 0-1.73.01-2.58.22A5.28 5.28 0 001.5 1.5 5.28 5.28 0 00.22 3.72C.01 4.57 0 5.43 0 6.3v11.4c0 .85.04 1.71.24 2.55a5.35 5.35 0 001.27 2.24c.65.66 1.4 1.1 2.24 1.27.86.2 1.72.24 2.6.24h11.3c.87 0 1.74-.03 2.58-.24a5.35 5.35 0 002.24-1.27c.66-.65 1.1-1.4 1.27-2.24.21-.84.25-1.7.25-2.55V6.07zM17.5 17.97c0 .62-.2 1.17-.56 1.63a2.83 2.83 0 01-1.42.99c-.44.14-.9.2-1.35.16a2.3 2.3 0 01-1.24-.44 2.27 2.27 0 01-.82-1.64c-.04-.6.12-1.15.45-1.62.33-.47.78-.8 1.32-1l1.12-.4V10.5l-5.5 1.7v6.43c0 .63-.19 1.19-.55 1.65a2.84 2.84 0 01-1.43 1c-.44.14-.9.19-1.35.15a2.3 2.3 0 01-1.24-.44A2.3 2.3 0 014.7 19.4c-.04-.6.12-1.16.45-1.63.34-.47.79-.8 1.33-1l1.12-.42V8.82c0-.4.1-.76.33-1.07.22-.3.52-.5.87-.58l6.7-1.94c.2-.06.4-.06.58 0 .19.04.35.14.46.29a.8.8 0 01.17.5l-.01 11.95z"/></svg>,
+            icon: (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M23.99 6.07c0-.87-.06-1.74-.24-2.6a5.4 5.4 0 00-1.27-2.24A5.27 5.27 0 0020.24.05C19.4-.06 18.54 0 17.68 0H6.3c-.87 0-1.73.01-2.58.22A5.28 5.28 0 001.5 1.5 5.28 5.28 0 00.22 3.72C.01 4.57 0 5.43 0 6.3v11.4c0 .85.04 1.71.24 2.55a5.35 5.35 0 001.27 2.24c.65.66 1.4 1.1 2.24 1.27.86.2 1.72.24 2.6.24h11.3c.87 0 1.74-.03 2.58-.24a5.35 5.35 0 002.24-1.27c.66-.65 1.1-1.4 1.27-2.24.21-.84.25-1.7.25-2.55V6.07zM17.5 17.97c0 .62-.2 1.17-.56 1.63a2.83 2.83 0 01-1.42.99c-.44.14-.9.2-1.35.16a2.3 2.3 0 01-1.24-.44 2.27 2.27 0 01-.82-1.64c-.04-.6.12-1.15.45-1.62.33-.47.78-.8 1.32-1l1.12-.4V10.5l-5.5 1.7v6.43c0 .63-.19 1.19-.55 1.65a2.84 2.84 0 01-1.43 1c-.44.14-.9.19-1.35.15a2.3 2.3 0 01-1.24-.44A2.3 2.3 0 014.7 19.4c-.04-.6.12-1.16.45-1.63.34-.47.79-.8 1.33-1l1.12-.42V8.82c0-.4.1-.76.33-1.07.22-.3.52-.5.87-.58l6.7-1.94c.2-.06.4-.06.58 0 .19.04.35.14.46.29a.8.8 0 01.17.5l-.01 11.95z" />
+              </svg>
+            ),
           },
           {
             label: "Amazon Music",
             href: "https://music.amazon.co.uk/albums/B09WM13NS3",
-            icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M.045 18.02c.07-.116.196-.048.283.003 2.66 1.55 5.57 2.37 8.674 2.37 2.518 0 5.208-.6 7.592-1.74.122-.054.284-.116.384.013.1.13.012.303-.09.4-1.506 1.15-3.841 2.09-6.104 2.667-2.264.577-4.378.67-6.382.296C2.59 21.69 1.12 21.12.05 20.51c-.12-.07-.133-.3-.005-.49zm14.19-1.2c-.18-.22-.424-.17-.625-.088-.67.27-1.386.42-1.96.42-.756 0-1.14-.35-1.14-.95 0-1.29 1.44-1.59 2.89-1.59h.37v-.38c0-.44-.01-.88-.16-1.2-.15-.33-.49-.54-.95-.54-.14 0-.3.01-.45.05-.39.09-.4.45-.56.45-.14 0-.53-.35-.53-.65 0-.54.93-1.08 2.04-1.08 1.63 0 2.24.87 2.24 2.29v2.52c0 .36.2.53.2.76 0 .18-.63.66-.88.66-.18 0-.33-.13-.43-.32l-.07-.17zm-1.33-2.2h-.26c-.84 0-1.68.2-1.68.96 0 .44.27.68.7.68.45 0 .88-.27 1.15-.64l.09-.14v-.86zm5.72 2.93c-.25-.03-.46-.16-.58-.39l-1.86-3.55.02-.05 1.7-2.83c.1-.17.26-.3.49-.3.28 0 .6.22.6.47 0 .08-.03.16-.08.25l-1.36 2.16 1.6 3.14c.04.08.06.15.06.22 0 .26-.3.55-.55.55-.02 0-.03 0-.04 0z"/><path d="M21.7 19.56c-1.89 1.4-4.63 2.15-6.99 2.15-3.31 0-6.29-1.22-8.54-3.26-.18-.16-.02-.38.19-.26 2.43 1.42 5.44 2.27 8.55 2.27 2.1 0 4.4-.43 6.52-1.33.32-.14.59.21.27.43z"/><path d="M22.58 18.54c-.24-.31-1.6-.15-2.2-.07-.19.02-.21-.14-.05-.26 1.08-.76 2.86-.54 3.06-.28.21.25-.05 2.01-.81 2.85-.15.13-.29.06-.22-.11.22-.54.71-1.75.22-2.13z"/></svg>,
+            icon: (
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M.045 18.02c.07-.116.196-.048.283.003 2.66 1.55 5.57 2.37 8.674 2.37 2.518 0 5.208-.6 7.592-1.74.122-.054.284-.116.384.013.1.13.012.303-.09.4-1.506 1.15-3.841 2.09-6.104 2.667-2.264.577-4.378.67-6.382.296C2.59 21.69 1.12 21.12.05 20.51c-.12-.07-.133-.3-.005-.49zm14.19-1.2c-.18-.22-.424-.17-.625-.088-.67.27-1.386.42-1.96.42-.756 0-1.14-.35-1.14-.95 0-1.29 1.44-1.59 2.89-1.59h.37v-.38c0-.44-.01-.88-.16-1.2-.15-.33-.49-.54-.95-.54-.14 0-.3.01-.45.05-.39.09-.4.45-.56.45-.14 0-.53-.35-.53-.65 0-.54.93-1.08 2.04-1.08 1.63 0 2.24.87 2.24 2.29v2.52c0 .36.2.53.2.76 0 .18-.63.66-.88.66-.18 0-.33-.13-.43-.32l-.07-.17zm-1.33-2.2h-.26c-.84 0-1.68.2-1.68.96 0 .44.27.68.7.68.45 0 .88-.27 1.15-.64l.09-.14v-.86zm5.72 2.93c-.25-.03-.46-.16-.58-.39l-1.86-3.55.02-.05 1.7-2.83c.1-.17.26-.3.49-.3.28 0 .6.22.6.47 0 .08-.03.16-.08.25l-1.36 2.16 1.6 3.14c.04.08.06.15.06.22 0 .26-.3.55-.55.55-.02 0-.03 0-.04 0z" />
+                <path d="M21.7 19.56c-1.89 1.4-4.63 2.15-6.99 2.15-3.31 0-6.29-1.22-8.54-3.26-.18-.16-.02-.38.19-.26 2.43 1.42 5.44 2.27 8.55 2.27 2.1 0 4.4-.43 6.52-1.33.32-.14.59.21.27.43z" />
+                <path d="M22.58 18.54c-.24-.31-1.6-.15-2.2-.07-.19.02-.21-.14-.05-.26 1.08-.76 2.86-.54 3.06-.28.21.25-.05 2.01-.81 2.85-.15.13-.29.06-.22-.11.22-.54.71-1.75.22-2.13z" />
+              </svg>
+            ),
           },
           {
             label: "Bandcamp",
             href: "https://fonosaur.bandcamp.com/album/traversal-ep",
-            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M0 18.75l7.44-13.5H24l-7.44 13.5z"/></svg>,
+            icon: (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M0 18.75l7.44-13.5H24l-7.44 13.5z" />
+              </svg>
+            ),
           },
           {
             label: "YouTube",
             href: "https://www.youtube.com/@fonosaur",
-            icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31.3 31.3 0 000 12a31.3 31.3 0 00.5 5.8 3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1c.4-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>,
+            icon: (
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M23.5 6.2a3 3 0 00-2.1-2.1C19.5 3.5 12 3.5 12 3.5s-7.5 0-9.4.6A3 3 0 00.5 6.2 31.3 31.3 0 000 12a31.3 31.3 0 00.5 5.8 3 3 0 002.1 2.1c1.9.6 9.4.6 9.4.6s7.5 0 9.4-.6a3 3 0 002.1-2.1c.4-1.9.5-5.8.5-5.8s0-3.9-.5-5.8zM9.5 15.6V8.4l6.3 3.6-6.3 3.6z" />
+              </svg>
+            ),
           },
         ].map((d) => (
           <a
@@ -540,42 +597,42 @@ function Explore({ notes = [] }) {
         Things I've been exploring
       </h2>
       {false && (
-      <button
-        onClick={onGame}
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          gap: 14,
-          textAlign: "left",
-          cursor: "pointer",
-          background: "rgba(59,139,255,0.08)",
-          border: `1px solid ${C.blue}`,
-          borderRadius: 12,
-          padding: "16px 18px",
-          marginBottom: 24,
-        }}
-      >
-        <Gamepad2 size={22} color={C.blue} />
-        <span style={{ flex: 1 }}>
-          <span
-            style={{
-              display: "block",
-              fontSize: 15,
-              fontWeight: 600,
-              color: C.text,
-            }}
-          >
-            Dino Sling
+        <button
+          onClick={onGame}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            textAlign: "left",
+            cursor: "pointer",
+            background: "rgba(59,139,255,0.08)",
+            border: `1px solid ${C.blue}`,
+            borderRadius: 12,
+            padding: "16px 18px",
+            marginBottom: 24,
+          }}
+        >
+          <Gamepad2 size={22} color={C.blue} />
+          <span style={{ flex: 1 }}>
+            <span
+              style={{
+                display: "block",
+                fontSize: 15,
+                fontWeight: 600,
+                color: C.text,
+              }}
+            >
+              Dino Sling
+            </span>
+            <span style={{ display: "block", fontSize: 13, color: C.sub }}>
+              A quick game — you against the computer.
+            </span>
           </span>
-          <span style={{ display: "block", fontSize: 13, color: C.sub }}>
-            A quick game — you against the computer.
+          <span style={{ fontSize: 13, color: C.blue, fontWeight: 600 }}>
+            Play
           </span>
-        </span>
-        <span style={{ fontSize: 13, color: C.blue, fontWeight: 600 }}>
-          Play
-        </span>
-      </button>
+        </button>
       )}
       <div
         style={{
@@ -592,71 +649,111 @@ function Explore({ notes = [] }) {
                 ? youtubeId(n.entry.leadMedia.url)
                 : null;
             return (
-            <article key={n.slug}>
-              <div
-                style={{
-                  fontFamily: "'Space Mono', monospace",
-                  fontSize: 11,
-                  color: C.blue,
-                  letterSpacing: "0.12em",
-                  marginBottom: 7,
-                }}
-              >
-                {fmt(n.entry.publishedAt)}
-                {n.entry.tags && n.entry.tags.length
-                  ? " · " + n.entry.tags.join(" · ")
-                  : ""}
-              </div>
-              <div
-                style={{
-                  fontSize: 18,
-                  fontWeight: 600,
-                  marginBottom: 8,
-                  color: C.text,
-                }}
-              >
-                {n.entry.title}
-              </div>
-              {(n.entry.cover || n.entry.leadMedia) && (
-                <div style={{ marginBottom: 12, borderRadius: 10, overflow: "hidden" }}>
-                  {n.entry.cover ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={n.entry.cover} alt="" style={{ width: "100%", display: "block", borderRadius: 10 }} />
-                  ) : n.entry.leadMedia?.type === "image" ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={n.entry.leadMedia.src} alt="" style={{ width: "100%", display: "block", borderRadius: 10 }} />
-                  ) : leadYouTubeId ? (
-                    <iframe
-                      title={n.entry.title}
-                      src={`https://www.youtube-nocookie.com/embed/${leadYouTubeId}`}
-                      style={{ width: "100%", aspectRatio: "16/9", border: 0, borderRadius: 10 }}
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  ) : n.entry.leadMedia?.type === "video" ? (
-                    <video src={n.entry.leadMedia.src} controls style={{ width: "100%", borderRadius: 10 }} />
-                  ) : null}
+              <article key={n.slug}>
+                <div
+                  style={{
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: 11,
+                    color: C.blue,
+                    letterSpacing: "0.12em",
+                    marginBottom: 7,
+                  }}
+                >
+                  {fmt(n.entry.publishedAt)}
+                  {n.entry.tags && n.entry.tags.length
+                    ? " · " + n.entry.tags.join(" · ")
+                    : ""}
                 </div>
-              )}
-              {n.entry.summary && (
-                <div style={{ fontSize: 15, color: C.sub, lineHeight: 1.6, marginBottom: 8 }}>
-                  {n.entry.summary}
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 600,
+                    marginBottom: 8,
+                    color: C.text,
+                  }}
+                >
+                  {n.entry.title}
                 </div>
-              )}
-              <a
-                href={`/explore/${n.slug}`}
-                style={{
-                  fontSize: 13,
-                  color: C.blue,
-                  textDecoration: "none",
-                  fontWeight: 600,
-                }}
-              >
-                Read more →
-              </a>
-              <div style={{ borderBottom: `1px solid ${C.line}`, marginTop: 20 }} />
-            </article>
-          );
+                {(n.entry.cover || n.entry.leadMedia) && (
+                  <div
+                    style={{
+                      marginBottom: 12,
+                      borderRadius: 10,
+                      overflow: "hidden",
+                    }}
+                  >
+                    {n.entry.cover ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={n.entry.cover}
+                        alt=""
+                        style={{
+                          width: "100%",
+                          display: "block",
+                          borderRadius: 10,
+                        }}
+                      />
+                    ) : n.entry.leadMedia?.type === "image" ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={n.entry.leadMedia.src}
+                        alt=""
+                        style={{
+                          width: "100%",
+                          display: "block",
+                          borderRadius: 10,
+                        }}
+                      />
+                    ) : leadYouTubeId ? (
+                      <iframe
+                        title={n.entry.title}
+                        src={`https://www.youtube-nocookie.com/embed/${leadYouTubeId}`}
+                        style={{
+                          width: "100%",
+                          aspectRatio: "16/9",
+                          border: 0,
+                          borderRadius: 10,
+                        }}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : n.entry.leadMedia?.type === "video" ? (
+                      <video
+                        src={n.entry.leadMedia.src}
+                        controls
+                        style={{ width: "100%", borderRadius: 10 }}
+                      />
+                    ) : null}
+                  </div>
+                )}
+                {n.entry.summary && (
+                  <div
+                    style={{
+                      fontSize: 15,
+                      color: C.sub,
+                      lineHeight: 1.6,
+                      marginBottom: 8,
+                    }}
+                  >
+                    {n.entry.summary}
+                  </div>
+                )}
+                <a
+                  href={`/explore/${n.slug}`}
+                  style={{
+                    fontSize: 13,
+                    color: C.blue,
+                    textDecoration: "none",
+                    fontWeight: 600,
+                  }}
+                >
+                  Read more →
+                </a>
+                <div
+                  style={{ borderBottom: `1px solid ${C.line}`, marginTop: 20 }}
+                />
+              </article>
+            );
           })
         ) : (
           <p style={{ color: C.sub, fontSize: 14 }}>
@@ -1135,7 +1232,9 @@ export default function FonosaurSite({ notes = [] }) {
   const chooseAmbientTrack = () => {
     if (!AMBIENT_TRACKS.length) return null;
     if (AMBIENT_TRACKS.length === 1) return AMBIENT_TRACKS[0];
-    const options = AMBIENT_TRACKS.filter((src) => src !== lastAmbientSrc.current);
+    const options = AMBIENT_TRACKS.filter(
+      (src) => src !== lastAmbientSrc.current,
+    );
     return options[(Math.random() * options.length) | 0] || AMBIENT_TRACKS[0];
   };
   const stopAmbient = () => {
@@ -1245,7 +1344,7 @@ export default function FonosaurSite({ notes = [] }) {
                   <div
                     style={{
                       width: "100%",
-                        maxWidth: id === "create" || id === "play" ? 960 : 620,
+                      maxWidth: id === "create" || id === "play" ? 960 : 620,
                     }}
                   >
                     {renderZone(id)}
@@ -1493,7 +1592,11 @@ export default function FonosaurSite({ notes = [] }) {
               right: "max(16px, calc(50% - 240px + 16px))",
             }}
           >
-            <AmbientToggle active={ambientOn} onToggle={toggleAmbient} compact />
+            <AmbientToggle
+              active={ambientOn}
+              onToggle={toggleAmbient}
+              compact
+            />
           </div>
         )}
       </>
