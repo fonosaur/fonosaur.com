@@ -10,7 +10,6 @@ import {
   Disc,
   Headphones,
   Compass,
-  ChevronRight,
 } from "lucide-react";
 import { youtubeId } from "@/components/note-media";
 
@@ -120,6 +119,22 @@ const AMBIENT_TRACKS = [
   "/audio/naijastreet.mp3",
 ];
 const AMBIENT_VOLUME = 0.16;
+const LANDING_LAYOUT = {
+  desktop: {
+    listen: { x: 50, y: 18 },
+    explore: { x: 19, y: 39 },
+    create: { x: 81, y: 39 },
+    play: { x: 28, y: 75 },
+    collect: { x: 72, y: 75 },
+  },
+  mobile: {
+    listen: { x: 50, y: 23 },
+    explore: { x: 22, y: 40 },
+    create: { x: 78, y: 40 },
+    play: { x: 29, y: 71 },
+    collect: { x: 71, y: 71 },
+  },
+};
 
 /* --------------------------------------------------------------- ambient dust */
 function Dust({ reduced }) {
@@ -889,121 +904,265 @@ function Follow() {
     </div>
   );
 }
-/* ------------------------------------------------------------- mobile hub */
-function Hub({ go }) {
+function BrandMark({ onClick, size = "clamp(34px,12vw,54px)", style = {} }) {
+  const Tag = onClick ? "button" : "div";
+  return (
+    <Tag
+      onClick={onClick}
+      style={{
+        display: "inline-flex",
+        alignItems: "baseline",
+        gap: 0,
+        background: "transparent",
+        border: "none",
+        padding: 0,
+        margin: 0,
+        color: C.text,
+        cursor: onClick ? "pointer" : "default",
+        fontFamily: "'Unbounded', sans-serif",
+        fontSize: size,
+        letterSpacing: "0",
+        whiteSpace: "nowrap",
+        lineHeight: 0.92,
+        ...style,
+      }}
+    >
+      <span style={{ fontWeight: 200 }}>FONO</span>
+      <span className="saur">SAUR</span>
+    </Tag>
+  );
+}
+
+/* ---------------------------------------------------------- landing world */
+function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
+  const layout = isMobile ? LANDING_LAYOUT.mobile : LANDING_LAYOUT.desktop;
   return (
     <div
       style={{
         minHeight: "100%",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
-        padding: "70px 22px 40px",
+        justifyContent: "space-between",
+        padding: isMobile ? "26px 22px 26px" : "28px 32px 30px",
         boxSizing: "border-box",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      <div style={{ textAlign: "center", marginBottom: 28 }}>
-        <h1
+      <div
+        style={{
+          textAlign: "center",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 10,
+          position: "relative",
+          zIndex: 2,
+        }}
+      >
+        <BrandMark
+          size={isMobile ? "clamp(24px,9vw,34px)" : "clamp(44px,6vw,74px)"}
+        />
+        <p
           style={{
-            fontFamily: "'Unbounded', sans-serif",
-            fontSize: "clamp(34px,12vw,54px)",
             margin: 0,
-            lineHeight: 0.92,
-            letterSpacing: "0",
-            whiteSpace: "nowrap",
+            fontFamily: "'Space Mono', monospace",
+            fontSize: isMobile ? 10 : 11,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: C.sub,
           }}
         >
-          <span style={{ fontWeight: 200 }}>FONO</span>
-          <span className="saur">SAUR</span>
-        </h1>
+          Choose a zone
+        </p>
       </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {MAIN.map((id) => {
+
+      <div
+        style={{
+          position: "relative",
+          flex: 1,
+          minHeight: isMobile ? 420 : 560,
+          marginTop: isMobile ? 6 : 12,
+          marginBottom: isMobile ? 10 : 16,
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: isMobile ? "54%" : "51%",
+            width: isMobile ? 248 : 360,
+            height: isMobile ? 248 : 360,
+            transform: "translate(-50%,-50%)",
+            borderRadius: "50%",
+            border: `1px solid ${C.line}`,
+            background:
+              "radial-gradient(circle, rgba(232,232,234,0.05), rgba(10,10,12,0) 70%)",
+            boxShadow: "0 0 80px rgba(59,139,255,0.08)",
+            animation: "spinSlow 34s linear infinite",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: isMobile ? "54%" : "51%",
+            width: isMobile ? 184 : 272,
+            height: isMobile ? 184 : 272,
+            transform: "translate(-50%,-50%)",
+            borderRadius: "50%",
+            border: `1px solid rgba(232,232,234,0.08)`,
+            opacity: 0.8,
+            animation: "spinReverse 24s linear infinite",
+          }}
+        />
+        {MAIN.map((id, index) => {
           const z = ZONES[id];
           const Ic = ICON[id];
+          const pos = layout[id];
           return (
             <button
               key={id}
               onClick={() => go(id)}
+              className="constellation-node"
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 14,
-                textAlign: "left",
+                position: "absolute",
+                left: `${pos.x}%`,
+                top: `${pos.y}%`,
+                transform: "translate(-50%,-50%)",
+                width: isMobile ? 78 : 104,
+                border: "none",
+                background: "transparent",
+                padding: 0,
+                margin: 0,
                 cursor: "pointer",
-                background: C.panel,
-                border: `1px solid ${C.line}`,
-                borderLeft: `2px solid ${z.accent}`,
-                borderRadius: 14,
-                padding: "16px",
+                color: C.text,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: isMobile ? 8 : 10,
+                animation: `nodeFloat ${8 + index * 1.2}s ease-in-out infinite`,
+                animationDelay: `${index * -0.9}s`,
               }}
             >
               <span
                 style={{
+                  width: isMobile ? 50 : 58,
+                  height: isMobile ? 50 : 58,
+                  borderRadius: "50%",
                   display: "flex",
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
                   alignItems: "center",
                   justifyContent: "center",
-                  background: `${z.accent}1c`,
-                  color: z.accent,
-                  flexShrink: 0,
+                  border: `1px solid ${z.accent}66`,
+                  background: `radial-gradient(circle at 30% 30%, ${z.accent}33, rgba(20,20,23,0.92) 70%)`,
+                  boxShadow: `0 0 28px ${z.accent}22`,
                 }}
               >
-                <Ic size={19} />
+                <Ic size={isMobile ? 18 : 20} color={z.accent} />
               </span>
-              <span style={{ flex: 1 }}>
-                <span
-                  style={{
-                    display: "block",
-                    fontFamily: "'Unbounded', sans-serif",
-                    fontWeight: 400,
-                    fontSize: 19,
-                    color: C.text,
-                  }}
-                >
-                  {z.label}
-                </span>
-                <span
-                  style={{
-                    display: "block",
-                    fontSize: 13,
-                    color: C.sub,
-                    marginTop: 2,
-                  }}
-                >
-                  {z.desc}
-                </span>
+              <span
+                style={{
+                  fontFamily: "'Space Mono', monospace",
+                  fontSize: isMobile ? 10 : 11,
+                  letterSpacing: "0.14em",
+                  textTransform: "uppercase",
+                  color: z.accent,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {z.label}
               </span>
-              <ChevronRight size={18} color={C.sub} />
             </button>
           );
         })}
+        <button
+          onClick={onAmbientToggle}
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: isMobile ? "54%" : "51%",
+            transform: "translate(-50%,-50%)",
+            width: isMobile ? 126 : 152,
+            height: isMobile ? 126 : 152,
+            borderRadius: "50%",
+            border: `1px solid ${ambientOn ? `${C.green}88` : C.line}`,
+            background: ambientOn
+              ? "radial-gradient(circle, rgba(0,204,80,0.2), rgba(20,20,23,0.96) 70%)"
+              : "radial-gradient(circle, rgba(232,232,234,0.08), rgba(20,20,23,0.96) 72%)",
+            color: ambientOn ? C.green : C.text,
+            boxShadow: ambientOn
+              ? "0 0 34px rgba(0,204,80,0.18)"
+              : "0 0 28px rgba(255,255,255,0.06)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 0,
+            zIndex: 2,
+          }}
+          aria-pressed={ambientOn}
+          aria-label={ambientOn ? "Turn ambient audio off" : "Turn ambient audio on"}
+        >
+          <span
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            {ambientOn ? (
+              <Volume2 size={isMobile ? 24 : 28} />
+            ) : (
+              <VolumeX size={isMobile ? 24 : 28} />
+            )}
+            <span
+              style={{
+                fontFamily: "'Space Mono', monospace",
+                fontSize: isMobile ? 9 : 10,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+              }}
+            >
+              {ambientOn ? "Ambient on" : "Ambient off"}
+            </span>
+          </span>
+        </button>
       </div>
-      <button
-        onClick={() => go("follow")}
+
+      <div
         style={{
-          marginTop: 14,
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
-          gap: 9,
-          cursor: "pointer",
-          background: "rgba(0,204,80,0.08)",
-          border: `1px solid ${C.line}`,
-          color: C.green,
-          borderRadius: 14,
-          padding: "14px",
-          fontSize: 14,
-          fontWeight: 600,
-          fontFamily: "'Space Mono', monospace",
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
+          gap: 14,
+          position: "relative",
+          zIndex: 2,
         }}
       >
-        <Mail size={15} /> Follow
-      </button>
+        <button
+          onClick={() => go("follow")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 9,
+            cursor: "pointer",
+            background: "rgba(0,204,80,0.08)",
+            border: `1px solid ${C.line}`,
+            color: C.green,
+            borderRadius: 999,
+            padding: isMobile ? "12px 18px" : "13px 22px",
+            fontSize: isMobile ? 12 : 13,
+            fontWeight: 600,
+            fontFamily: "'Space Mono', monospace",
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+          }}
+        >
+          <Mail size={15} /> Follow
+        </button>
+      </div>
     </div>
   );
 }
@@ -1014,9 +1173,7 @@ const isMobileNow = () =>
 
 export default function FonosaurSite({ notes = [] }) {
   const [isMobile, setIsMobile] = useState(isMobileNow);
-  const [screen, setScreen] = useState(() =>
-    isMobileNow() ? "hub" : "listen",
-  );
+  const [screen, setScreen] = useState("hub");
   const [ambientOn, setAmbientOn] = useState(false);
   const [warpKey, setWarpKey] = useState(0);
   const [activeKey, setActiveKey] = useState(null);
@@ -1045,7 +1202,6 @@ export default function FonosaurSite({ notes = [] }) {
       setSize({ w: window.innerWidth, h: window.innerHeight });
       const m = isMobileNow();
       setIsMobile(m);
-      setScreen((s) => (m ? s : s === "hub" ? "listen" : s));
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
@@ -1194,6 +1350,16 @@ export default function FonosaurSite({ notes = [] }) {
   /* --------------------------- desktop compass --------------------------- */
   const EASE = "cubic-bezier(.66,0,.2,1)";
   const renderDesktop = () => {
+    if (screen === "hub") {
+      return (
+        <ConstellationLanding
+          go={go}
+          ambientOn={ambientOn}
+          onAmbientToggle={toggleAmbient}
+          isMobile={false}
+        />
+      );
+    }
     const cur = DESK_POS[screen] || DESK_POS.listen;
     const world = {
       position: "absolute",
@@ -1264,18 +1430,11 @@ export default function FonosaurSite({ notes = [] }) {
             WebkitBackdropFilter: "blur(10px)",
           }}
         >
-          <span
-            style={{
-              fontFamily: "'Unbounded', sans-serif",
-              fontSize: 15,
-              letterSpacing: "0.14em",
-              whiteSpace: "nowrap",
-              flexShrink: 0,
-            }}
-          >
-            <span style={{ fontWeight: 200 }}>FONO</span>
-            <span style={{ fontWeight: 700 }}>SAUR</span>
-          </span>
+          <BrandMark
+            onClick={() => go("hub")}
+            size="15px"
+            style={{ flexShrink: 0, letterSpacing: "0.14em" }}
+          />
           <nav
             className="navwrap"
             style={{
@@ -1348,26 +1507,11 @@ export default function FonosaurSite({ notes = [] }) {
                 "linear-gradient(180deg,rgba(10,10,12,0.92),rgba(10,10,12,0))",
             }}
           >
-            <button
+            <BrandMark
               onClick={() => go("hub")}
-              style={{
-                background: "transparent",
-                border: "none",
-                cursor: "pointer",
-                padding: 0,
-                display: "flex",
-                alignItems: "center",
-                fontFamily: "'Unbounded', sans-serif",
-                fontSize: 14,
-                letterSpacing: "0.12em",
-                color: C.text,
-                whiteSpace: "nowrap",
-                lineHeight: 1,
-              }}
-            >
-              <span style={{ fontWeight: 200 }}>FONO</span>
-              <span style={{ fontWeight: 700 }}>SAUR</span>
-            </button>
+              size="14px"
+              style={{ lineHeight: 1, letterSpacing: "0.12em" }}
+            />
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span
                 style={{
@@ -1410,7 +1554,12 @@ export default function FonosaurSite({ notes = [] }) {
               <div
                 style={{ ...FRAME, position: "relative", minHeight: "100dvh" }}
               >
-                <Hub go={go} />
+                <ConstellationLanding
+                  go={go}
+                  ambientOn={ambientOn}
+                  onAmbientToggle={toggleAmbient}
+                  isMobile
+                />
               </div>
             ) : (
               <div
@@ -1477,22 +1626,6 @@ export default function FonosaurSite({ notes = [] }) {
             </div>
           </div>
         )}
-        {!inZone && (
-          <div
-            style={{
-              position: "fixed",
-              top: 16,
-              zIndex: 20,
-              right: "max(16px, calc(50% - 240px + 16px))",
-            }}
-          >
-            <AmbientToggle
-              active={ambientOn}
-              onToggle={toggleAmbient}
-              compact
-            />
-          </div>
-        )}
       </>
     );
   };
@@ -1521,6 +1654,9 @@ export default function FonosaurSite({ notes = [] }) {
         @keyframes bSp{0%,100%{opacity:0;transform:translate(0,0)}8.1%{opacity:.7;transform:translate(-4px,0);color:rgba(0,204,80,.6)}8.4%{opacity:.5;transform:translate(4px,1px);color:rgba(139,92,246,.5)}9%{opacity:0}32.1%{opacity:.6;transform:translate(3px,-1px);color:rgba(0,204,80,.5)}32.4%{opacity:0}58.1%{opacity:.5;transform:translate(-3px,1px);color:rgba(160,104,32,.5)}58.4%{opacity:0}80.1%{opacity:.7;transform:translate(-4px,0);color:rgba(139,92,246,.5)}80.9%{opacity:0}}
         @keyframes glimpse { 0%{opacity:0;transform:scale(.72) translateY(12px);filter:blur(9px)} 28%{opacity:.85;filter:blur(2px)} 62%{opacity:.7;filter:blur(2px)} 100%{opacity:0;transform:scale(1.16) translateY(-16px);filter:blur(11px)} }
         @keyframes screenIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes spinSlow { from{transform:translate(-50%,-50%) rotate(0)} to{transform:translate(-50%,-50%) rotate(360deg)} }
+        @keyframes spinReverse { from{transform:translate(-50%,-50%) rotate(360deg)} to{transform:translate(-50%,-50%) rotate(0)} }
+        @keyframes nodeFloat { 0%,100%{transform:translate(-50%,-50%) translateY(0)} 50%{transform:translate(-50%,-50%) translateY(-10px)} }
         button:focus-visible, input:focus-visible { outline:2px solid ${C.green}; outline-offset:2px; }
         @media (prefers-reduced-motion: reduce){ .saur{animation:none;color:#00cc50} .saur::before,.saur::after{animation:none;opacity:0} .screen{animation:none!important} }
         @media (max-width:560px){ .navbtn{ font-size:9px!important; letter-spacing:0.07em!important; padding:6px 9px!important } }
