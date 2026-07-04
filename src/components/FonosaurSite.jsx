@@ -955,7 +955,6 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: 10,
           position: "relative",
           zIndex: 2,
         }}
@@ -963,18 +962,6 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
         <BrandMark
           size={isMobile ? "clamp(24px,9vw,34px)" : "clamp(44px,6vw,74px)"}
         />
-        <p
-          style={{
-            margin: 0,
-            fontFamily: "'Space Mono', monospace",
-            fontSize: isMobile ? 10 : 11,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: C.sub,
-          }}
-        >
-          Choose a zone
-        </p>
       </div>
 
       <div
@@ -1082,8 +1069,8 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
             left: "50%",
             top: isMobile ? "54%" : "51%",
             transform: "translate(-50%,-50%)",
-            width: isMobile ? 126 : 152,
-            height: isMobile ? 126 : 152,
+            width: isMobile ? 112 : 152,
+            height: isMobile ? 112 : 152,
             borderRadius: "50%",
             border: `1px solid ${ambientOn ? `${C.green}88` : C.line}`,
             background: ambientOn
@@ -1112,14 +1099,14 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
             }}
           >
             {ambientOn ? (
-              <Volume2 size={isMobile ? 24 : 28} />
+              <Volume2 size={isMobile ? 22 : 28} />
             ) : (
-              <VolumeX size={isMobile ? 24 : 28} />
+              <VolumeX size={isMobile ? 22 : 28} />
             )}
             <span
               style={{
                 fontFamily: "'Space Mono', monospace",
-                fontSize: isMobile ? 9 : 10,
+                fontSize: isMobile ? 8 : 10,
                 letterSpacing: "0.14em",
                 textTransform: "uppercase",
               }}
