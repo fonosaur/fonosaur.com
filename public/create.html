@@ -6,26 +6,44 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     />
-    <title>FONOSAUR — Create</title>
+    <title>FONOSAUR - Sample deck</title>
     <style>
+      @import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap");
+
       :root {
         --bg: #0a0a0c;
         --panel: #141418;
+        --panel-2: #101014;
         --line: #26262b;
+        --line-strong: rgba(255, 255, 255, 0.1);
         --text: #e8e8ea;
         --sub: #9c9ca4;
         --blue: #3b8bff;
         --purple: #8b5cf6;
         --bronze: #a06820;
         --green: #00cc50;
+        --lcd-bg: #04150e;
+        --lcd-bg-2: #020906;
+        --lcd-line: rgba(125, 255, 184, 0.08);
+        --lcd-ink: #b6ffd5;
+        --lcd-ink-soft: rgba(125, 255, 184, 0.58);
+        --lcd-base-font: "Space Mono", monospace;
+        --lcd-text-font: var(--lcd-base-font);
+        --lcd-number-font: var(--lcd-base-font);
       }
+
       * {
         box-sizing: border-box;
         -webkit-tap-highlight-color: transparent;
       }
+
       body {
         margin: 0;
-        background: var(--bg);
+        min-height: 100vh;
+        min-height: 100svh;
+        background:
+          radial-gradient(circle at top, rgba(255, 255, 255, 0.025), transparent 32%),
+          var(--bg);
         color: var(--text);
         font-family:
           system-ui,
@@ -33,137 +51,537 @@
           sans-serif;
         overflow-x: hidden;
       }
-      .wrap {
-        width: 100%;
-        max-width: 520px;
-        margin: 0 auto;
-        padding: 12px 16px 60px;
-        overflow-x: hidden;
+
+      html.is-embedded,
+      html.is-embedded body {
+        height: 100%;
       }
-      .kitbar {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
-        flex-wrap: wrap;
+
+      button,
+      input {
+        font: inherit;
       }
-      .chip {
-        display: none;
-      }
+
       button {
-        font-family: inherit;
         cursor: pointer;
         color: var(--text);
       }
+
       button:focus-visible,
       input:focus-visible {
         outline: 2px solid var(--green);
         outline-offset: 2px;
       }
-      .btn {
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        padding: 7px 14px;
-        font-size: 13px;
-        transition: 0.15s;
-      }
-      .btn:hover {
-        border-color: #3a3a42;
-      }
-      .btn.on {
-        background: rgba(59, 139, 255, 0.14);
-        border-color: var(--blue);
-        color: var(--blue);
+
+      .wrap {
+        width: 100%;
+        max-width: 560px;
+        margin: 0 auto;
+        min-height: 100svh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 10px 10px 28px;
       }
 
-      /* faceplate + skin */
       .device {
         position: relative;
-        width: 100%;
-        border-radius: 22px;
-        padding: 16px;
-        margin: 2px 0 18px;
+        width: min(100%, var(--device-width, 520px));
+        height: var(--device-height, auto);
+        max-width: 520px;
+        aspect-ratio: 0.73;
+        flex-shrink: 0;
+        border-radius: 28px;
         overflow: hidden;
-        border: 1px solid var(--line);
-        background: #0e0e12;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background:
+          linear-gradient(180deg, rgba(29, 29, 35, 0.96), rgba(14, 14, 18, 0.98)),
+          var(--panel);
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.05),
-          0 20px 50px rgba(0, 0, 0, 0.45);
+          0 22px 48px rgba(0, 0, 0, 0.46);
       }
-      .device .skin {
+
+      .skin {
         position: absolute;
         inset: 0;
         background-size: cover;
         background-position: center;
-        opacity: 0.92;
+        opacity: 0.16;
+        filter: saturate(0.9) brightness(0.72);
       }
-      .device .skinveil {
+
+      .skinveil {
         position: absolute;
         inset: 0;
-        background: radial-gradient(
-          circle at 50% 40%,
-          rgba(10, 10, 12, 0.25),
-          rgba(10, 10, 12, 0.62)
-        );
+        background:
+          linear-gradient(180deg, rgba(9, 9, 11, 0.52), rgba(9, 9, 11, 0.84)),
+          radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.03), transparent 42%);
       }
-      .loopbar {
+
+      .device-ui {
         position: relative;
-        height: 12px;
-        border-radius: 6px;
-        background: var(--panel);
-        border: 1px solid var(--line);
-        margin: 2px 2px 12px;
-        overflow: hidden;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        padding: 9px;
+        height: 100%;
       }
-      .loopticks {
+
+      .lcd {
+        position: relative;
+        --lcd-text-font: var(--lcd-base-font);
+        --lcd-number-font: var(--lcd-base-font);
+        padding: 6px 8px 7px;
+        border-radius: 13px;
+        border: 1px solid rgba(48, 112, 82, 0.45);
+        background:
+          repeating-linear-gradient(
+            180deg,
+            rgba(0, 0, 0, 0.22) 0,
+            rgba(0, 0, 0, 0.22) 1px,
+            transparent 1px,
+            transparent 3px
+          ),
+          radial-gradient(circle at 50% 12%, rgba(125, 255, 184, 0.08), transparent 60%),
+          linear-gradient(180deg, var(--lcd-bg), var(--lcd-bg-2));
+        box-shadow:
+          inset 0 0 20px rgba(0, 255, 120, 0.06),
+          inset 0 1px 0 rgba(162, 255, 213, 0.07),
+          0 0 0 1px rgba(5, 18, 12, 0.55);
+        color: var(--lcd-ink);
+        font-family: var(--lcd-text-font);
+        text-shadow: 0 0 9px rgba(0, 255, 120, 0.16);
+      }
+
+      .lcd::after {
+        content: "";
         position: absolute;
         inset: 0;
-        background-image: repeating-linear-gradient(
-          90deg,
-          transparent 0,
-          transparent calc(6.25% - 1px),
-          rgba(255, 255, 255, 0.09) calc(6.25% - 1px),
-          rgba(255, 255, 255, 0.09) 6.25%
-        );
+        border-radius: inherit;
+        background:
+          linear-gradient(180deg, rgba(180, 255, 217, 0.06), transparent 34%),
+          repeating-linear-gradient(
+            180deg,
+            transparent 0,
+            transparent 2px,
+            rgba(0, 0, 0, 0.12) 2px,
+            rgba(0, 0, 0, 0.12) 3px
+          );
+        pointer-events: none;
       }
-      .playhead {
-        position: absolute;
-        top: -1px;
-        bottom: -1px;
-        width: 2px;
-        left: 0;
-        background: var(--green);
-        box-shadow: 0 0 8px var(--green);
+
+      .lcd-top {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+
+      .lcd-status {
+        font-size: 17px;
+        line-height: 1;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-weight: 400;
+      }
+
+      .lcd-tools {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .lcd-tool-btn {
+        width: 26px;
+        height: 26px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 7px;
+        border: 1px solid rgba(125, 255, 184, 0.16);
+        background: rgba(7, 22, 15, 0.88);
+        color: var(--lcd-ink);
+        transition:
+          background 0.16s ease,
+          color 0.16s ease,
+          opacity 0.16s ease,
+          border-color 0.16s ease,
+          box-shadow 0.16s ease;
+        box-shadow: inset 0 0 0 1px rgba(125, 255, 184, 0.03);
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+      }
+
+      .lcd-tool-btn svg {
+        width: 14px;
+        height: 14px;
+        display: block;
+        filter: drop-shadow(0 0 4px rgba(0, 255, 120, 0.32));
+      }
+
+      .lcd-tool-btn.off {
+        opacity: 0.52;
+        color: rgba(125, 255, 184, 0.5);
+        background: rgba(6, 15, 11, 0.75);
+        box-shadow: none;
+      }
+
+      .lcd-tool-btn:not(.off) {
+        box-shadow:
+          inset 0 0 0 1px rgba(125, 255, 184, 0.06),
+          0 0 14px rgba(0, 255, 120, 0.12);
+      }
+
+      .quant-btn {
+        width: auto;
+        min-width: 34px;
+        padding: 0 7px;
+      }
+
+      .info-wrap {
+        display: inline-flex;
+      }
+
+      .info-btn {
+        padding: 0;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      .info-btn::before {
+        content: "i";
+        display: block;
+        width: 100%;
+        text-align: center;
+        text-transform: lowercase;
+      }
+
+      .info-panel {
+        max-height: 0;
+        overflow: hidden;
+        padding: 0 10px;
+        margin: 0;
+        border-radius: 10px;
+        border: 0 solid rgba(125, 255, 184, 0.18);
+        background:
+          linear-gradient(180deg, rgba(8, 24, 17, 0.98), rgba(5, 16, 11, 0.98)),
+          rgba(7, 22, 15, 0.98);
+        color: var(--lcd-ink-soft);
+        font-size: 10px;
+        line-height: 1.45;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        box-shadow:
+          0 18px 32px rgba(0, 0, 0, 0.38),
+          inset 0 0 0 1px rgba(125, 255, 184, 0.04);
         opacity: 0;
-        transition: opacity 0.2s;
+        transform: translateY(-4px);
+        pointer-events: none;
+        transition:
+          max-height 180ms ease,
+          padding 180ms ease,
+          margin 180ms ease,
+          border-width 180ms ease,
+          opacity 160ms ease,
+          transform 160ms ease;
       }
-      .loopbar.active .playhead {
+
+      .lcd.show-info .info-panel {
+        max-height: 56px;
+        padding: 7px 10px 8px;
+        margin: 0 0 5px;
+        border-width: 1px;
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
+
+      .info-panel b {
+        display: block;
+        margin-top: 6px;
+        color: var(--lcd-ink);
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        font-weight: 700;
+      }
+
+      .lcd-main {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .lcd-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        min-width: 0;
+      }
+
+      .lcd-bars {
+        min-width: 0;
+        font-size: 13px;
+        line-height: 1;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--lcd-ink-soft);
+        white-space: nowrap;
+      }
+
+      .lcd-stepper {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        padding: 1px;
+        border-radius: 999px;
+        border: 1px solid rgba(125, 255, 184, 0.14);
+        background: rgba(8, 22, 16, 0.82);
+        box-shadow: inset 0 0 0 1px rgba(125, 255, 184, 0.02);
+      }
+
+      .lcd-stepper button {
+        width: 19px;
+        height: 19px;
+        border: none;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--lcd-ink);
+        font-family: var(--lcd-text-font);
+        font-size: 18px;
+        line-height: 1;
+      }
+
+      .lcd-stepper span {
+        min-width: 34px;
+        text-align: center;
+        font-size: 17px;
+        line-height: 1;
+        letter-spacing: 0.08em;
+      }
+
+      .lcd-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--lcd-number-font);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.06em;
+      }
+
+      .lcd-divider {
+        opacity: 0.58;
+      }
+
+      .lcd-message {
+        min-height: 1.1em;
+        font-size: 16px;
+        line-height: 1;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        font-weight: 400;
+      }
+
+      .lcd-countdown {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        min-height: 1.1em;
+      }
+
+      .lcd-countdown[hidden] {
+        display: none;
+      }
+
+      .lcd-countdown span {
+        opacity: 0.3;
+        font-size: 24px;
+        line-height: 1;
+        letter-spacing: 0.06em;
+      }
+
+      .lcd-countdown span + span::before {
+        content: "\00b7";
+        margin-right: 4px;
+        opacity: 0.58;
+      }
+
+      .lcd-countdown span.is-live {
         opacity: 1;
       }
-      .loopbar.rec {
-        border-color: #ff4d4d;
+
+      .lcd-countdown span.is-done {
+        opacity: 0.7;
       }
-      .loopbar.rec .playhead {
-        background: #ff4d4d;
-        box-shadow: 0 0 8px #ff4d4d;
+
+      .lcd-steps {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(16, minmax(0, 1fr));
+        gap: 3px;
+        margin-top: 6px;
       }
+
+      .lcd-steps span {
+        height: 7px;
+        border-radius: 2px;
+        border: 1px solid rgba(125, 255, 184, 0.08);
+        background: rgba(14, 76, 44, 0.18);
+        transition:
+          background 0.08s linear,
+          box-shadow 0.08s linear,
+          opacity 0.08s linear;
+      }
+
+      .lcd-steps span.is-on {
+        background: rgba(58, 176, 104, 0.48);
+      }
+
+      .lcd-steps span.is-active {
+        background: rgba(125, 255, 184, 0.92);
+        box-shadow: 0 0 12px rgba(0, 255, 120, 0.2);
+      }
+
+      .transport {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 5px;
+      }
+
+      .transport-btn,
+      .bottom-btn {
+        min-width: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 6px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(17, 17, 20, 0.96)),
+          var(--panel-2);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        line-height: 1;
+        font-family: "Space Mono", monospace;
+        transition:
+          transform 0.15s ease,
+          border-color 0.15s ease,
+          background 0.15s ease,
+          color 0.15s ease,
+          opacity 0.15s ease;
+      }
+
+      .transport-btn:active,
+      .bottom-btn:active,
+      .lcd-tool-btn:active {
+        transform: translateY(1px);
+      }
+
+      .transport-btn:disabled {
+        opacity: 0.42;
+        cursor: default;
+      }
+
+      .transport-btn.is-live {
+        border-color: rgba(255, 92, 92, 0.65);
+        color: #fff4f4;
+        background:
+          linear-gradient(180deg, rgba(255, 76, 76, 0.28), rgba(17, 17, 20, 0.96)),
+          var(--panel-2);
+        box-shadow:
+          0 0 18px rgba(255, 76, 76, 0.16),
+          inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      }
+
+      .transport-btn.is-playing {
+        border-color: rgba(122, 182, 87, 0.42);
+        color: #f3fff3;
+        background:
+          linear-gradient(180deg, rgba(122, 182, 87, 0.2), rgba(17, 17, 20, 0.96)),
+          var(--panel-2);
+      }
+
+      .transport-btn.is-copied {
+        border-color: rgba(90, 255, 152, 0.78);
+        color: #f7fff9;
+        background:
+          radial-gradient(circle at top, rgba(148, 255, 188, 0.18), transparent 78%),
+          linear-gradient(180deg, rgba(13, 51, 29, 0.96), rgba(9, 35, 20, 0.98));
+        box-shadow:
+          inset 0 1px 0 rgba(222, 255, 231, 0.07),
+          0 0 0 1px rgba(90, 255, 152, 0.14),
+          0 0 22px rgba(18, 181, 75, 0.18);
+      }
+
+      .transport-icon {
+        flex-shrink: 0;
+        font-size: 12px;
+      }
+
+      .record-dot {
+        width: 8px;
+        height: 8px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.22);
+      }
+
+      .transport-btn.is-live .record-dot {
+        background: #ff5a5a;
+        box-shadow: 0 0 12px rgba(255, 90, 90, 0.5);
+      }
+
+      .pad-zone {
+        flex: 1;
+        min-height: 0;
+        padding: 5px;
+        position: relative;
+        z-index: 1;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(0, 0, 0, 0.08)),
+          rgba(9, 9, 11, 0.3);
+      }
+
       .grid {
         position: relative;
         z-index: 2;
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-rows: repeat(4, minmax(0, 1fr));
+        gap: 6px;
         width: 100%;
-        box-sizing: border-box;
+        height: 100%;
       }
+
       .pad {
         appearance: none;
         -webkit-appearance: none;
         position: relative;
         width: 100%;
+        height: 100%;
         min-width: 0;
-        aspect-ratio: 1;
+        min-height: 0;
         border-radius: 12px;
         cursor: pointer;
         user-select: none;
@@ -179,12 +597,14 @@
         justify-content: flex-end;
         text-align: left;
       }
+
       .pad:active {
         transform: translateY(2px) scale(0.985);
         box-shadow:
           0 1px 0 rgba(0, 0, 0, 0.55),
           inset 0 1px 0 rgba(255, 255, 255, 0.07);
       }
+
       .pad:focus-visible {
         border-color: rgba(0, 204, 80, 0.7);
         box-shadow:
@@ -192,6 +612,7 @@
           0 3px 0 rgba(0, 0, 0, 0.55),
           inset 0 1px 0 rgba(255, 255, 255, 0.07);
       }
+
       .pad .dot {
         position: absolute;
         top: 8px;
@@ -200,6 +621,7 @@
         height: 7px;
         border-radius: 50%;
       }
+
       .pad .key {
         position: absolute;
         top: 6px;
@@ -208,6 +630,7 @@
         font-size: 9px;
         color: rgba(255, 255, 255, 0.62);
       }
+
       .pad .lab {
         padding: 7px 9px;
         font-size: 10px;
@@ -215,7 +638,9 @@
         font-family: "Space Mono", monospace;
         letter-spacing: 0.03em;
         color: var(--sub);
+        white-space: nowrap;
       }
+
       .pad .glow {
         position: absolute;
         inset: -1px;
@@ -224,230 +649,465 @@
         pointer-events: none;
         transition: opacity 0.32s ease-out;
       }
+
       .pad.hit .glow {
         opacity: 0.85;
         transition: opacity 0s;
       }
 
-      .transport {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        align-items: center;
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 16px;
-        padding: 12px;
-      }
-      .transport > .btn {
-        min-width: 0;
-      }
-      .rec {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: #3a3a42;
-        display: inline-block;
-        margin-right: 7px;
-      }
-      .rec.live {
-        background: #ff4d4d;
-        animation: pulse 1s infinite;
-      }
-      @keyframes pulse {
-        0% {
-          box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.5);
-        }
-        70% {
-          box-shadow: 0 0 0 8px rgba(255, 77, 77, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(255, 77, 77, 0);
-        }
-      }
-      .tempo {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 12px;
-        color: var(--sub);
-      }
-      .stepper {
-        display: flex;
-        align-items: center;
+      .bottom-row {
+        position: relative;
+        z-index: 2;
+        flex-shrink: 0;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
-        background: var(--bg);
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        padding: 2px;
+        margin-top: 1px;
       }
-      .stepper button {
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        border: none;
-        background: transparent;
-        font-size: 17px;
-        line-height: 1;
-        color: var(--text);
-      }
-      .stepper button:active {
-        background: #222;
-      }
-      .stepper span {
-        min-width: 56px;
-        text-align: center;
-        font-size: 12px;
-        color: var(--text);
-      }
-      .stepper b {
-        font-family: "Space Mono", monospace;
-      }
-      .banner {
-        background: rgba(0, 204, 80, 0.09);
-        border: 1px solid var(--green);
-        border-radius: 14px;
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+        z-index: 30;
+        width: min(calc(100vw - 28px), 280px);
         padding: 14px 16px;
-        margin-bottom: 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-      .banner button {
-        background: var(--green);
-        border: none;
-        color: #03210f;
+        border-radius: 14px;
+        border: 1px solid rgba(130, 255, 180, 0.36);
+        background:
+          linear-gradient(180deg, rgba(160, 255, 198, 0.98), rgba(112, 236, 160, 0.96));
+        color: #08120c;
+        font-size: 14px;
         font-weight: 700;
-        border-radius: 20px;
-        padding: 8px 16px;
-        font-size: 13px;
+        line-height: 1.35;
+        letter-spacing: 0.03em;
+        text-align: center;
+        text-transform: uppercase;
+        box-shadow:
+          0 18px 40px rgba(0, 0, 0, 0.44),
+          0 0 34px rgba(76, 255, 145, 0.18);
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.96);
+        pointer-events: none;
+        transition:
+          opacity 180ms ease,
+          transform 180ms ease;
       }
-      .hint {
-        color: var(--sub);
-        font-size: 12px;
-        margin-top: 14px;
-        line-height: 1.6;
+
+      .toast.is-visible {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
       }
-      .link-out {
-        font-size: 12px;
-        color: var(--sub);
-        word-break: break-all;
-        margin-top: 8px;
-        font-family: "Space Mono", monospace;
-        display: none;
+
+      html.is-embedded body {
+        background: var(--bg);
       }
-      @media (max-width: 480px) {
+
+      html.is-embedded .wrap {
+        min-height: 100%;
+        justify-content: flex-start;
+        gap: 8px;
+        padding: 4px;
+      }
+
+      @media (min-width: 700px) {
         .wrap {
-          padding: 10px 10px 48px;
+          padding: 8px 16px 18px;
         }
-        .kitbar {
-          gap: 8px;
-          margin-bottom: 12px;
+
+        .device-ui {
+          gap: 7px;
+          padding: 9px;
         }
-        .btn {
-          padding: 7px 12px;
-          font-size: 12px;
+
+        .pad-zone {
+          padding: 6px;
         }
-        h1 {
-          font-size: 28px;
-        }
+
         .grid {
+          gap: 7px;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .wrap {
+          gap: 8px;
+          padding: 6px 4px 24px;
+        }
+
+        .device-ui {
           gap: 6px;
+          padding: 7px;
         }
-        .pad .lab {
-          font-size: 8px;
-          letter-spacing: 0;
-          padding: 5px 5px;
+
+        .device {
+          width: 100%;
+          max-height: none;
+          border-radius: 24px;
         }
+
+        .lcd {
+          padding: 6px 6px 7px;
+          border-radius: 12px;
+        }
+
+        .lcd-meta {
+          gap: 5px;
+        }
+
+        .lcd-bars,
+        .lcd-stepper span {
+          font-size: 13px;
+        }
+
+        .lcd-stepper button {
+          width: 17px;
+          height: 17px;
+        }
+
+        .lcd-stepper span {
+          min-width: 28px;
+        }
+
+        .transport {
+          gap: 4px;
+        }
+
+        .transport-btn,
+        .bottom-btn {
+          gap: 4px;
+          padding: 8px 4px;
+          font-size: 8.5px;
+        }
+
+        .pad-zone {
+          padding: 5px;
+        }
+
+        .grid {
+          gap: 5px;
+        }
+
         .pad .dot {
           width: 5px;
           height: 5px;
-          top: 5px;
+          top: 6px;
           left: 6px;
         }
+
         .pad .key {
+          top: 5px;
+          right: 6px;
           font-size: 7px;
+        }
+
+        .pad .lab {
+          padding: 5px 4px 5px;
+          font-size: 6.5px;
+          letter-spacing: 0;
+        }
+
+        .lcd-status {
+          font-size: 14px;
+        }
+
+        .lcd-message {
+          font-size: 16px;
+        }
+
+        .lcd-countdown span {
+          font-size: 22px;
+        }
+
+        .hint {
+          margin-inline: 2px;
+        }
+      }
+
+      @media (max-width: 420px) {
+        .wrap {
+          padding: 6px 3px 22px;
+        }
+
+        .device-ui {
+          gap: 5px;
+          padding: 6px;
+        }
+
+        .transport {
+          gap: 3px;
+        }
+
+        .transport-btn,
+        .bottom-btn {
+          gap: 3px;
+          padding: 7px 3px;
+          font-size: 8px;
+        }
+
+        .pad-zone {
+          padding: 4px;
+          border-radius: 16px;
+        }
+
+        .grid {
+          gap: 4px;
+        }
+
+        .pad .dot {
+          width: 4px;
+          height: 4px;
+          top: 5px;
+          left: 5px;
+        }
+
+        .pad .key {
           top: 4px;
           right: 5px;
+          font-size: 6px;
         }
-        .device {
-          padding: 10px;
+
+        .pad .lab {
+          padding: 4px 4px 5px;
+          font-size: 6px;
         }
-        .transport {
-          gap: 6px;
-          padding: 10px;
+
+        .info-panel {
+          font-size: 9px;
+          letter-spacing: 0.03em;
         }
-        .tempo {
-          width: 100%;
-          justify-content: space-between;
+
+        .info-panel b {
+          font-size: 10px;
         }
-        #shareBtn {
-          width: 100%;
-          margin-left: 0 !important;
-          justify-content: center;
+
+        .toast {
+          width: min(calc(100vw - 24px), 228px);
+          padding: 13px 14px;
+          font-size: 13px;
         }
       }
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <div id="banner" class="banner" style="display: none">
-        <span style="flex: 1; font-size: 13px"
-          >Someone shared something with you — their palette, their loop.</span
-        >
-        <button id="playShared">▶ Play it</button>
-      </div>
-
-      <div class="kitbar">
-        <span class="chip">palette <b id="seedTxt">—</b></span>
-        <button class="btn" id="shuffle" aria-label="Shuffle sounds">
-          Shuffle sounds
-        </button>
-        <button class="btn" id="skinBtn">Skin 1 ▸</button>
-      </div>
-
+    <main class="wrap">
       <div class="device">
         <div class="skin" id="skin"></div>
         <div class="skinveil"></div>
-        <div class="grid" id="grid"></div>
-      </div>
 
-      <div class="loopbar" id="loopbar">
-        <div class="loopticks"></div>
-        <div class="playhead" id="playhead"></div>
-      </div>
+        <div class="device-ui">
+          <section class="lcd" aria-live="polite">
+            <div class="lcd-top">
+              <div class="lcd-status" id="lcdStatus">READY</div>
+              <div class="lcd-tools">
+                <button
+                  class="lcd-tool-btn quant-btn"
+                  id="quantBtn"
+                  type="button"
+                  aria-pressed="true"
+                  aria-label="Turn quantise off"
+                  title="Quantise"
+                >
+                  Q16
+                </button>
+                <button
+                  class="lcd-tool-btn"
+                  id="metroBtn"
+                  type="button"
+                  aria-pressed="true"
+                  aria-label="Turn metronome off"
+                  title="Metronome"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M7 20.5h10L14.7 4h-5.4L7 20.5Z"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linejoin="round"
+                    />
+                    <path
+                      d="M12 8.5l3.4 5.1"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                    />
+                    <circle cx="15.7" cy="13.9" r="1.45" fill="currentColor" />
+                    <path
+                      d="M10 4h4"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </button>
+                <div class="info-wrap" id="infoWrap">
+                  <button
+                    class="lcd-tool-btn info-btn"
+                    id="infoBtn"
+                    type="button"
+                    aria-label="Show keyboard map"
+                    aria-expanded="false"
+                    aria-controls="infoPanel"
+                    title="Keyboard map"
+                  ></button>
+                </div>
+              </div>
+            </div>
 
-      <div class="transport">
-        <button class="btn" id="recBtn" aria-label="Record loop">
-          <span class="rec" id="recDot"></span>Record
-        </button>
-        <button class="btn" id="playBtn">▶ Loop</button>
-        <button class="btn" id="clearBtn">Clear</button>
-        <div class="tempo">
-          <label><input type="checkbox" id="quantChk" /> tighten</label>
-          <div class="stepper">
-            <button id="bpmDown" aria-label="slower">−</button>
-            <span><b id="bpmTxt">90</b> bpm</span>
-            <button id="bpmUp" aria-label="faster">+</button>
+            <div class="info-panel" id="infoPanel" role="status">
+              Tap pads or use the keyboard
+              <b>1 2 3 4 / Q W E R / A S D F / Z X C V</b>
+            </div>
+
+            <div class="lcd-main">
+              <div class="lcd-meta">
+                <div class="lcd-bars" id="lcdBars">
+                  <span class="lcd-number">4</span> BARS
+                  <span class="lcd-divider">&middot;</span>
+                  <span class="lcd-number">90</span> BPM
+                </div>
+                <div class="lcd-stepper">
+                  <button
+                    id="bpmDown"
+                    type="button"
+                    aria-label="Decrease tempo"
+                    title="Decrease tempo"
+                  >
+                    -
+                  </button>
+                  <span class="lcd-number" id="bpmTxt">90</span>
+                  <button
+                    id="bpmUp"
+                    type="button"
+                    aria-label="Increase tempo"
+                    title="Increase tempo"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <div class="lcd-message" id="lcdMessage">READY TO RECORD</div>
+
+              <div class="lcd-countdown" id="lcdCountdown" hidden>
+                <span class="lcd-number" data-count="4">4</span>
+                <span class="lcd-number" data-count="3">3</span>
+                <span class="lcd-number" data-count="2">2</span>
+                <span class="lcd-number" data-count="1">1</span>
+              </div>
+            </div>
+
+            <div class="lcd-steps" id="lcdSteps" aria-hidden="true">
+              <span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span>
+            </div>
+          </section>
+
+          <div class="transport">
+            <button
+              class="transport-btn"
+              id="playBtn"
+              type="button"
+              aria-label="Play loop"
+              title="Play loop"
+            >
+              <span class="transport-icon" id="playIcon">&#9654;</span>
+              <span id="playLabel">PLAY</span>
+            </button>
+            <button
+              class="transport-btn"
+              id="recBtn"
+              type="button"
+              aria-label="Record loop"
+              title="Record loop"
+            >
+              <span class="record-dot" id="recDot"></span>
+              <span>REC</span>
+            </button>
+            <button
+              class="transport-btn"
+              id="clearBtn"
+              type="button"
+              aria-label="Clear loop"
+              title="Clear loop"
+            >
+              <span class="transport-icon">&#8635;</span>
+              <span>CLEAR</span>
+            </button>
+            <button
+              class="transport-btn"
+              id="undoBtn"
+              type="button"
+              aria-label="Undo last overdub layer"
+              title="Undo last overdub layer"
+            >
+              <span class="transport-icon">&#8630;</span>
+              <span>UNDO</span>
+            </button>
+            <button
+              class="transport-btn"
+              id="shareBtn"
+              type="button"
+              aria-label="Copy share link"
+              title="Copy share link"
+            >
+              <span class="transport-icon">&#8599;</span>
+              <span id="shareLabel">SHARE</span>
+            </button>
+          </div>
+
+          <div class="pad-zone">
+            <div class="grid" id="grid"></div>
+          </div>
+
+          <div class="bottom-row">
+            <button
+              class="bottom-btn"
+              id="shuffle"
+              type="button"
+              aria-label="Shuffle sounds"
+            >
+              Shuffle sounds
+            </button>
+            <button
+              class="bottom-btn"
+              id="skinBtn"
+              type="button"
+              aria-label="Change skin"
+            >
+              Change skin
+            </button>
           </div>
         </div>
-        <button class="btn" id="shareBtn" style="margin-left: auto">
-          Copy share link
-        </button>
       </div>
-      <div class="link-out" id="linkOut"></div>
 
-      <p class="hint">
-        Tap pads or use the keyboard (<b
-          >1 2 3 4 / Q W E R / A S D F / Z X C V</b
-        >). Record captures what you play as a loop and folds it — palette and
-        all — into a link.
-        <em
-          >The skin behind the pads is placeholder; the real ones would be
-          Nelson's collage, and could rotate (and one day be sold as merch).</em
-        >
-      </p>
-    </div>
+      <div class="deck-note" hidden aria-hidden="true">
+        <div class="info-wrap" id="infoWrapLegacy">
+          <button
+            class="info-btn"
+            id="infoBtnLegacy"
+            type="button"
+            aria-label="Show keyboard map"
+            aria-expanded="false"
+            aria-controls="infoPanelLegacy"
+            title="Keyboard map"
+          >
+            ⓘ
+          </button>
+          <div class="info-panel" id="infoPanelLegacy" role="status">
+            Tap pads or use the keyboard
+            <b>1 2 3 4 / Q W E R / A S D F / Z X C V</b>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast" id="toast" aria-live="polite" aria-atomic="true"></div>
+    </main>
 
     <script>
       // ---------- seeded RNG ----------
@@ -521,11 +1181,33 @@
         texture: "TEXTURE",
       };
       const PENT = [0, 3, 5, 7, 10];
-      let seed = 0,
-        kit = [],
-        bpm = 90,
-        quant = false,
-        root = 57;
+      const LOOP_BARS = 4;
+      const DISPLAY_STEPS = 16;
+      const COUNT_IN_BEATS = 4;
+      const QUANTIZE_STEPS = LOOP_BARS * 16;
+      const QUANTIZE_BLEND = 0.66;
+
+      let seed = 0;
+      let kit = [];
+      let bpm = 90;
+      let root = 57;
+      let skinIdx = 0;
+      let metronomeOn = true;
+      let quantizeOn = true;
+
+      const loop = { events: [], length: 0, layers: [] };
+      const runtime = {
+        mode: "idle",
+        rafId: 0,
+        countInStart: 0,
+        recordStart: 0,
+        playStart: 0,
+        lastBeat: -1,
+        lastProgress: 0,
+        recordLayer: null,
+        recordType: "base",
+        loadedFromShare: false,
+      };
 
       function makeParams(cat, prng) {
         const r = () => prng();
@@ -586,6 +1268,7 @@
             };
         }
       }
+
       function buildKit(s) {
         seed = s >>> 0;
         const rnd = mulberry32(seed);
@@ -598,86 +1281,168 @@
         });
       }
 
-      // ---------- procedural collage SKIN (placeholder for Nelson's art) ----------
+      // ---------- procedural collage skin ----------
       function bust(x, y, s, fill) {
-        return `<path transform="translate(${x},${y}) scale(${s})" fill="${fill}" d="M40 4c18 0 30 15 30 34 0 11-5 17-5 25l7 8-9 4 2 13c0 9-9 15-20 15-17 0-30-9-30-30 0-9 2-13 2-22C19 26 22 4 40 4z"/>`;
+        return '<path transform="translate(' + x + "," + y + ") scale(" + s + ')" fill="' + fill + '" d="M40 4c18 0 30 15 30 34 0 11-5 17-5 25l7 8-9 4 2 13c0 9-9 15-20 15-17 0-30-9-30-30 0-9 2-13 2-22C19 26 22 4 40 4z"/>';
       }
+
       function rings(cx, cy, r, st) {
-        let o = "";
-        for (let i = 0; i < 3; i++)
-          o += `<ellipse cx="${cx}" cy="${cy}" rx="${r + i * r * 0.5}" ry="${(r + i * r * 0.5) * 0.36}" fill="none" stroke="${st}" stroke-width="${1.6 - i * 0.4}" opacity="${0.7 - i * 0.18}" transform="rotate(-20 ${cx} ${cy})"/>`;
-        return (
-          `<circle cx="${cx}" cy="${cy}" r="${r * 0.5}" fill="${st}"/>` + o
-        );
+        let out = "";
+        for (let i = 0; i < 3; i++) {
+          out +=
+            '<ellipse cx="' +
+            cx +
+            '" cy="' +
+            cy +
+            '" rx="' +
+            (r + i * r * 0.5) +
+            '" ry="' +
+            (r + i * r * 0.5) * 0.36 +
+            '" fill="none" stroke="' +
+            st +
+            '" stroke-width="' +
+            (1.6 - i * 0.4) +
+            '" opacity="' +
+            (0.7 - i * 0.18) +
+            '" transform="rotate(-20 ' +
+            cx +
+            " " +
+            cy +
+            ')"/>';
+        }
+        return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.5 + '" fill="' + st + '"/>' + out;
       }
+
       function bird(x, y, s, fill) {
-        return `<path transform="translate(${x},${y}) scale(${s})" fill="${fill}" d="M2 22c9-3 15-12 24-12 6 0 9 3 15 3 5 0 8-3 9-8 2 6-1 13-8 16-8 4-18 4-27 7-6 2-12 3-17 8 0-9 5-17 -6-10z"/>`;
+        return '<path transform="translate(' + x + "," + y + ") scale(" + s + ')" fill="' + fill + '" d="M2 22c9-3 15-12 24-12 6 0 9 3 15 3 5 0 8-3 9-8 2 6-1 13-8 16-8 4-18 4-27 7-6 2-12 3-17 8 0-9 5-17 -6-10z"/>';
       }
+
       function leaf(x, y, s, rot, fill) {
-        return `<g transform="translate(${x},${y}) rotate(${rot}) scale(${s})"><path fill="${fill}" d="M0 40C-20 20 -20 -14 0 -40 20 -14 20 20 0 40z"/></g>`;
+        return '<g transform="translate(' + x + "," + y + ") rotate(" + rot + ") scale(" + s + ')"><path fill="' + fill + '" d="M0 40C-20 20 -20 -14 0 -40 20 -14 20 20 0 40z"/></g>';
       }
+
       const SKIN_PAL = ["#3b8bff", "#8b5cf6", "#a06820", "#00cc50"];
+
       function skinURI(sd) {
-        const p = mulberry32(sd),
-          R = () => p();
-        const W = 520,
-          H = 520;
-        const a = SKIN_PAL[Math.floor(R() * 4)],
-          b = SKIN_PAL[Math.floor(R() * 4)];
+        const p = mulberry32(sd);
+        const R = () => p();
+        const W = 520;
+        const H = 520;
+        const a = SKIN_PAL[Math.floor(R() * 4)];
+        const b = SKIN_PAL[Math.floor(R() * 4)];
         return (
           "data:image/svg+xml;utf8," +
           encodeURIComponent(
-            `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
-     <defs>
-      <filter id="g"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" stitchTiles="stitch"/>
-       <feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .5 0"/><feComposite operator="in" in2="SourceGraphic"/></filter>
-      <pattern id="h" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(${R() * 40})">
-       <circle cx="2.2" cy="2.2" r="1.4" fill="#000" opacity=".15"/></pattern>
-     </defs>
-     <rect width="${W}" height="${H}" fill="${a}"/>
-     <polygon points="0,0 ${W},0 ${W},${H * 0.55} 0,${H * 0.78}" fill="${b}" opacity=".55"/>
-     <polygon points="0,${H * 0.5} ${W},${H * 0.36} ${W},${H} 0,${H}" fill="#0d0d10" opacity=".62"/>
-     ${rings(W * 0.74, H * 0.22, 52, "#f2e6c8")}
-     ${leaf(W * 0.14, H * 0.32, 1.5, -22, "#0d0d10")}
-     ${bird(W * 0.12, H * 0.13, 1.3, "rgba(242,230,200,.9)")}
-     ${bust(W * 0.3, H * 0.46, 2.6, "#0b0b0e")}
-     <rect width="${W}" height="${H}" fill="url(#h)"/>
-     <rect width="${W}" height="${H}" filter="url(#g)" opacity=".35"/>
-   </svg>`,
+            '<svg xmlns="http://www.w3.org/2000/svg" width="' +
+              W +
+              '" height="' +
+              H +
+              '" viewBox="0 0 ' +
+              W +
+              " " +
+              H +
+              '">' +
+              "<defs>" +
+              '<filter id="g"><feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .5 0"/><feComposite operator="in" in2="SourceGraphic"/></filter>' +
+              '<pattern id="h" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(' +
+              R() * 40 +
+              ')"><circle cx="2.2" cy="2.2" r="1.4" fill="#000" opacity=".15"/></pattern>' +
+              "</defs>" +
+              '<rect width="' +
+              W +
+              '" height="' +
+              H +
+              '" fill="' +
+              a +
+              '"/>' +
+              '<polygon points="0,0 ' +
+              W +
+              ",0 " +
+              W +
+              "," +
+              H * 0.55 +
+              " 0," +
+              H * 0.78 +
+              '" fill="' +
+              b +
+              '" opacity=".55"/>' +
+              '<polygon points="0,' +
+              H * 0.5 +
+              " " +
+              W +
+              "," +
+              H * 0.36 +
+              " " +
+              W +
+              "," +
+              H +
+              " 0," +
+              H +
+              '" fill="#0d0d10" opacity=".62"/>' +
+              rings(W * 0.74, H * 0.22, 52, "#f2e6c8") +
+              leaf(W * 0.14, H * 0.32, 1.5, -22, "#0d0d10") +
+              bird(W * 0.12, H * 0.13, 1.3, "rgba(242,230,200,.9)") +
+              bust(W * 0.3, H * 0.46, 2.6, "#0b0b0e") +
+              '<rect width="' +
+              W +
+              '" height="' +
+              H +
+              '" fill="url(#h)"/>' +
+              '<rect width="' +
+              W +
+              '" height="' +
+              H +
+              '" filter="url(#g)" opacity=".35"/>' +
+              "</svg>",
           )
         );
       }
+
       const SKINS = [70141, 930277, 514088];
-      let skinIdx = 0;
-      function applySkin() {
-        document.getElementById("skin").style.backgroundImage =
-          `url("${skinURI(SKINS[skinIdx])}")`;
-        document.getElementById("skinBtn").textContent =
-          `Skin ${skinIdx + 1} ▸`;
-      }
-      function syncCreateLabels() {
-        document.getElementById("playShared").setAttribute("aria-label", "Play shared loop");
-        document.getElementById("playShared").textContent = "Play shared loop";
-        document.getElementById("skinBtn").setAttribute("aria-label", "Change skin");
-        document.getElementById("skinBtn").textContent = "Change skin";
-        document.getElementById("playBtn").setAttribute("aria-label", "Play loop");
-        document.getElementById("playBtn").textContent = "Play loop";
-        document.getElementById("clearBtn").setAttribute("aria-label", "Clear loop");
-        document.getElementById("clearBtn").textContent = "Clear loop";
-        document.getElementById("bpmDown").setAttribute("aria-label", "Decrease tempo");
-        document.getElementById("bpmUp").setAttribute("aria-label", "Increase tempo");
-        document.getElementById("shareBtn").setAttribute("aria-label", "Copy share link");
-        document.querySelector(".hint").innerHTML =
-          'Tap pads or use the keyboard (<b>1 2 3 4 / Q W E R / A S D F / Z X C V</b>). Record captures what you play as a loop and folds it into a share link.';
-      }
-      document.getElementById("skinBtn").addEventListener("click", () => {
-        skinIdx = (skinIdx + 1) % SKINS.length;
-        applySkin();
-        syncCreateLabels();
-      });
+
+      // ---------- DOM ----------
+      const rootEl = document.documentElement;
+      const wrapEl = document.querySelector(".wrap");
+      const deviceEl = document.querySelector(".device");
+      const grid = document.getElementById("grid");
+      const skinEl = document.getElementById("skin");
+      const lcdEl = document.querySelector(".lcd");
+      const lcdStatus = document.getElementById("lcdStatus");
+      const lcdBars = document.getElementById("lcdBars");
+      const lcdMessage = document.getElementById("lcdMessage");
+      const lcdCountdown = document.getElementById("lcdCountdown");
+      const countdownDigits = Array.from(lcdCountdown.querySelectorAll("span"));
+      const stepCells = Array.from(document.querySelectorAll("#lcdSteps span"));
+      const metroBtn = document.getElementById("metroBtn");
+      const quantBtn = document.getElementById("quantBtn");
+      const bpmTxt = document.getElementById("bpmTxt");
+      const bpmDown = document.getElementById("bpmDown");
+      const bpmUp = document.getElementById("bpmUp");
+      const playBtn = document.getElementById("playBtn");
+      const playIcon = document.getElementById("playIcon");
+      const playLabel = document.getElementById("playLabel");
+      const recBtn = document.getElementById("recBtn");
+      const recDot = document.getElementById("recDot");
+      const clearBtn = document.getElementById("clearBtn");
+      const undoBtn = document.getElementById("undoBtn");
+      const shareBtn = document.getElementById("shareBtn");
+      const shareLabel = document.getElementById("shareLabel");
+      const shuffleBtn = document.getElementById("shuffle");
+      const skinBtn = document.getElementById("skinBtn");
+      const infoWrap = document.getElementById("infoWrap");
+      const infoBtn = document.getElementById("infoBtn");
+      const infoPanel = document.getElementById("infoPanel");
+      const toastEl = document.getElementById("toast");
+      const DEVICE_RATIO = 0.73;
+      const DEVICE_MAX_WIDTH = 520;
+      let toastTimer = 0;
+      let shareTimer = 0;
 
       // ---------- audio ----------
-      let ctx, master, noiseBuf;
+      let ctx;
+      let master;
+      let noiseBuf;
+
       function initAudio() {
         if (ctx) return;
         ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -688,12 +1453,14 @@
         const g = ctx.createGain();
         g.gain.value = 0.9;
         master.connect(g).connect(ctx.destination);
+
         const len = ctx.sampleRate * 1.4;
         const ir = ctx.createBuffer(2, len, ctx.sampleRate);
         for (let ch = 0; ch < 2; ch++) {
           const d = ir.getChannelData(ch);
-          for (let i = 0; i < len; i++)
+          for (let i = 0; i < len; i++) {
             d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
+          }
         }
         const conv = ctx.createConvolver();
         conv.buffer = ir;
@@ -701,29 +1468,55 @@
         rev.gain.value = 0.16;
         conv.connect(rev).connect(master);
         master._conv = conv;
+
         const nl = ctx.sampleRate * 0.5;
         noiseBuf = ctx.createBuffer(1, nl, ctx.sampleRate);
         const nd = noiseBuf.getChannelData(0);
         for (let i = 0; i < nl; i++) nd[i] = Math.random() * 2 - 1;
       }
+
+      function resumeAudio() {
+        initAudio();
+        if (ctx && ctx.state === "suspended") ctx.resume();
+      }
+
       function noteFreq(m) {
         return 440 * Math.pow(2, (m - 69) / 12);
       }
+
       function env(g, t, a, d, peak) {
         g.gain.setValueAtTime(0, t);
         g.gain.linearRampToValueAtTime(peak, t + a);
         g.gain.exponentialRampToValueAtTime(0.0008, t + a + d);
       }
+
       function snd(node) {
         node.connect(master);
         node.connect(master._conv);
       }
+
+      function playClick(accent) {
+        if (!metronomeOn) return;
+        resumeAudio();
+        const t = ctx.currentTime;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.setValueAtTime(accent ? 1400 : 980, t);
+        gain.gain.setValueAtTime(0.0001, t);
+        gain.gain.exponentialRampToValueAtTime(accent ? 0.14 : 0.09, t + 0.002);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.055);
+        osc.connect(gain).connect(ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.07);
+      }
+
       function play(cat, p) {
         if (!ctx) return;
         const t = ctx.currentTime;
         if (cat === "kick") {
-          const o = ctx.createOscillator(),
-            g = ctx.createGain();
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
           o.type = "sine";
           o.frequency.setValueAtTime(p.f0, t);
           o.frequency.exponentialRampToValueAtTime(p.f1, t + p.pd);
@@ -742,8 +1535,8 @@
           env(g, t, 0.001, p.dec, p.noise);
           n.connect(bp).connect(g);
           snd(g);
-          const o = ctx.createOscillator(),
-            g2 = ctx.createGain();
+          const o = ctx.createOscillator();
+          const g2 = ctx.createGain();
           o.type = "triangle";
           o.frequency.value = p.tone;
           env(g2, t, 0.001, p.dec * 0.7, 0.5);
@@ -766,8 +1559,8 @@
           n.start(t);
           n.stop(t + p.dec + 0.03);
         } else if (cat === "perc") {
-          const o = ctx.createOscillator(),
-            g = ctx.createGain();
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
           o.type = p.tri ? "triangle" : "square";
           o.frequency.setValueAtTime(p.f, t);
           o.frequency.exponentialRampToValueAtTime(p.f * 0.6, t + p.dec);
@@ -778,9 +1571,9 @@
           o.stop(t + p.dec + 0.03);
         } else if (cat === "bass") {
           const midi = root - 12 + PENT[p.deg];
-          const o = ctx.createOscillator(),
-            g = ctx.createGain(),
-            f = ctx.createBiquadFilter();
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          const f = ctx.createBiquadFilter();
           o.type = "sawtooth";
           o.frequency.value = noteFreq(midi);
           f.type = "lowpass";
@@ -792,8 +1585,8 @@
           o.stop(t + p.dec + 0.05);
         } else if (cat === "keys") {
           const degs = [0, 2, p.sixth ? 3 : 1];
-          const g = ctx.createGain(),
-            f = ctx.createBiquadFilter();
+          const g = ctx.createGain();
+          const f = ctx.createBiquadFilter();
           f.type = "lowpass";
           f.frequency.value = p.cut;
           env(g, t, 0.01, p.dec, 0.32);
@@ -810,11 +1603,11 @@
             o.stop(t + p.dec + 0.1);
           });
         } else if (cat === "siren") {
-          const o = ctx.createOscillator(),
-            lfo = ctx.createOscillator(),
-            la = ctx.createGain(),
-            g = ctx.createGain(),
-            bp = ctx.createBiquadFilter();
+          const o = ctx.createOscillator();
+          const lfo = ctx.createOscillator();
+          const la = ctx.createGain();
+          const g = ctx.createGain();
+          const bp = ctx.createBiquadFilter();
           o.type = "sawtooth";
           o.frequency.value = p.base;
           lfo.frequency.value = p.rate;
@@ -833,9 +1626,9 @@
         } else if (cat === "vox") {
           const midi = root + PENT[p.deg];
           [p.f1, p.f2].forEach((fq, k) => {
-            const o = ctx.createOscillator(),
-              bp = ctx.createBiquadFilter(),
-              g = ctx.createGain();
+            const o = ctx.createOscillator();
+            const bp = ctx.createBiquadFilter();
+            const g = ctx.createGain();
             o.type = "sawtooth";
             o.frequency.value = noteFreq(midi);
             bp.type = "bandpass";
@@ -855,8 +1648,8 @@
           f.type = "bandpass";
           f.frequency.value = p.cut;
           f.Q.value = 3;
-          const o = ctx.createOscillator(),
-            g = ctx.createGain();
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
           o.type = "triangle";
           o.frequency.value = noteFreq(root + PENT[p.deg] + 12);
           env(g, t, 0.25, p.dec, 0.22);
@@ -870,8 +1663,253 @@
         }
       }
 
+      // ---------- UI helpers ----------
+      function beatMs() {
+        return 60000 / bpm;
+      }
+
+      function fixedLoopLength() {
+        return LOOP_BARS * 4 * beatMs();
+      }
+
+      function syncLoopEvents() {
+        loop.events = [];
+        loop.layers.forEach((layer) => {
+          layer.events.forEach(([i, t]) => {
+            loop.events.push([i, t]);
+          });
+        });
+        loop.events.sort((a, b) => a[1] - b[1]);
+      }
+
+      function normalizeLayer(events, targetLength) {
+        return events
+          .map(([i, t]) => [i, Math.max(0, Math.min(t, targetLength - 1))])
+          .sort((a, b) => a[1] - b[1]);
+      }
+
+      function quantizeLayer(events, targetLength) {
+        const normalized = normalizeLayer(events, targetLength);
+        if (!quantizeOn || !normalized.length) return normalized;
+        const step = targetLength / QUANTIZE_STEPS;
+        return normalizeLayer(
+          normalized.map(([i, t]) => {
+            const nearest = Math.round(t / step) * step;
+            return [i, t + (nearest - t) * QUANTIZE_BLEND];
+          }),
+          targetLength,
+        );
+      }
+
+      function resetLoopData() {
+        loop.layers = [];
+        loop.events = [];
+        loop.length = fixedLoopLength();
+      }
+
+      function retimeLoop(nextLength) {
+        if (!loop.layers.length || !loop.length || loop.length === nextLength) {
+          loop.length = nextLength;
+          return;
+        }
+        const scale = nextLength / loop.length;
+        loop.layers = loop.layers.map((layer) => ({
+          events: layer.events.map(([i, t]) => [i, t * scale]),
+        }));
+        loop.length = nextLength;
+        syncLoopEvents();
+      }
+
+      function syncDeviceFrame() {
+        const wrapStyle = getComputedStyle(wrapEl);
+        const padY =
+          parseFloat(wrapStyle.paddingTop || 0) +
+          parseFloat(wrapStyle.paddingBottom || 0);
+        const gap = parseFloat(wrapStyle.rowGap || wrapStyle.gap || 0);
+        const siblings = Array.from(wrapEl.children).filter(
+          (child) => child !== deviceEl && getComputedStyle(child).display !== "none",
+        );
+        const extrasHeight = siblings.reduce(
+          (sum, child) => sum + child.getBoundingClientRect().height,
+          0,
+        );
+        const availableHeight = Math.max(
+          392,
+          window.innerHeight - padY - extrasHeight - gap * siblings.length,
+        );
+        const horizontalReserve = window.innerWidth <= 360 ? 34 : window.innerWidth <= 420 ? 20 : 0;
+        const availableWidth = Math.max(260, wrapEl.clientWidth - horizontalReserve);
+        const widthFromHeight = availableHeight * DEVICE_RATIO;
+        const targetWidth = Math.min(DEVICE_MAX_WIDTH, availableWidth, widthFromHeight);
+        const targetHeight = targetWidth / DEVICE_RATIO;
+        deviceEl.style.width = Math.round(targetWidth) + "px";
+        deviceEl.style.height = Math.round(targetHeight) + "px";
+      }
+
+      function setInfoOpen(open) {
+        infoWrap.dataset.open = open ? "true" : "false";
+        infoBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        lcdEl.classList.toggle("show-info", open);
+      }
+
+      function showToast(message) {
+        if (!toastEl) return;
+        toastEl.textContent = message;
+        toastEl.classList.add("is-visible");
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => {
+          toastEl.classList.remove("is-visible");
+        }, 1900);
+      }
+
+      function resetShareFeedback() {
+        shareBtn.classList.remove("is-copied");
+        shareLabel.textContent = "SHARE";
+        shareBtn.setAttribute("aria-label", "Copy share link");
+        shareBtn.setAttribute("title", "Copy share link");
+      }
+
+      function flashShareFeedback() {
+        shareBtn.classList.add("is-copied");
+        shareLabel.innerHTML = "COPIED &#10003;";
+        shareBtn.setAttribute("aria-label", "Link copied");
+        shareBtn.setAttribute("title", "Link copied");
+        window.clearTimeout(shareTimer);
+        shareTimer = window.setTimeout(() => {
+          resetShareFeedback();
+        }, 2000);
+      }
+
+      function updateBarsReadout() {
+        bpmTxt.textContent = String(bpm);
+        lcdBars.innerHTML =
+          '<span class="lcd-number">' +
+          LOOP_BARS +
+          '</span> BARS <span class="lcd-divider">&middot;</span> <span class="lcd-number">' +
+          bpm +
+          "</span> BPM";
+      }
+
+      function updateMetroButton() {
+        metroBtn.classList.toggle("off", !metronomeOn);
+        metroBtn.setAttribute("aria-pressed", String(metronomeOn));
+        metroBtn.setAttribute(
+          "aria-label",
+          metronomeOn ? "Turn metronome off" : "Turn metronome on",
+        );
+      }
+
+      function updateQuantButton() {
+        quantBtn.classList.toggle("off", !quantizeOn);
+        quantBtn.setAttribute("aria-pressed", String(quantizeOn));
+        quantBtn.setAttribute(
+          "aria-label",
+          quantizeOn ? "Turn quantise off" : "Turn quantise on",
+        );
+        quantBtn.setAttribute("title", quantizeOn ? "Quantise on" : "Quantise off");
+      }
+
+      function hideCountdown() {
+        lcdCountdown.hidden = true;
+        countdownDigits.forEach((digit) => {
+          digit.classList.remove("is-live", "is-done");
+        });
+      }
+
+      function showCountdown(activeValue) {
+        lcdCountdown.hidden = false;
+        countdownDigits.forEach((digit) => {
+          const n = Number(digit.dataset.count);
+          digit.classList.toggle("is-live", n === activeValue);
+          digit.classList.toggle("is-done", n > activeValue);
+        });
+      }
+
+      function clearStepReadout() {
+        stepCells.forEach((cell) => {
+          cell.classList.remove("is-on", "is-active");
+        });
+      }
+
+      function renderStepReadout(progress, total) {
+        if (!total || total <= 0) {
+          clearStepReadout();
+          return;
+        }
+        const ratio = Math.max(0, Math.min(progress / total, 0.9999));
+        const activeStep = Math.min(
+          DISPLAY_STEPS - 1,
+          Math.floor(ratio * DISPLAY_STEPS),
+        );
+        stepCells.forEach((cell, index) => {
+          cell.classList.toggle("is-on", index < activeStep);
+          cell.classList.toggle("is-active", index === activeStep);
+        });
+      }
+
+      function currentIdleMessage() {
+        if (runtime.loadedFromShare && loop.events.length) return "SHARED LOOP READY";
+        if (loop.events.length) return "LOOP READY \u00b7 REC TO DUB";
+        return "READY TO RECORD";
+      }
+
+      function updateDisplay() {
+        updateBarsReadout();
+        updateMetroButton();
+        updateQuantButton();
+
+        if (runtime.mode === "countin") {
+          lcdStatus.textContent = runtime.recordType === "overdub" ? "DUB IN" : "COUNT-IN";
+          lcdMessage.textContent =
+            runtime.recordType === "overdub" ? "OVERDUB STARTS IN" : "RECORD STARTS IN";
+        } else if (runtime.mode === "recording") {
+          lcdStatus.textContent = runtime.recordType === "overdub" ? "DUB" : "REC";
+          lcdMessage.textContent =
+            runtime.recordType === "overdub" ? "LAYERING NEW PASS" : "CAPTURING 4 BARS";
+        } else if (runtime.mode === "playing") {
+          lcdStatus.textContent = "PLAY";
+          lcdMessage.textContent = runtime.loadedFromShare
+            ? "PLAYING SHARED LOOP"
+            : "LOOP PLAYBACK";
+        } else {
+          lcdStatus.textContent = runtime.loadedFromShare && loop.events.length
+            ? "SHARED"
+            : "READY";
+          lcdMessage.textContent = currentIdleMessage();
+        }
+      }
+
+      function updateButtons() {
+        const live = runtime.mode === "countin" || runtime.mode === "recording";
+        const playing = runtime.mode === "playing";
+        playBtn.classList.toggle("is-playing", playing);
+        recBtn.classList.toggle("is-live", live);
+        playIcon.innerHTML = playing ? "&#9632;" : "&#9654;";
+        playLabel.textContent = playing ? "STOP" : "PLAY";
+        playBtn.setAttribute("aria-label", playing ? "Stop loop" : "Play loop");
+        playBtn.setAttribute("title", playing ? "Stop loop" : "Play loop");
+        recDot.classList.toggle("is-live", live);
+        undoBtn.disabled = loop.layers.length === 0 || live;
+      }
+
+      function applySkin() {
+        skinEl.style.backgroundImage = 'url("' + skinURI(SKINS[skinIdx]) + '")';
+      }
+
+      function setBpm(next) {
+        const clamped = Math.max(60, Math.min(160, next));
+        if (clamped === bpm) return;
+        bpm = clamped;
+        if (loop.events.length) {
+          retimeLoop(fixedLoopLength());
+        } else {
+          loop.length = fixedLoopLength();
+        }
+        if (runtime.mode !== "idle") stopTransport();
+        updateDisplay();
+      }
+
       // ---------- pads ----------
-      const grid = document.getElementById("grid");
       function renderPads() {
         grid.innerHTML = "";
         kit.forEach((k, i) => {
@@ -880,237 +1918,450 @@
           d.type = "button";
           d.className = "pad";
           d.dataset.i = i;
-          d.setAttribute("aria-label", `${CAT_LABEL[k.cat]} pad, key ${k.key}`);
+          d.setAttribute("aria-label", CAT_LABEL[k.cat] + " pad, key " + k.key);
           d.setAttribute("aria-keyshortcuts", k.key);
-          d.innerHTML = `<span class="dot" style="background:${col}"></span>
-      <span class="key">${k.key}</span>
-      <div class="glow" style="box-shadow:inset 0 0 22px ${col}, 0 0 16px ${col}; border:1px solid ${col}"></div>
-      <div class="lab">${CAT_LABEL[k.cat]}</div>`;
+          d.innerHTML =
+            '<span class="dot" style="background:' +
+            col +
+            '"></span>' +
+            '<span class="key">' +
+            k.key +
+            "</span>" +
+            '<div class="glow" style="box-shadow:inset 0 0 22px ' +
+            col +
+            ", 0 0 16px " +
+            col +
+            "; border:1px solid " +
+            col +
+            '"></div>' +
+            '<div class="lab">' +
+            CAT_LABEL[k.cat] +
+            "</div>";
           d.addEventListener("click", () => hit(i));
           grid.appendChild(d);
         });
-        const seedTxt = document.getElementById("seedTxt");
-        if (seedTxt) {
-          seedTxt.textContent = "#" + seed.toString(36).toUpperCase().slice(0, 6);
-        }
       }
+
       function flash(i) {
         const el = grid.children[i];
         if (!el) return;
         el.classList.add("hit");
-        setTimeout(() => el.classList.remove("hit"), 18);
+        setTimeout(() => el.classList.remove("hit"), 24);
       }
+
       function hit(i, fromLoop) {
-        initAudio();
-        if (ctx.state === "suspended") ctx.resume();
+        resumeAudio();
         const k = kit[i];
         play(k.cat, k.params);
         flash(i);
-        if (recording && !fromLoop) {
-          loop.events.push([i, performance.now() - recStart]);
+        if (runtime.mode === "recording" && !fromLoop) {
+          runtime.recordLayer.events.push([
+            i,
+            Math.max(0, Math.min(performance.now() - runtime.recordStart, fixedLoopLength() - 1)),
+          ]);
         }
       }
+
       const keyMap = {};
-      KEYS.forEach((k, i) => (keyMap[k.toLowerCase()] = i));
+      KEYS.forEach((key, i) => {
+        keyMap[key.toLowerCase()] = i;
+      });
+
       document.addEventListener("keydown", (e) => {
         if (e.repeat) return;
         const i = keyMap[e.key.toLowerCase()];
         if (i !== undefined) hit(i);
       });
 
-      // ---------- record + loop ----------
-      let recording = false,
-        recStart = 0,
-        looping = false,
-        loopStart = 0,
-        lastPos = 0,
-        rafId = 0;
-      const loop = { events: [], length: 0 };
-      const loopbar = document.getElementById("loopbar"),
-        playhead = document.getElementById("playhead");
-      let recRAF = 0;
-      const recBtn = document.getElementById("recBtn"),
-        recDot = document.getElementById("recDot"),
-        playBtn = document.getElementById("playBtn");
-      function toggleRec() {
-        initAudio();
-        if (ctx.state === "suspended") ctx.resume();
-        if (!recording) {
-          stopLoop();
-          recording = true;
-          recStart = performance.now();
-          loop.events = [];
-          recDot.classList.add("live");
-          recBtn.classList.add("on");
-          loopbar.classList.add("active", "rec");
-          recRAF = requestAnimationFrame(recTick);
-        } else {
-          recording = false;
-          cancelAnimationFrame(recRAF);
-          loopbar.classList.remove("rec");
-          loop.length = Math.max(400, performance.now() - recStart);
-          recDot.classList.remove("live");
-          recBtn.classList.remove("on");
-          if (quant) quantize();
-          if (loop.events.length) {
-            startLoop();
-          } else {
-            loopbar.classList.remove("active");
-            playhead.style.left = "0%";
-          }
-        }
+      // ---------- transport ----------
+      function clearFrame() {
+        if (runtime.rafId) cancelAnimationFrame(runtime.rafId);
+        runtime.rafId = 0;
       }
-      function recTick() {
-        if (!recording) return;
-        const bar = (60000 / bpm) * 4;
-        playhead.style.left =
-          (((performance.now() - recStart) % bar) / bar) * 100 + "%";
-        recRAF = requestAnimationFrame(recTick);
-      }
-      function quantize() {
-        const step = 60000 / bpm / 4;
-        loop.events = loop.events.map(([i, t]) => [
-          i,
-          Math.round(t / step) * step,
-        ]);
-        const bars = Math.max(1, Math.round(loop.length / (step * 16)));
-        loop.length = bars * step * 16;
-      }
-      function startLoop() {
-        if (!loop.events.length) return;
-        looping = true;
-        playBtn.classList.add("on");
-        playBtn.textContent = "■ Stop";
-        playBtn.textContent = "Stop loop";
-        loopbar.classList.add("active");
-        loopStart = performance.now();
-        lastPos = 0;
-        rafId = requestAnimationFrame(tick);
-      }
-      function stopLoop() {
-        looping = false;
-        cancelAnimationFrame(rafId);
-        playBtn.classList.remove("on");
-        playBtn.textContent = "▶ Loop";
-        playBtn.textContent = "Play loop";
-        if (!recording) {
-          loopbar.classList.remove("active");
-          playhead.style.left = "0%";
-        }
-      }
-      function tick() {
-        if (!looping) return;
-        const now = performance.now();
-        let pos = now - loopStart;
-        if (pos >= loop.length) {
-          fire(lastPos, loop.length);
-          loopStart += loop.length * Math.floor(pos / loop.length);
-          pos = now - loopStart;
-          lastPos = 0;
-        }
-        fire(lastPos, pos);
-        lastPos = pos;
-        playhead.style.left = Math.min(1, pos / loop.length) * 100 + "%";
-        rafId = requestAnimationFrame(tick);
-      }
-      function fire(a, b) {
-        for (const [i, t] of loop.events) {
-          if (t > a && t <= b) hit(i, true);
-        }
-      }
-      recBtn.addEventListener("click", toggleRec);
-      playBtn.addEventListener("click", () => {
-        looping ? stopLoop() : startLoop();
-      });
-      document.getElementById("clearBtn").addEventListener("click", () => {
-        stopLoop();
-        loop.events = [];
-        loop.length = 0;
-      });
-      document.getElementById("shuffle").addEventListener("click", () => {
-        stopLoop();
-        buildKit((Math.random() * 4294967296) >>> 0);
-        renderPads();
-      });
 
-      // ---------- tempo stepper ----------
-      function setBpm(v) {
-        bpm = Math.max(60, Math.min(160, v));
-        document.getElementById("bpmTxt").textContent = bpm;
+      function stopTransport() {
+        clearFrame();
+        runtime.mode = "idle";
+        runtime.lastBeat = -1;
+        runtime.lastProgress = 0;
+        runtime.recordLayer = null;
+        runtime.recordType = "base";
+        hideCountdown();
+        clearStepReadout();
+        updateButtons();
+        updateDisplay();
       }
-      document
-        .getElementById("bpmDown")
-        .addEventListener("click", () => setBpm(bpm - 1));
-      document
-        .getElementById("bpmUp")
-        .addEventListener("click", () => setBpm(bpm + 1));
-      document.getElementById("quantChk").addEventListener("change", (e) => {
-        quant = e.target.checked;
-      });
+
+      function startRecordSequence() {
+        resumeAudio();
+        stopTransport();
+        runtime.loadedFromShare = false;
+        runtime.recordType = loop.layers.length ? "overdub" : "base";
+        runtime.recordLayer = { events: [] };
+        if (!loop.layers.length) {
+          resetLoopData();
+        } else if (!loop.length) {
+          loop.length = fixedLoopLength();
+        }
+        runtime.mode = "countin";
+        runtime.countInStart = performance.now();
+        runtime.lastBeat = -1;
+        updateButtons();
+        updateDisplay();
+        runtime.rafId = requestAnimationFrame(runTransportFrame);
+      }
+
+      function beginRecording(now) {
+        runtime.mode = "recording";
+        runtime.recordStart = now;
+        runtime.lastBeat = -1;
+        runtime.lastProgress = 0;
+        hideCountdown();
+        updateButtons();
+        updateDisplay();
+      }
+
+      function finishRecording() {
+        loop.length = fixedLoopLength();
+        if (runtime.recordLayer && runtime.recordLayer.events.length) {
+          loop.layers.push({
+            events: quantizeLayer(runtime.recordLayer.events, loop.length),
+          });
+          syncLoopEvents();
+        }
+        runtime.recordLayer = null;
+        if (loop.events.length) {
+          startLoop();
+        } else {
+          stopTransport();
+        }
+      }
+
+      function startLoop() {
+        if (!loop.events.length) {
+          stopTransport();
+          lcdMessage.textContent = "RECORD A LOOP FIRST";
+          return;
+        }
+        resumeAudio();
+        clearFrame();
+        hideCountdown();
+        runtime.mode = "playing";
+        runtime.playStart = performance.now();
+        runtime.lastProgress = 0;
+        updateButtons();
+        updateDisplay();
+        runtime.rafId = requestAnimationFrame(runTransportFrame);
+      }
+
+      function fireLoopWindow(start, end, targetLength) {
+        if (!loop.events.length || targetLength <= 0) return;
+        const lower = start === 0 ? -0.0001 : start;
+        loop.events.forEach(([i, t]) => {
+          const scaled =
+            loop.length > 0 ? (t / loop.length) * targetLength : t;
+          if (scaled > lower && scaled <= end) hit(i, true);
+        });
+      }
+
+      function runCountInFrame(now) {
+        const elapsed = now - runtime.countInStart;
+        const currentBeat = Math.min(
+          COUNT_IN_BEATS - 1,
+          Math.floor(elapsed / beatMs()),
+        );
+        const currentNumber = COUNT_IN_BEATS - currentBeat;
+
+        showCountdown(currentNumber);
+
+        if (currentBeat !== runtime.lastBeat) {
+          runtime.lastBeat = currentBeat;
+          playClick(currentBeat === 0);
+        }
+
+        if (elapsed >= COUNT_IN_BEATS * beatMs()) {
+          beginRecording(now);
+        }
+      }
+
+      function runRecordingFrame(now) {
+        const elapsed = now - runtime.recordStart;
+        const total = fixedLoopLength();
+        const clampedElapsed = Math.min(elapsed, total);
+        const currentBeat = Math.floor(clampedElapsed / beatMs());
+
+        if (currentBeat !== runtime.lastBeat && currentBeat < LOOP_BARS * 4) {
+          runtime.lastBeat = currentBeat;
+          playClick(currentBeat % 4 === 0);
+        }
+
+        if (runtime.recordType === "overdub" && loop.events.length) {
+          fireLoopWindow(runtime.lastProgress, clampedElapsed, total);
+        }
+
+        runtime.lastProgress = clampedElapsed;
+        renderStepReadout(clampedElapsed, total);
+
+        if (elapsed >= total) finishRecording();
+      }
+
+      function runPlaybackFrame(now) {
+        const targetLength = fixedLoopLength();
+        let pos = now - runtime.playStart;
+
+        if (pos >= targetLength) {
+          fireLoopWindow(runtime.lastProgress, targetLength, targetLength);
+          const wraps = Math.floor(pos / targetLength);
+          runtime.playStart += targetLength * wraps;
+          pos = now - runtime.playStart;
+          runtime.lastProgress = 0;
+        }
+
+        fireLoopWindow(runtime.lastProgress, pos, targetLength);
+        runtime.lastProgress = pos;
+        renderStepReadout(pos, targetLength);
+      }
+
+      function runTransportFrame(now) {
+        if (runtime.mode === "countin") {
+          runCountInFrame(now);
+        } else if (runtime.mode === "recording") {
+          runRecordingFrame(now);
+        } else if (runtime.mode === "playing") {
+          runPlaybackFrame(now);
+        }
+
+        if (runtime.mode !== "idle") {
+          runtime.rafId = requestAnimationFrame(runTransportFrame);
+        }
+      }
 
       // ---------- share ----------
       function encode() {
-        const o = {
+        const payload = {
           s: seed,
-          l: Math.round(loop.length),
+          l: Math.round(loop.length || fixedLoopLength()),
           b: bpm,
-          q: quant ? 1 : 0,
+          q: 0,
           k: skinIdx,
+          p: loop.layers.map((layer) =>
+            layer.events.map(([i, t]) => [i, Math.round(t)]),
+          ),
           e: loop.events.map(([i, t]) => [i, Math.round(t)]),
         };
-        return btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+        return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
       }
+
       function decode(str) {
         return JSON.parse(decodeURIComponent(escape(atob(str))));
       }
-      document.getElementById("shareBtn").addEventListener("click", () => {
-        location.hash = encode();
-        const url = location.href;
-        const out = document.getElementById("linkOut");
-        out.style.display = "block";
-        out.textContent = url;
-        if (navigator.clipboard)
-          navigator.clipboard.writeText(url).catch(() => {});
-        const b = document.getElementById("shareBtn");
-        b.textContent = "Copied ✓";
-        b.textContent = "Link copied";
-        setTimeout(() => (b.textContent = "Copy share link"), 1600);
-      });
 
-      // ---------- init ----------
-      syncCreateLabels();
       function loadHash() {
         if (location.hash.length < 3) return false;
         try {
-          const o = decode(location.hash.slice(1));
-          seed = o.s >>> 0;
-          setBpm(o.b || 90);
-          quant = !!o.q;
-          skinIdx = o.k || 0;
-          loop.events = (o.e || []).map(([i, t]) => [i, t]);
-          loop.length = o.l || 0;
-          document.getElementById("quantChk").checked = quant;
-          if (loop.events.length)
-            document.getElementById("banner").style.display = "flex";
+          const payload = decode(location.hash.slice(1));
+          seed = payload.s >>> 0;
+          bpm = Math.max(60, Math.min(160, payload.b || 90));
+          skinIdx = payload.k || 0;
+          if (Array.isArray(payload.p) && payload.p.length) {
+            loop.layers = payload.p.map((layer) => ({
+              events: normalizeLayer(
+                (layer || []).map(([i, t]) => [i, t]),
+                payload.l || fixedLoopLength(),
+              ),
+            }));
+            syncLoopEvents();
+          } else {
+            const legacy = normalizeLayer(
+              (payload.e || []).map(([i, t]) => [i, t]),
+              payload.l || fixedLoopLength(),
+            );
+            loop.layers = legacy.length ? [{ events: legacy }] : [];
+            syncLoopEvents();
+          }
+          loop.length = payload.l || fixedLoopLength();
+          runtime.loadedFromShare = loop.events.length > 0;
           return true;
         } catch (e) {
           return false;
         }
       }
+
+      // ---------- demo helpers ----------
+      function createDemoLoop() {
+        const total = fixedLoopLength();
+        const step = total / DISPLAY_STEPS;
+        loop.length = total;
+        loop.layers = [
+          {
+            events: normalizeLayer(
+              [
+                [0, 0],
+                [8, step * 1],
+                [2, step * 2],
+                [1, step * 4],
+                [10, step * 5],
+                [2, step * 6],
+                [0, step * 8],
+                [8, step * 9],
+                [2, step * 10],
+                [1, step * 12],
+                [10, step * 13],
+                [2, step * 14],
+              ],
+              total,
+            ),
+          },
+        ];
+        syncLoopEvents();
+        runtime.loadedFromShare = false;
+      }
+
+      // ---------- events ----------
+      metroBtn.addEventListener("click", () => {
+        metronomeOn = !metronomeOn;
+        updateDisplay();
+      });
+
+      quantBtn.addEventListener("click", () => {
+        quantizeOn = !quantizeOn;
+        updateDisplay();
+      });
+
+      bpmDown.addEventListener("click", () => setBpm(bpm - 1));
+      bpmUp.addEventListener("click", () => setBpm(bpm + 1));
+
+      playBtn.addEventListener("click", () => {
+        if (runtime.mode === "playing") {
+          stopTransport();
+        } else if (runtime.mode === "countin" || runtime.mode === "recording") {
+          stopTransport();
+        } else {
+          startLoop();
+        }
+      });
+
+      recBtn.addEventListener("click", () => {
+        if (runtime.mode === "countin" || runtime.mode === "recording") {
+          stopTransport();
+        } else {
+          startRecordSequence();
+        }
+      });
+
+      clearBtn.addEventListener("click", () => {
+        stopTransport();
+        resetLoopData();
+        runtime.loadedFromShare = false;
+        updateButtons();
+        updateDisplay();
+      });
+
+      undoBtn.addEventListener("click", () => {
+        if (!loop.layers.length || runtime.mode === "countin" || runtime.mode === "recording") return;
+        stopTransport();
+        loop.layers.pop();
+        syncLoopEvents();
+        if (!loop.events.length) loop.length = fixedLoopLength();
+        runtime.loadedFromShare = false;
+        updateButtons();
+        updateDisplay();
+      });
+
+      shareBtn.addEventListener("click", () => {
+        location.hash = encode();
+        const url = location.href;
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText(url).catch(() => {});
+        }
+        flashShareFeedback();
+        showToast("Link copied - your kit + loop");
+      });
+
+      shuffleBtn.addEventListener("click", () => {
+        stopTransport();
+        buildKit((Math.random() * 4294967296) >>> 0);
+        renderPads();
+      });
+
+      skinBtn.addEventListener("click", () => {
+        skinIdx = (skinIdx + 1) % SKINS.length;
+        applySkin();
+      });
+
+      infoBtn.addEventListener("click", () => {
+        setInfoOpen(infoBtn.getAttribute("aria-expanded") !== "true");
+      });
+
+      infoBtn.addEventListener("blur", () => {
+        window.setTimeout(() => {
+          if (!infoWrap.contains(document.activeElement)) setInfoOpen(false);
+        }, 0);
+      });
+
+      document.addEventListener("click", (event) => {
+        if (!infoWrap.contains(event.target)) setInfoOpen(false);
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          setInfoOpen(false);
+          toastEl.classList.remove("is-visible");
+          window.clearTimeout(shareTimer);
+          resetShareFeedback();
+        }
+      });
+
+      // ---------- init ----------
+      const params = new URLSearchParams(location.search);
+      const embedded = window.self !== window.top || params.get("embed") === "1";
+      rootEl.classList.toggle("is-embedded", embedded);
+      const preset = params.get("preset");
+      let demoMode = params.get("demo");
+      if (preset) {
+        const [presetDemo] = preset.split("-");
+        if (!demoMode && presetDemo && presetDemo !== "base") demoMode = presetDemo;
+      }
+      if (params.get("metro") === "off") metronomeOn = false;
+      if (params.get("quant") === "off") quantizeOn = false;
+
+      const frameObserver = new ResizeObserver(() => syncDeviceFrame());
+      [wrapEl].forEach((el) => {
+        if (el) frameObserver.observe(el);
+      });
+      window.addEventListener("resize", syncDeviceFrame);
+
       if (loadHash()) {
         buildKit(seed);
       } else {
         buildKit((Math.random() * 4294967296) >>> 0);
+        loop.length = fixedLoopLength();
       }
+
       applySkin();
-      syncCreateLabels();
       renderPads();
-      document.getElementById("playShared").addEventListener("click", () => {
-        document.getElementById("banner").style.display = "none";
-        initAudio();
-        if (ctx.state === "suspended") ctx.resume();
-        startLoop();
-      });
+      updateButtons();
+      updateDisplay();
+      syncDeviceFrame();
+
+      if (demoMode === "countin") {
+        setTimeout(() => startRecordSequence(), 180);
+      } else if (demoMode === "loopready") {
+        if (!loop.events.length) createDemoLoop();
+        stopTransport();
+      } else if (demoMode === "overdub") {
+        if (!loop.events.length) createDemoLoop();
+        setTimeout(() => startRecordSequence(), 180);
+      } else if (demoMode === "play") {
+        if (!loop.events.length) createDemoLoop();
+        setTimeout(() => startLoop(), 180);
+      } else if (demoMode === "shared") {
+        if (!loop.events.length) {
+          createDemoLoop();
+          runtime.loadedFromShare = true;
+          updateDisplay();
+        }
+      }
     </script>
   </body>
 </html>

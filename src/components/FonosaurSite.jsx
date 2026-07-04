@@ -656,7 +656,7 @@ function Explore({ notes = [] }) {
 function Create() {
   return (
     <div>
-      <Eyebrow color={C.purple}>Create / instrument</Eyebrow>
+      <Eyebrow color={C.purple}>CREATE / SAMPLER</Eyebrow>
       <h2
         style={{
           fontFamily: "'Unbounded', sans-serif",
@@ -666,7 +666,7 @@ function Create() {
           lineHeight: 1.05,
         }}
       >
-        Sample deck
+        Sampler
       </h2>
       <p
         style={{
@@ -682,7 +682,7 @@ function Create() {
       <div
         style={{
           width: "100%",
-          height: "min(72vh, 720px)",
+          height: "clamp(560px, 84svh, 860px)",
           borderRadius: 16,
           overflow: "hidden",
           border: `1px solid ${C.line}`,
@@ -691,7 +691,7 @@ function Create() {
       >
         <iframe
           title="Create"
-          src="/create.html"
+          src="/create.html?embed=1"
           sandbox="allow-scripts allow-same-origin allow-clipboard-write"
           style={{
             width: "100%",
