@@ -73,7 +73,15 @@ const ZONES = {
 };
 
 const ORDER = ["listen", "explore", "create", "play", "collect", "follow"];
-const MAIN = ["listen", "explore", "create", "play", "collect"];
+const LANDING_NODES = [
+  "listen",
+  "create",
+  "collect",
+  "follow",
+  "play",
+  "explore",
+];
+const VALID_SCREENS = ["hub", ...ORDER];
 const ICON = {
   listen: Headphones,
   explore: Compass,
@@ -119,21 +127,9 @@ const AMBIENT_TRACKS = [
   "/audio/naijastreet.mp3",
 ];
 const AMBIENT_VOLUME = 0.16;
-const LANDING_LAYOUT = {
-  desktop: {
-    listen: { x: 50, y: 18 },
-    explore: { x: 19, y: 39 },
-    create: { x: 81, y: 39 },
-    play: { x: 28, y: 75 },
-    collect: { x: 72, y: 75 },
-  },
-  mobile: {
-    listen: { x: 50, y: 23 },
-    explore: { x: 22, y: 40 },
-    create: { x: 78, y: 40 },
-    play: { x: 29, y: 71 },
-    collect: { x: 71, y: 71 },
-  },
+const LANDING_RING = {
+  desktop: { cx: 50, cy: 57, rx: 31, ry: 31 },
+  mobile: { cx: 50, cy: 57, rx: 26, ry: 24 },
 };
 
 /* --------------------------------------------------------------- ambient dust */
@@ -331,62 +327,20 @@ function Warp({ trigger, color, reduced }) {
   );
 }
 
-/* ------------------------------------------------------- compass indicator */
-function CompassMini({ active }) {
-  const points = {
-    follow: [29, 12],
-    explore: [14, 27],
-    listen: [29, 29],
-    create: [44, 27],
-    play: [20, 45],
-    collect: [38, 45],
-  };
-  const node = (id) => {
-    const on = active === id;
-    const a = ZONES[id].accent;
-    const [x, y] = points[id];
-    return (
-      <circle
-        cx={x}
-        cy={y}
-        r={on ? 4.2 : 2.4}
-        fill={on ? a : "#3a3a40"}
-        stroke={on ? a : "none"}
-        strokeWidth="1"
-        opacity={on ? 1 : 0.8}
-      />
-    );
-  };
-  return (
-    <svg width="54" height="54" viewBox="0 0 58 58" aria-hidden>
-      <line x1="29" y1="29" x2="29" y2="12" stroke="#26262b" strokeWidth="1" />
-      <line x1="29" y1="29" x2="14" y2="27" stroke="#26262b" strokeWidth="1" />
-      <line x1="29" y1="29" x2="44" y2="27" stroke="#26262b" strokeWidth="1" />
-      <line x1="29" y1="29" x2="20" y2="45" stroke="#26262b" strokeWidth="1" />
-      <line x1="29" y1="29" x2="38" y2="45" stroke="#26262b" strokeWidth="1" />
-      {node("follow")}
-      {node("explore")}
-      {node("listen")}
-      {node("create")}
-      {node("play")}
-      {node("collect")}
-    </svg>
-  );
-}
-
-function AmbientToggle({ active, onToggle, compact = false }) {
+function AmbientToggle({ active, onToggle, compact = false, iconOnly = false }) {
   return (
     <button
       onClick={onToggle}
       aria-pressed={active}
+      aria-label={active ? "Ambient on" : "Ambient off"}
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: compact ? 6 : 8,
+        gap: iconOnly ? 0 : compact ? 6 : 8,
         background: active ? "rgba(0,204,80,0.14)" : "rgba(20,20,23,0.7)",
         border: `1px solid ${active ? C.green : C.line}`,
         borderRadius: 999,
-        padding: compact ? "8px 11px" : "9px 14px",
+        padding: iconOnly ? "8px" : compact ? "8px 11px" : "9px 14px",
         color: active ? C.green : C.sub,
         cursor: "pointer",
         fontFamily: "'Space Mono', monospace",
@@ -401,7 +355,7 @@ function AmbientToggle({ active, onToggle, compact = false }) {
       ) : (
         <VolumeX size={compact ? 14 : 15} />
       )}
-      <span>{active ? "Ambient On" : "Ambient Off"}</span>
+      {!iconOnly && <span>{active ? "Ambient On" : "Ambient Off"}</span>}
     </button>
   );
 }
@@ -423,6 +377,13 @@ const Eyebrow = ({ color, children }) => (
 );
 
 function Listen({ isMobile = false }) {
+  const dspAccent = {
+    Spotify: "rgba(29,185,84,0.34)",
+    "Apple Music": "rgba(250,57,87,0.34)",
+    "Amazon Music": "rgba(0,199,255,0.28)",
+    Bandcamp: "rgba(99,181,213,0.28)",
+    YouTube: "rgba(255,0,0,0.28)",
+  };
   return (
     <div>
       <Eyebrow color={C.sub}>Traversal EP / 2022 / 6 tracks</Eyebrow>
@@ -480,17 +441,25 @@ function Listen({ isMobile = false }) {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
+            className="dspbtn"
             style={{
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               minHeight: 38,
               padding: "0 14px",
-              color: C.sub,
-              border: `1px solid ${C.line}`,
+              color: C.text,
+              border: "1px solid rgba(232,232,234,0.16)",
               borderRadius: 999,
               textDecoration: "none",
               fontSize: 13,
+              background:
+                "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(20,20,23,0.96))",
+              boxShadow:
+                "inset 0 1px 0 rgba(255,255,255,0.03), 0 8px 18px rgba(0,0,0,0.16)",
+              transition:
+                "transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease",
+              ["--dsp-accent"]: dspAccent[label] || "rgba(255,255,255,0.18)",
             }}
           >
             {label}
@@ -823,7 +792,7 @@ function Collect() {
     </div>
   );
 }
-function Follow() {
+function Follow({ isMobile = false }) {
   return (
     <div style={{ textAlign: "center", paddingTop: 8 }}>
       <Eyebrow color={C.green}>Follow</Eyebrow>
@@ -856,7 +825,9 @@ function Follow() {
         target="_blank"
         style={{
           display: "flex",
+          flexDirection: isMobile ? "column" : "row",
           flexWrap: "wrap",
+          alignItems: "stretch",
           gap: 8,
           maxWidth: 440,
           margin: "0 auto",
@@ -869,7 +840,7 @@ function Follow() {
           placeholder="you@email.com"
           required
           style={{
-            flex: "1 1 240px",
+            flex: isMobile ? "none" : "1 1 240px",
             minWidth: 0,
             background: C.panel,
             border: `1px solid ${C.line}`,
@@ -878,6 +849,8 @@ function Follow() {
             color: C.text,
             fontSize: 15,
             outline: "none",
+            width: isMobile ? "100%" : "auto",
+            boxSizing: "border-box",
           }}
         />
         <button
@@ -896,6 +869,7 @@ function Follow() {
             fontSize: 15,
             fontWeight: 700,
             cursor: "pointer",
+            width: isMobile ? "100%" : "auto",
           }}
         >
           <Mail size={16} /> Join
@@ -935,15 +909,15 @@ function BrandMark({ onClick, size = "clamp(34px,12vw,54px)", style = {} }) {
 
 /* ---------------------------------------------------------- landing world */
 function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
-  const layout = isMobile ? LANDING_LAYOUT.mobile : LANDING_LAYOUT.desktop;
+  const ring = isMobile ? LANDING_RING.mobile : LANDING_RING.desktop;
+  const orbitCenterY = `${ring.cy}%`;
   return (
     <div
       style={{
         minHeight: "100%",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "space-between",
-        padding: isMobile ? "26px 22px 26px" : "20px 32px 24px",
+        padding: isMobile ? "24px 18px 18px" : "22px 32px 24px",
         boxSizing: "border-box",
         position: "relative",
         overflow: "hidden",
@@ -963,7 +937,7 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
           size={
             isMobile
               ? "clamp(24px,9vw,34px)"
-              : "clamp(40px, min(6vw, 9vh), 74px)"
+              : "clamp(40px, min(6vw, 8.2vh), 74px)"
           }
         />
       </div>
@@ -972,45 +946,56 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
         style={{
           position: "relative",
           flex: 1,
-          minHeight: isMobile ? 420 : "clamp(420px, 52vh, 560px)",
-          marginTop: isMobile ? 6 : 8,
-          marginBottom: isMobile ? 10 : 10,
+          minHeight: isMobile ? 430 : "clamp(430px, 58vh, 600px)",
+          marginTop: isMobile ? 8 : 10,
         }}
       >
         <div
           style={{
             position: "absolute",
             left: "50%",
-            top: isMobile ? "54%" : "51%",
-            width: isMobile ? 248 : 360,
-            height: isMobile ? 248 : 360,
+            top: orbitCenterY,
+            width: isMobile ? 218 : 336,
+            height: isMobile ? 218 : 336,
             transform: "translate(-50%,-50%)",
             borderRadius: "50%",
-            border: `1px solid ${C.line}`,
+            border: `1px solid ${ambientOn ? "rgba(0,204,80,0.16)" : "rgba(255,255,255,0.06)"}`,
             background:
-              "radial-gradient(circle, rgba(232,232,234,0.05), rgba(10,10,12,0) 70%)",
-            boxShadow: "0 0 80px rgba(59,139,255,0.08)",
-            animation: "spinSlow 34s linear infinite",
+              "radial-gradient(circle, rgba(232,232,234,0.03), rgba(10,10,12,0) 68%)",
+            boxShadow: ambientOn
+              ? "0 0 96px rgba(0,204,80,0.07)"
+              : "0 0 62px rgba(59,139,255,0.05)",
+            animation: ambientOn
+              ? "spinSlow 26s linear infinite"
+              : "spinSlow 34s linear infinite",
+            transition:
+              "border-color .35s ease, box-shadow .35s ease, width .35s ease, height .35s ease",
           }}
         />
         <div
           style={{
             position: "absolute",
             left: "50%",
-            top: isMobile ? "54%" : "51%",
-            width: isMobile ? 184 : 272,
-            height: isMobile ? 184 : 272,
+            top: orbitCenterY,
+            width: isMobile ? 154 : 238,
+            height: isMobile ? 154 : 238,
             transform: "translate(-50%,-50%)",
             borderRadius: "50%",
-            border: `1px solid rgba(232,232,234,0.08)`,
-            opacity: 0.8,
-            animation: "spinReverse 24s linear infinite",
+            border: `1px solid ${ambientOn ? "rgba(0,204,80,0.12)" : "rgba(232,232,234,0.05)"}`,
+            opacity: ambientOn ? 0.72 : 0.5,
+            animation: ambientOn
+              ? "spinReverse 18s linear infinite"
+              : "spinReverse 24s linear infinite",
+            transition:
+              "border-color .35s ease, opacity .35s ease, width .35s ease, height .35s ease",
           }}
         />
-        {MAIN.map((id, index) => {
+        {LANDING_NODES.map((id, index) => {
           const z = ZONES[id];
           const Ic = ICON[id];
-          const pos = layout[id];
+          const angle = ((-90 + index * 60) * Math.PI) / 180;
+          const x = ring.cx + Math.cos(angle) * ring.rx;
+          const y = ring.cy + Math.sin(angle) * ring.ry;
           return (
             <button
               key={id}
@@ -1018,10 +1003,10 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
               className="constellation-node"
               style={{
                 position: "absolute",
-                left: `${pos.x}%`,
-                top: `${pos.y}%`,
+                left: `${x}%`,
+                top: `${y}%`,
                 transform: "translate(-50%,-50%)",
-                width: isMobile ? 78 : 104,
+                width: isMobile ? 70 : 96,
                 border: "none",
                 background: "transparent",
                 padding: 0,
@@ -1031,15 +1016,15 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: isMobile ? 8 : 10,
+                gap: isMobile ? 7 : 9,
                 animation: `nodeFloat ${8 + index * 1.2}s ease-in-out infinite`,
                 animationDelay: `${index * -0.9}s`,
               }}
             >
               <span
                 style={{
-                  width: isMobile ? 50 : 58,
-                  height: isMobile ? 50 : 58,
+                  width: isMobile ? 46 : 56,
+                  height: isMobile ? 46 : 56,
                   borderRadius: "50%",
                   display: "flex",
                   alignItems: "center",
@@ -1047,15 +1032,17 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
                   border: `1px solid ${z.accent}66`,
                   background: `radial-gradient(circle at 30% 30%, ${z.accent}33, rgba(20,20,23,0.92) 70%)`,
                   boxShadow: `0 0 28px ${z.accent}22`,
+                  transition:
+                    "transform .22s ease, border-color .22s ease, box-shadow .22s ease",
                 }}
               >
-                <Ic size={isMobile ? 18 : 20} color={z.accent} />
+                <Ic size={isMobile ? 17 : 19} color={z.accent} />
               </span>
               <span
                 style={{
                   fontFamily: "'Space Mono', monospace",
-                  fontSize: isMobile ? 10 : 11,
-                  letterSpacing: "0.14em",
+                  fontSize: isMobile ? 9 : 10,
+                  letterSpacing: "0.12em",
                   textTransform: "uppercase",
                   color: z.accent,
                   whiteSpace: "nowrap",
@@ -1071,87 +1058,68 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
           style={{
             position: "absolute",
             left: "50%",
-            top: isMobile ? "54%" : "51%",
+            top: orbitCenterY,
             transform: "translate(-50%,-50%)",
-            width: isMobile ? 112 : 152,
-            height: isMobile ? 112 : 152,
+            width: isMobile ? 84 : 92,
+            height: isMobile ? 84 : 92,
             borderRadius: "50%",
-            border: `1px solid ${ambientOn ? `${C.green}88` : C.line}`,
-            background: ambientOn
-              ? "radial-gradient(circle, rgba(0,204,80,0.2), rgba(20,20,23,0.96) 70%)"
-              : "radial-gradient(circle, rgba(232,232,234,0.08), rgba(20,20,23,0.96) 72%)",
-            color: ambientOn ? C.green : C.text,
-            boxShadow: ambientOn
-              ? "0 0 34px rgba(0,204,80,0.18)"
-              : "0 0 28px rgba(255,255,255,0.06)",
+            border: "none",
+            background: "transparent",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             padding: 0,
             zIndex: 2,
+            color: ambientOn ? C.green : C.text,
           }}
           aria-pressed={ambientOn}
           aria-label={ambientOn ? "Turn ambient audio off" : "Turn ambient audio on"}
         >
           <span
             style={{
+              position: "relative",
               display: "flex",
-              flexDirection: "column",
               alignItems: "center",
-              gap: 8,
+              justifyContent: "center",
+              width: isMobile ? 34 : 40,
+              height: isMobile ? 34 : 40,
+              borderRadius: "50%",
+              background: ambientOn
+                ? "radial-gradient(circle, rgba(0,204,80,0.38), rgba(0,204,80,0.08) 62%, rgba(20,20,23,0.96) 100%)"
+                : "radial-gradient(circle, rgba(255,255,255,0.16), rgba(255,255,255,0.05) 58%, rgba(20,20,23,0.94) 100%)",
+              boxShadow: ambientOn
+                ? "0 0 26px rgba(0,204,80,0.26)"
+                : "0 0 18px rgba(255,255,255,0.08)",
+              transform: ambientOn ? "scale(1.08)" : "scale(1)",
+              transition:
+                "transform .24s ease, box-shadow .3s ease, background .3s ease",
             }}
           >
-            {ambientOn ? (
-              <Volume2 size={isMobile ? 22 : 28} />
-            ) : (
-              <VolumeX size={isMobile ? 22 : 28} />
-            )}
             <span
               style={{
-                fontFamily: "'Space Mono', monospace",
-                fontSize: isMobile ? 8 : 10,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
+                position: "absolute",
+                inset: isMobile ? -6 : -8,
+                borderRadius: "50%",
+                border: `1px solid ${ambientOn ? "rgba(0,204,80,0.28)" : "rgba(255,255,255,0.09)"}`,
+                opacity: ambientOn ? 0.9 : 0.45,
+                animation: ambientOn ? "ambientPulse 2.8s ease-in-out infinite" : "none",
+                transition: "opacity .3s ease, border-color .3s ease",
               }}
-            >
-              {ambientOn ? "Ambient on" : "Ambient off"}
-            </span>
+            />
+            <span
+              style={{
+                width: isMobile ? 10 : 12,
+                height: isMobile ? 10 : 12,
+                borderRadius: "50%",
+                background: ambientOn ? C.green : "rgba(232,232,234,0.72)",
+                boxShadow: ambientOn
+                  ? "0 0 14px rgba(0,204,80,0.36)"
+                  : "0 0 10px rgba(255,255,255,0.12)",
+                transition: "background .3s ease, box-shadow .3s ease",
+              }}
+            />
           </span>
-        </button>
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: 14,
-          position: "relative",
-          zIndex: 2,
-        }}
-      >
-        <button
-          onClick={() => go("follow")}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 9,
-            cursor: "pointer",
-            background: "rgba(0,204,80,0.08)",
-            border: `1px solid ${C.line}`,
-            color: C.green,
-            borderRadius: 999,
-            padding: isMobile ? "12px 18px" : "13px 22px",
-            fontSize: isMobile ? 12 : 13,
-            fontWeight: 600,
-            fontFamily: "'Space Mono', monospace",
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-          }}
-        >
-          <Mail size={15} /> Follow
         </button>
       </div>
     </div>
@@ -1161,10 +1129,15 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
 const isMobileNow = () =>
   typeof window !== "undefined" &&
   window.matchMedia("(max-width:768px)").matches;
+const screenFromHash = () => {
+  if (typeof window === "undefined") return "hub";
+  const hash = window.location.hash.replace(/^#/, "").toLowerCase();
+  return VALID_SCREENS.includes(hash) ? hash : "hub";
+};
 
 export default function FonosaurSite({ notes = [] }) {
   const [isMobile, setIsMobile] = useState(isMobileNow);
-  const [screen, setScreen] = useState("hub");
+  const [screen, setScreen] = useState(screenFromHash);
   const [ambientOn, setAmbientOn] = useState(false);
   const [warpKey, setWarpKey] = useState(0);
   const [activeKey, setActiveKey] = useState(null);
@@ -1194,12 +1167,24 @@ export default function FonosaurSite({ notes = [] }) {
       const m = isMobileNow();
       setIsMobile(m);
     };
+    const onHashChange = () => setScreen(screenFromHash());
     window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
+    window.addEventListener("hashchange", onHashChange);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("hashchange", onHashChange);
+    };
   }, []);
   useEffect(() => setMounted(true), []);
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [screen]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const nextHash = screen === "hub" ? "" : `#${screen}`;
+    if (window.location.hash === nextHash) return;
+    const nextUrl = `${window.location.pathname}${window.location.search}${nextHash}`;
+    window.history.replaceState(null, "", nextUrl);
   }, [screen]);
 
   const ensure = () => {
@@ -1329,7 +1314,7 @@ export default function FonosaurSite({ notes = [] }) {
     if (id === "create") return <Create />;
     if (id === "play") return <PlayZone />;
     if (id === "collect") return <Collect />;
-    if (id === "follow") return <Follow />;
+    if (id === "follow") return <Follow isMobile={isMobile} />;
     return null;
   };
 
@@ -1419,6 +1404,7 @@ export default function FonosaurSite({ notes = [] }) {
             background: "rgba(10,10,12,0.82)",
             backdropFilter: "blur(10px)",
             WebkitBackdropFilter: "blur(10px)",
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
           }}
         >
           <BrandMark
@@ -1465,11 +1451,9 @@ export default function FonosaurSite({ notes = [] }) {
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 12,
               flexShrink: 0,
             }}
           >
-            <CompassMini active={screen} />
             <AmbientToggle active={ambientOn} onToggle={toggleAmbient} />
           </div>
         </header>
@@ -1481,6 +1465,7 @@ export default function FonosaurSite({ notes = [] }) {
   const renderMobile = () => {
     const inZone = screen !== "hub";
     const z = ZONES[screen] || ZONES.listen;
+    const compactMobileHeader = size.w < 410;
     return (
       <>
         {inZone && (
@@ -1494,33 +1479,66 @@ export default function FonosaurSite({ notes = [] }) {
               alignItems: "center",
               justifyContent: "space-between",
               padding: "14px 16px",
-              background:
-                "linear-gradient(180deg,rgba(10,10,12,0.92),rgba(10,10,12,0))",
+              background: "rgba(10,10,12,0.82)",
+              backdropFilter: "blur(8px)",
+              WebkitBackdropFilter: "blur(8px)",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
             }}
           >
-            <BrandMark
-              onClick={() => go("hub")}
-              size="14px"
-              style={{ lineHeight: 1, letterSpacing: "0.12em" }}
-            />
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span
-                style={{
-                  fontFamily: "'Space Mono', monospace",
-                  fontSize: 11,
-                  color: z.accent,
-                  letterSpacing: "0.16em",
-                  textTransform: "uppercase",
-                }}
-              >
-                {z.label}
-              </span>
-              <AmbientToggle
-                active={ambientOn}
-                onToggle={toggleAmbient}
-                compact
-              />
-            </div>
+            {compactMobileHeader ? (
+              <>
+                <BrandMark
+                  onClick={() => go("hub")}
+                  size="13px"
+                  style={{ lineHeight: 1, letterSpacing: "0.12em", flexShrink: 0 }}
+                />
+                <span
+                  style={{
+                    flex: 1,
+                    textAlign: "center",
+                    fontFamily: "'Space Mono', monospace",
+                    fontSize: 10,
+                    color: z.accent,
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {z.label}
+                </span>
+                <AmbientToggle
+                  active={ambientOn}
+                  onToggle={toggleAmbient}
+                  compact
+                  iconOnly
+                />
+              </>
+            ) : (
+              <>
+                <BrandMark
+                  onClick={() => go("hub")}
+                  size="14px"
+                  style={{ lineHeight: 1, letterSpacing: "0.12em" }}
+                />
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span
+                    style={{
+                      fontFamily: "'Space Mono', monospace",
+                      fontSize: 11,
+                      color: z.accent,
+                      letterSpacing: "0.16em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {z.label}
+                  </span>
+                  <AmbientToggle
+                    active={ambientOn}
+                    onToggle={toggleAmbient}
+                    compact
+                  />
+                </div>
+              </>
+            )}
           </div>
         )}
         <div
@@ -1648,6 +1666,12 @@ export default function FonosaurSite({ notes = [] }) {
         @keyframes spinSlow { from{transform:translate(-50%,-50%) rotate(0)} to{transform:translate(-50%,-50%) rotate(360deg)} }
         @keyframes spinReverse { from{transform:translate(-50%,-50%) rotate(360deg)} to{transform:translate(-50%,-50%) rotate(0)} }
         @keyframes nodeFloat { 0%,100%{transform:translate(-50%,-50%) translateY(0)} 50%{transform:translate(-50%,-50%) translateY(-10px)} }
+        @keyframes ambientPulse { 0%,100%{transform:scale(1);opacity:.85} 50%{transform:scale(1.12);opacity:.42} }
+        .constellation-node:hover span:first-child,
+        .constellation-node:focus-visible span:first-child { transform:scale(1.06); box-shadow:0 0 34px rgba(255,255,255,.14) }
+        .dspbtn:hover,
+        .dspbtn:focus-visible { transform:translateY(-1px); border-color:rgba(232,232,234,0.3)!important; box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 12px 26px rgba(0,0,0,.24), 0 0 0 1px var(--dsp-accent) }
+        .dspbtn:active { transform:translateY(0); background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(20,20,23,1)) }
         button:focus-visible, input:focus-visible { outline:2px solid ${C.green}; outline-offset:2px; }
         @media (prefers-reduced-motion: reduce){ .saur{animation:none;color:#00cc50} .saur::before,.saur::after{animation:none;opacity:0} .screen{animation:none!important} }
         @media (max-width:560px){ .navbtn{ font-size:9px!important; letter-spacing:0.07em!important; padding:6px 9px!important } }
