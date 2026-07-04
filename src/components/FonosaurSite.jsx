@@ -943,7 +943,7 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
         display: "flex",
         flexDirection: "column",
         justifyContent: "space-between",
-        padding: isMobile ? "26px 22px 26px" : "28px 32px 30px",
+        padding: isMobile ? "26px 22px 26px" : "20px 32px 24px",
         boxSizing: "border-box",
         position: "relative",
         overflow: "hidden",
@@ -960,7 +960,11 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
         }}
       >
         <BrandMark
-          size={isMobile ? "clamp(24px,9vw,34px)" : "clamp(44px,6vw,74px)"}
+          size={
+            isMobile
+              ? "clamp(24px,9vw,34px)"
+              : "clamp(40px, min(6vw, 9vh), 74px)"
+          }
         />
       </div>
 
@@ -968,9 +972,9 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
         style={{
           position: "relative",
           flex: 1,
-          minHeight: isMobile ? 420 : 560,
-          marginTop: isMobile ? 6 : 12,
-          marginBottom: isMobile ? 10 : 16,
+          minHeight: isMobile ? 420 : "clamp(420px, 52vh, 560px)",
+          marginTop: isMobile ? 6 : 8,
+          marginBottom: isMobile ? 10 : 10,
         }}
       >
         <div
