@@ -24,7 +24,7 @@ const C = {
   bg: "#0a0a0c",
   panel: "#141417",
   line: "#26262b",
-  sub: "#8a8a92",
+  sub: "#9c9ca4",
   text: "#e8e8ea",
   blue: "#3b8bff",
   purple: "#8b5cf6",
@@ -332,7 +332,8 @@ function AmbientToggle({ active, onToggle, compact = false, iconOnly = false }) 
     <button
       onClick={onToggle}
       aria-pressed={active}
-      aria-label={active ? "Ambient on" : "Ambient off"}
+      aria-label={active ? "Turn ambient audio off" : "Turn ambient audio on"}
+      title={active ? "Turn ambient audio off" : "Turn ambient audio on"}
       style={{
         display: "inline-flex",
         alignItems: "center",
@@ -568,7 +569,11 @@ function Explore({ notes = [] }) {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={n.entry.cover}
-                        alt=""
+                        alt={
+                          n.entry.title
+                            ? `${n.entry.title} cover image`
+                            : "Field note cover image"
+                        }
                         style={{
                           width: "100%",
                           display: "block",
@@ -579,7 +584,11 @@ function Explore({ notes = [] }) {
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={n.entry.leadMedia.src}
-                        alt=""
+                        alt={
+                          n.entry.title
+                            ? `${n.entry.title} image`
+                            : "Field note image"
+                        }
                         style={{
                           width: "100%",
                           display: "block",
@@ -657,7 +666,7 @@ function Create() {
           lineHeight: 1.05,
         }}
       >
-        Fonosaur pad deck
+        Sample deck
       </h2>
       <p
         style={{
@@ -665,10 +674,10 @@ function Create() {
           fontSize: 15,
           lineHeight: 1.6,
           margin: "0 0 20px",
-          maxWidth: 420,
+          maxWidth: "min(100%, 28rem)",
         }}
       >
-        Build a quick loop from the sounds around the record.
+        Make something from the sounds I've collected.
       </p>
       <div
         style={{
@@ -717,10 +726,10 @@ function PlayZone() {
           fontSize: 15,
           lineHeight: 1.6,
           margin: "0 0 20px",
-          maxWidth: 420,
+          maxWidth: "min(100%, 34rem)",
         }}
       >
-        Launch Dino Sling and take on the computer.
+        Inspired by an old MS-DOS game I loved playing as a kid.
       </p>
       <div
         style={{
@@ -761,13 +770,15 @@ function Collect() {
           lineHeight: 1.05,
         }}
       >
-        Merch soon
+        Merch
+        <br />
+        coming soon
       </h2>
       <div
         style={{
           width: 84,
           height: 84,
-          margin: "0 auto 22px",
+          margin: "0 auto",
           borderRadius: 18,
           background: "linear-gradient(135deg,#1c1c20,#101013)",
           border: `1px solid ${C.line}`,
@@ -778,17 +789,6 @@ function Collect() {
       >
         <ShoppingBag size={30} color={C.bronze} style={{ opacity: 0.6 }} />
       </div>
-      <p
-        style={{
-          color: C.sub,
-          fontSize: 15,
-          lineHeight: 1.6,
-          maxWidth: 380,
-          margin: "0 auto",
-        }}
-      >
-        Prints, shirts, and other bits are on the way.
-      </p>
     </div>
   );
 }
@@ -813,11 +813,11 @@ function Follow({ isMobile = false }) {
           fontSize: 15,
           lineHeight: 1.6,
           marginBottom: 26,
-          maxWidth: 420,
+          maxWidth: isMobile ? 360 : 560,
           marginInline: "auto",
         }}
       >
-        Emails for new music, field notes, and the occasional useful update.
+        I'll send new music, field notes and the occasional update.
       </p>
       <form
         action="https://buttondown.com/api/emails/embed-subscribe/fonosaur"
@@ -839,6 +839,8 @@ function Follow({ isMobile = false }) {
           name="email"
           placeholder="you@email.com"
           required
+          aria-label="Email address"
+          autoComplete="email"
           style={{
             flex: isMobile ? "none" : "1 1 240px",
             minWidth: 0,
@@ -872,7 +874,7 @@ function Follow({ isMobile = false }) {
             width: isMobile ? "100%" : "auto",
           }}
         >
-          <Mail size={16} /> Join
+          <Mail size={16} /> Join the list
         </button>
       </form>
     </div>
@@ -959,15 +961,15 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
             height: isMobile ? 218 : 336,
             transform: "translate(-50%,-50%)",
             borderRadius: "50%",
-            border: `1px solid ${ambientOn ? "rgba(0,204,80,0.16)" : "rgba(255,255,255,0.06)"}`,
+            border: "1px solid rgba(255,255,255,0.06)",
             background:
               "radial-gradient(circle, rgba(232,232,234,0.03), rgba(10,10,12,0) 68%)",
             boxShadow: ambientOn
-              ? "0 0 96px rgba(0,204,80,0.07)"
-              : "0 0 62px rgba(59,139,255,0.05)",
+              ? "0 0 88px rgba(255,255,255,0.08)"
+              : "0 0 52px rgba(255,255,255,0.04)",
             animation: ambientOn
               ? "spinSlow 26s linear infinite"
-              : "spinSlow 34s linear infinite",
+              : "ambientBreath 5.8s ease-in-out infinite",
             transition:
               "border-color .35s ease, box-shadow .35s ease, width .35s ease, height .35s ease",
           }}
@@ -981,11 +983,11 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
             height: isMobile ? 154 : 238,
             transform: "translate(-50%,-50%)",
             borderRadius: "50%",
-            border: `1px solid ${ambientOn ? "rgba(0,204,80,0.12)" : "rgba(232,232,234,0.05)"}`,
-            opacity: ambientOn ? 0.72 : 0.5,
+            border: "1px solid rgba(232,232,234,0.05)",
+            opacity: ambientOn ? 0.72 : 0.34,
             animation: ambientOn
               ? "spinReverse 18s linear infinite"
-              : "spinReverse 24s linear infinite",
+              : "ambientBreath 6.6s ease-in-out infinite",
             transition:
               "border-color .35s ease, opacity .35s ease, width .35s ease, height .35s ease",
           }}
@@ -1001,6 +1003,8 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
               key={id}
               onClick={() => go(id)}
               className="constellation-node"
+              aria-label={z.label}
+              title={z.label}
               style={{
                 position: "absolute",
                 left: `${x}%`,
@@ -1055,6 +1059,7 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
         })}
         <button
           onClick={onAmbientToggle}
+          title={ambientOn ? "Turn ambient audio off" : "Turn ambient audio on"}
           style={{
             position: "absolute",
             left: "50%",
@@ -1071,7 +1076,7 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
             justifyContent: "center",
             padding: 0,
             zIndex: 2,
-            color: ambientOn ? C.green : C.text,
+            color: C.text,
           }}
           aria-pressed={ambientOn}
           aria-label={ambientOn ? "Turn ambient audio off" : "Turn ambient audio on"}
@@ -1086,14 +1091,15 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
               height: isMobile ? 34 : 40,
               borderRadius: "50%",
               background: ambientOn
-                ? "radial-gradient(circle, rgba(0,204,80,0.38), rgba(0,204,80,0.08) 62%, rgba(20,20,23,0.96) 100%)"
+                ? "radial-gradient(circle, rgba(255,255,255,0.28), rgba(255,255,255,0.08) 62%, rgba(20,20,23,0.96) 100%)"
                 : "radial-gradient(circle, rgba(255,255,255,0.16), rgba(255,255,255,0.05) 58%, rgba(20,20,23,0.94) 100%)",
               boxShadow: ambientOn
-                ? "0 0 26px rgba(0,204,80,0.26)"
+                ? "0 0 22px rgba(255,255,255,0.18)"
                 : "0 0 18px rgba(255,255,255,0.08)",
-              transform: ambientOn ? "scale(1.08)" : "scale(1)",
+              transform: ambientOn ? "scale(1.06)" : "scale(1)",
               transition:
                 "transform .24s ease, box-shadow .3s ease, background .3s ease",
+              animation: ambientOn ? "none" : "ambientCorePulse 5s ease-in-out infinite",
             }}
           >
             <span
@@ -1101,7 +1107,7 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
                 position: "absolute",
                 inset: isMobile ? -6 : -8,
                 borderRadius: "50%",
-                border: `1px solid ${ambientOn ? "rgba(0,204,80,0.28)" : "rgba(255,255,255,0.09)"}`,
+                border: `1px solid ${ambientOn ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.09)"}`,
                 opacity: ambientOn ? 0.9 : 0.45,
                 animation: ambientOn ? "ambientPulse 2.8s ease-in-out infinite" : "none",
                 transition: "opacity .3s ease, border-color .3s ease",
@@ -1112,9 +1118,9 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
                 width: isMobile ? 10 : 12,
                 height: isMobile ? 10 : 12,
                 borderRadius: "50%",
-                background: ambientOn ? C.green : "rgba(232,232,234,0.72)",
+                background: "rgba(232,232,234,0.78)",
                 boxShadow: ambientOn
-                  ? "0 0 14px rgba(0,204,80,0.36)"
+                  ? "0 0 14px rgba(255,255,255,0.22)"
                   : "0 0 10px rgba(255,255,255,0.12)",
                 transition: "background .3s ease, box-shadow .3s ease",
               }}
@@ -1319,7 +1325,7 @@ export default function FonosaurSite({ notes = [] }) {
   };
 
   const accent = ZONES[screen]?.accent || "#e8e8ea";
-  const compactMobileTabs = size.w < 410;
+  const compactMobileTabs = size.w < 430;
 
   useEffect(() => () => teardownAmbient(), []);
 
@@ -1465,7 +1471,7 @@ export default function FonosaurSite({ notes = [] }) {
   const renderMobile = () => {
     const inZone = screen !== "hub";
     const z = ZONES[screen] || ZONES.listen;
-    const compactMobileHeader = size.w < 410;
+    const compactMobileHeader = size.w < 430;
     return (
       <>
         {inZone && (
@@ -1575,7 +1581,7 @@ export default function FonosaurSite({ notes = [] }) {
                 style={{
                   ...FRAME,
                   position: "relative",
-                  padding: "70px 22px 150px",
+                  padding: "70px 12px 150px",
                   boxSizing: "border-box",
                 }}
               >
@@ -1602,6 +1608,7 @@ export default function FonosaurSite({ notes = [] }) {
                   <button
                     key={id}
                     onClick={() => go(id)}
+                    title={ZONES[id].label}
                     style={{
                       flex: 1,
                       display: "flex",
@@ -1667,11 +1674,14 @@ export default function FonosaurSite({ notes = [] }) {
         @keyframes spinReverse { from{transform:translate(-50%,-50%) rotate(360deg)} to{transform:translate(-50%,-50%) rotate(0)} }
         @keyframes nodeFloat { 0%,100%{transform:translate(-50%,-50%) translateY(0)} 50%{transform:translate(-50%,-50%) translateY(-10px)} }
         @keyframes ambientPulse { 0%,100%{transform:scale(1);opacity:.85} 50%{transform:scale(1.12);opacity:.42} }
+        @keyframes ambientBreath { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.38} 50%{transform:translate(-50%,-50%) scale(1.03);opacity:.62} }
+        @keyframes ambientCorePulse { 0%,100%{transform:scale(1);opacity:.92} 50%{transform:scale(1.08);opacity:1} }
         .constellation-node:hover span:first-child,
         .constellation-node:focus-visible span:first-child { transform:scale(1.06); box-shadow:0 0 34px rgba(255,255,255,.14) }
         .dspbtn:hover,
         .dspbtn:focus-visible { transform:translateY(-1px); border-color:rgba(232,232,234,0.3)!important; box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 12px 26px rgba(0,0,0,.24), 0 0 0 1px var(--dsp-accent) }
         .dspbtn:active { transform:translateY(0); background:linear-gradient(180deg, rgba(255,255,255,0.08), rgba(20,20,23,1)) }
+        a:focus-visible { outline:2px solid ${C.green}; outline-offset:2px; border-radius:6px; }
         button:focus-visible, input:focus-visible { outline:2px solid ${C.green}; outline-offset:2px; }
         @media (prefers-reduced-motion: reduce){ .saur{animation:none;color:#00cc50} .saur::before,.saur::after{animation:none;opacity:0} .screen{animation:none!important} }
         @media (max-width:560px){ .navbtn{ font-size:9px!important; letter-spacing:0.07em!important; padding:6px 9px!important } }

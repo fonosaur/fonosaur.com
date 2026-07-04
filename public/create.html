@@ -13,7 +13,7 @@
         --panel: #141418;
         --line: #26262b;
         --text: #e8e8ea;
-        --sub: #8a8a92;
+        --sub: #9c9ca4;
         --blue: #3b8bff;
         --purple: #8b5cf6;
         --bronze: #a06820;
@@ -34,6 +34,7 @@
         overflow-x: hidden;
       }
       .wrap {
+        width: 100%;
         max-width: 520px;
         margin: 0 auto;
         padding: 12px 16px 60px;
@@ -47,21 +48,17 @@
         flex-wrap: wrap;
       }
       .chip {
-        font-family: "Space Mono", monospace;
-        font-size: 11px;
-        color: var(--sub);
-        background: var(--panel);
-        border: 1px solid var(--line);
-        border-radius: 20px;
-        padding: 6px 12px;
-      }
-      .chip b {
-        color: var(--text);
+        display: none;
       }
       button {
         font-family: inherit;
         cursor: pointer;
         color: var(--text);
+      }
+      button:focus-visible,
+      input:focus-visible {
+        outline: 2px solid var(--green);
+        outline-offset: 2px;
       }
       .btn {
         background: var(--panel);
@@ -83,6 +80,7 @@
       /* faceplate + skin */
       .device {
         position: relative;
+        width: 100%;
         border-radius: 22px;
         padding: 16px;
         margin: 2px 0 18px;
@@ -160,11 +158,16 @@
         box-sizing: border-box;
       }
       .pad {
+        appearance: none;
+        -webkit-appearance: none;
         position: relative;
+        width: 100%;
+        min-width: 0;
         aspect-ratio: 1;
         border-radius: 12px;
         cursor: pointer;
         user-select: none;
+        padding: 0;
         background: linear-gradient(160deg, #2a2a31, #131317);
         border: 1px solid rgba(255, 255, 255, 0.07);
         box-shadow:
@@ -174,11 +177,19 @@
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
+        text-align: left;
       }
       .pad:active {
         transform: translateY(2px) scale(0.985);
         box-shadow:
           0 1px 0 rgba(0, 0, 0, 0.55),
+          inset 0 1px 0 rgba(255, 255, 255, 0.07);
+      }
+      .pad:focus-visible {
+        border-color: rgba(0, 204, 80, 0.7);
+        box-shadow:
+          0 0 0 2px rgba(0, 204, 80, 0.2),
+          0 3px 0 rgba(0, 0, 0, 0.55),
           inset 0 1px 0 rgba(255, 255, 255, 0.07);
       }
       .pad .dot {
@@ -195,7 +206,7 @@
         right: 8px;
         font-family: "Space Mono", monospace;
         font-size: 9px;
-        color: rgba(255, 255, 255, 0.42);
+        color: rgba(255, 255, 255, 0.62);
       }
       .pad .lab {
         padding: 7px 9px;
@@ -227,6 +238,9 @@
         border: 1px solid var(--line);
         border-radius: 16px;
         padding: 12px;
+      }
+      .transport > .btn {
+        min-width: 0;
       }
       .rec {
         width: 12px;
@@ -322,7 +336,18 @@
         font-family: "Space Mono", monospace;
         display: none;
       }
-      @media (max-width: 420px) {
+      @media (max-width: 480px) {
+        .wrap {
+          padding: 10px 10px 48px;
+        }
+        .kitbar {
+          gap: 8px;
+          margin-bottom: 12px;
+        }
+        .btn {
+          padding: 7px 12px;
+          font-size: 12px;
+        }
         h1 {
           font-size: 28px;
         }
@@ -348,6 +373,19 @@
         .device {
           padding: 10px;
         }
+        .transport {
+          gap: 6px;
+          padding: 10px;
+        }
+        .tempo {
+          width: 100%;
+          justify-content: space-between;
+        }
+        #shareBtn {
+          width: 100%;
+          margin-left: 0 !important;
+          justify-content: center;
+        }
       }
     </style>
   </head>
@@ -362,7 +400,9 @@
 
       <div class="kitbar">
         <span class="chip">palette <b id="seedTxt">—</b></span>
-        <button class="btn" id="shuffle">New palette</button>
+        <button class="btn" id="shuffle" aria-label="Shuffle sounds">
+          Shuffle sounds
+        </button>
         <button class="btn" id="skinBtn">Skin 1 ▸</button>
       </div>
 
@@ -378,7 +418,7 @@
       </div>
 
       <div class="transport">
-        <button class="btn" id="recBtn">
+        <button class="btn" id="recBtn" aria-label="Record loop">
           <span class="rec" id="recDot"></span>Record
         </button>
         <button class="btn" id="playBtn">▶ Loop</button>
@@ -615,9 +655,25 @@
         document.getElementById("skinBtn").textContent =
           `Skin ${skinIdx + 1} ▸`;
       }
+      function syncCreateLabels() {
+        document.getElementById("playShared").setAttribute("aria-label", "Play shared loop");
+        document.getElementById("playShared").textContent = "Play shared loop";
+        document.getElementById("skinBtn").setAttribute("aria-label", "Change skin");
+        document.getElementById("skinBtn").textContent = "Change skin";
+        document.getElementById("playBtn").setAttribute("aria-label", "Play loop");
+        document.getElementById("playBtn").textContent = "Play loop";
+        document.getElementById("clearBtn").setAttribute("aria-label", "Clear loop");
+        document.getElementById("clearBtn").textContent = "Clear loop";
+        document.getElementById("bpmDown").setAttribute("aria-label", "Decrease tempo");
+        document.getElementById("bpmUp").setAttribute("aria-label", "Increase tempo");
+        document.getElementById("shareBtn").setAttribute("aria-label", "Copy share link");
+        document.querySelector(".hint").innerHTML =
+          'Tap pads or use the keyboard (<b>1 2 3 4 / Q W E R / A S D F / Z X C V</b>). Record captures what you play as a loop and folds it into a share link.';
+      }
       document.getElementById("skinBtn").addEventListener("click", () => {
         skinIdx = (skinIdx + 1) % SKINS.length;
         applySkin();
+        syncCreateLabels();
       });
 
       // ---------- audio ----------
@@ -820,21 +876,23 @@
         grid.innerHTML = "";
         kit.forEach((k, i) => {
           const col = CAT_COLOR[k.cat];
-          const d = document.createElement("div");
+          const d = document.createElement("button");
+          d.type = "button";
           d.className = "pad";
           d.dataset.i = i;
+          d.setAttribute("aria-label", `${CAT_LABEL[k.cat]} pad, key ${k.key}`);
+          d.setAttribute("aria-keyshortcuts", k.key);
           d.innerHTML = `<span class="dot" style="background:${col}"></span>
       <span class="key">${k.key}</span>
       <div class="glow" style="box-shadow:inset 0 0 22px ${col}, 0 0 16px ${col}; border:1px solid ${col}"></div>
       <div class="lab">${CAT_LABEL[k.cat]}</div>`;
-          d.addEventListener("pointerdown", (e) => {
-            e.preventDefault();
-            hit(i);
-          });
+          d.addEventListener("click", () => hit(i));
           grid.appendChild(d);
         });
-        document.getElementById("seedTxt").textContent =
-          "#" + seed.toString(36).toUpperCase().slice(0, 6);
+        const seedTxt = document.getElementById("seedTxt");
+        if (seedTxt) {
+          seedTxt.textContent = "#" + seed.toString(36).toUpperCase().slice(0, 6);
+        }
       }
       function flash(i) {
         const el = grid.children[i];
@@ -923,6 +981,7 @@
         looping = true;
         playBtn.classList.add("on");
         playBtn.textContent = "■ Stop";
+        playBtn.textContent = "Stop loop";
         loopbar.classList.add("active");
         loopStart = performance.now();
         lastPos = 0;
@@ -933,6 +992,7 @@
         cancelAnimationFrame(rafId);
         playBtn.classList.remove("on");
         playBtn.textContent = "▶ Loop";
+        playBtn.textContent = "Play loop";
         if (!recording) {
           loopbar.classList.remove("active");
           playhead.style.left = "0%";
@@ -1013,10 +1073,12 @@
           navigator.clipboard.writeText(url).catch(() => {});
         const b = document.getElementById("shareBtn");
         b.textContent = "Copied ✓";
+        b.textContent = "Link copied";
         setTimeout(() => (b.textContent = "Copy share link"), 1600);
       });
 
       // ---------- init ----------
+      syncCreateLabels();
       function loadHash() {
         if (location.hash.length < 3) return false;
         try {
@@ -1041,6 +1103,7 @@
         buildKit((Math.random() * 4294967296) >>> 0);
       }
       applySkin();
+      syncCreateLabels();
       renderPads();
       document.getElementById("playShared").addEventListener("click", () => {
         document.getElementById("banner").style.display = "none";
