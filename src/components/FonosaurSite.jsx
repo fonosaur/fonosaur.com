@@ -931,8 +931,23 @@ function BrandMark({ onClick, size = "clamp(34px,12vw,54px)", style = {} }) {
 }
 
 /* ---------------------------------------------------------- landing world */
-function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
-  const ring = isMobile ? LANDING_RING.mobile : LANDING_RING.desktop;
+function ConstellationLanding({
+  go,
+  ambientOn,
+  onAmbientToggle,
+  isMobile,
+  viewport,
+}) {
+  const baseRing = isMobile ? LANDING_RING.mobile : LANDING_RING.desktop;
+  const mobileViewportHeight = viewport?.h || 568;
+  const mobileCenterY =
+    44 +
+    Math.min(
+      1,
+      Math.max(0, (mobileViewportHeight - 568) / (844 - 568)),
+    ) *
+      2;
+  const ring = isMobile ? { ...baseRing, cy: mobileCenterY } : baseRing;
   const orbitCenterY = `${ring.cy}%`;
   const landingEdgeInset = isMobile ? 40 : 34;
   const landingBottomPadding = isMobile ? 28 : 40;
@@ -1814,6 +1829,7 @@ export default function FonosaurSite({ notes = [] }) {
                   ambientOn={ambientOn}
                   onAmbientToggle={toggleAmbient}
                   isMobile
+                  viewport={size}
                 />
               </div>
             ) : screen === "about" ? (
