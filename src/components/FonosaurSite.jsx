@@ -129,8 +129,8 @@ const AMBIENT_TRACKS = [
 ];
 const AMBIENT_VOLUME = 0.16;
 const LANDING_RING = {
-  desktop: { cx: 50, cy: 57, rx: 31, ry: 31 },
-  mobile: { cx: 50, cy: 60, rx: 30, ry: 28 },
+  desktop: { cx: 50, cy: 54, rx: 31, ry: 31 },
+  mobile: { cx: 50, cy: 38, rx: 30, ry: 28 },
 };
 const ABOUT_FONOSAUR =
   "Fonosaur blends sampled, electronic and organic sounds on an MPC. Drawing inspiration from the music of the African diaspora, the London-based producer creates textured electronic music rooted in hip hop and UK garage.";
@@ -937,10 +937,9 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
   const landingBottomPadding = isMobile ? 28 : 40;
   // FOLLOW node always sits at the bottom of the ring (angle 90deg), so its
   // center is at cy + ry. The about link is anchored below it using that
-  // same percentage coordinate space as the nodes, rather than a
-  // viewport-measured pixel offset, so it can never end up outside the
-  // container it's meant to sit in.
-  const aboutLinkTop = `calc(${ring.cy + ring.ry}% + ${isMobile ? 46 : 52}px)`;
+  // same percentage coordinate space as the nodes, with an independently
+  // tuned gap so shifting the orbit does not tuck ABOUT into FOLLOW.
+  const aboutLinkTop = `calc(${ring.cy + ring.ry}% + ${isMobile ? 70 : 66}px)`;
 
   return (
     <div
