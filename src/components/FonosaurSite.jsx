@@ -518,12 +518,24 @@ function Explore({ notes = [] }) {
           fontFamily: "'Unbounded', sans-serif",
           fontWeight: 200,
           fontSize: "clamp(28px,8vw,42px)",
-          margin: "0 0 22px",
+          margin: "0 0 10px",
           lineHeight: 1.05,
         }}
       >
         Field notes
       </h2>
+      <p
+        style={{
+          color: C.sub,
+          fontSize: 15,
+          lineHeight: 1.6,
+          margin: "0 0 20px",
+          maxWidth: "min(100%, 28rem)",
+        }}
+      >
+        Bits and pieces from the studio and beyond. Photos, recordings, ideas
+        and the occasional rediscovery.
+      </p>
       <div
         style={{
           display: "flex",
