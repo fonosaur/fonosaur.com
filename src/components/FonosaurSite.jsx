@@ -129,8 +129,10 @@ const AMBIENT_TRACKS = [
 const AMBIENT_VOLUME = 0.16;
 const LANDING_RING = {
   desktop: { cx: 50, cy: 57, rx: 31, ry: 31 },
-  mobile: { cx: 50, cy: 57, rx: 26, ry: 24 },
+  mobile: { cx: 50, cy: 60, rx: 30, ry: 28 },
 };
+const ABOUT_FONOSAUR =
+  "Fonosaur blends sampled, electronic and organic sounds on an MPC. Drawing inspiration from the music of the African diaspora, the London-based producer creates textured electronic music rooted in hip hop and UK garage.";
 
 /* --------------------------------------------------------------- ambient dust */
 function Dust({ reduced }) {
@@ -327,7 +329,12 @@ function Warp({ trigger, color, reduced }) {
   );
 }
 
-function AmbientToggle({ active, onToggle, compact = false, iconOnly = false }) {
+function AmbientToggle({
+  active,
+  onToggle,
+  compact = false,
+  iconOnly = false,
+}) {
   return (
     <button
       onClick={onToggle}
@@ -677,7 +684,7 @@ function Create() {
           maxWidth: "min(100%, 28rem)",
         }}
       >
-        Make something from the sounds I've collected.
+        Make something from sounds I've curated.
       </p>
       <div
         style={{
@@ -693,6 +700,7 @@ function Create() {
           title="Create"
           src="/create.html?embed=1"
           sandbox="allow-scripts allow-same-origin allow-clipboard-write"
+          allow="clipboard-write; web-share"
           style={{
             width: "100%",
             height: "100%",
@@ -817,7 +825,7 @@ function Follow({ isMobile = false }) {
           marginInline: "auto",
         }}
       >
-        I'll send new music, field notes and the occasional update.
+        I'll share new music, field notes and the occasional update.
       </p>
       <form
         action="https://buttondown.com/api/emails/embed-subscribe/fonosaur"
@@ -910,19 +918,36 @@ function BrandMark({ onClick, size = "clamp(34px,12vw,54px)", style = {} }) {
 }
 
 /* ---------------------------------------------------------- landing world */
-function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
+function ConstellationLanding({
+  go,
+  ambientOn,
+  onAmbientToggle,
+  isMobile,
+  aboutOpen,
+  onAboutOpen,
+  onAboutClose,
+}) {
   const ring = isMobile ? LANDING_RING.mobile : LANDING_RING.desktop;
   const orbitCenterY = `${ring.cy}%`;
+  const landingBottomPadding = isMobile ? 28 : 170;
+  // FOLLOW node always sits at the bottom of the ring (angle 90deg), so its
+  // center is at cy + ry. The about link is anchored below it using that
+  // same percentage coordinate space as the nodes, rather than a
+  // viewport-measured pixel offset, so it can never end up outside the
+  // container it's meant to sit in.
+  const aboutLinkTop = `calc(${ring.cy + ring.ry}% + ${isMobile ? 62 : 82}px)`;
+
   return (
     <div
       style={{
-        minHeight: "100%",
+        height: "100%",
         display: "flex",
         flexDirection: "column",
-        padding: isMobile ? "24px 18px 18px" : "22px 32px 24px",
+        padding: `${isMobile ? 40 : 34}px ${isMobile ? 18 : 32}px ${landingBottomPadding}px`,
         boxSizing: "border-box",
         position: "relative",
-        overflow: "hidden",
+        overflowX: "hidden",
+        overflowY: "auto",
       }}
     >
       <div
@@ -949,7 +974,9 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
           position: "relative",
           flex: 1,
           minHeight: isMobile ? 430 : "clamp(430px, 58vh, 600px)",
-          marginTop: isMobile ? 8 : 10,
+          marginTop: isMobile ? 16 : 18,
+          opacity: aboutOpen ? 0.32 : 1,
+          transition: "opacity .35s ease",
         }}
       >
         <div
@@ -1079,7 +1106,9 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
             color: C.text,
           }}
           aria-pressed={ambientOn}
-          aria-label={ambientOn ? "Turn ambient audio off" : "Turn ambient audio on"}
+          aria-label={
+            ambientOn ? "Turn ambient audio off" : "Turn ambient audio on"
+          }
         >
           <span
             style={{
@@ -1099,7 +1128,9 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
               transform: ambientOn ? "scale(1.06)" : "scale(1)",
               transition:
                 "transform .24s ease, box-shadow .3s ease, background .3s ease",
-              animation: ambientOn ? "none" : "ambientCorePulse 5s ease-in-out infinite",
+              animation: ambientOn
+                ? "none"
+                : "ambientCorePulse 5s ease-in-out infinite",
             }}
           >
             <span
@@ -1109,7 +1140,9 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
                 borderRadius: "50%",
                 border: `1px solid ${ambientOn ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.09)"}`,
                 opacity: ambientOn ? 0.9 : 0.45,
-                animation: ambientOn ? "ambientPulse 2.8s ease-in-out infinite" : "none",
+                animation: ambientOn
+                  ? "ambientPulse 2.8s ease-in-out infinite"
+                  : "none",
                 transition: "opacity .3s ease, border-color .3s ease",
               }}
             />
@@ -1126,6 +1159,113 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
               }}
             />
           </span>
+        </button>
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: aboutLinkTop,
+            zIndex: 3,
+            opacity: aboutOpen ? 0 : 1,
+            transform: `translate(-50%, ${aboutOpen ? "8px" : "0"})`,
+            transition: "opacity .24s ease, transform .24s ease",
+            pointerEvents: aboutOpen ? "none" : "auto",
+          }}
+        >
+          <button
+            id="aboutLink"
+            onClick={onAboutOpen}
+            style={{
+              border: "1px solid rgba(255,255,255,0.09)",
+              borderRadius: 999,
+              background: "rgba(10,10,12,0.68)",
+              backdropFilter: "blur(4px)",
+              WebkitBackdropFilter: "blur(4px)",
+              boxShadow: "0 0 22px rgba(10,10,12,0.72)",
+              color: C.text,
+              fontFamily: "'Space Mono', monospace",
+              fontSize: isMobile ? 10 : 11,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              whiteSpace: "nowrap",
+              cursor: "pointer",
+              padding: "7px 11px",
+              textShadow: "0 0 12px rgba(232,232,234,0.12)",
+            }}
+          >
+            who is fonosaur?
+          </button>
+        </div>
+      </div>
+      <div
+        id="aboutBackdrop"
+        onClick={onAboutClose}
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 4,
+          background: "rgba(6,6,8,0.56)",
+          opacity: aboutOpen ? 1 : 0,
+          pointerEvents: aboutOpen ? "auto" : "none",
+          transition: "opacity .28s ease",
+        }}
+      />
+      <div
+        id="aboutPanel"
+        role="dialog"
+        aria-modal="true"
+        aria-hidden={!aboutOpen}
+        style={{
+          position: "absolute",
+          left: "50%",
+          bottom: isMobile ? 22 : 86,
+          width: "min(420px, calc(100% - 40px))",
+          transform: `translate(-50%, ${aboutOpen ? "0" : "22px"})`,
+          opacity: aboutOpen ? 1 : 0,
+          pointerEvents: aboutOpen ? "auto" : "none",
+          transition: "transform .34s ease, opacity .26s ease",
+          zIndex: 5,
+          borderRadius: 18,
+          border: "none",
+          background:
+            "linear-gradient(180deg, rgba(30,26,44,0.7), rgba(12,10,18,0.85))",
+          backdropFilter: "blur(6px)",
+          WebkitBackdropFilter: "blur(6px)",
+          boxShadow:
+            "0 0 0 1px rgba(139,92,246,0.35), 0 0 40px rgba(59,139,255,0.12), inset 0 1px 0 rgba(255,255,255,0.06)",
+          padding: isMobile ? "24px 22px 22px" : "28px",
+          textAlign: "center",
+        }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <p
+          style={{
+            margin: 0,
+            color: "#d8d8dc",
+            fontSize: isMobile ? 13 : 14,
+            lineHeight: 1.65,
+          }}
+        >
+          {ABOUT_FONOSAUR}
+        </p>
+        <button
+          id="aboutClose"
+          onClick={onAboutClose}
+          style={{
+            marginTop: 20,
+            border: "none",
+            background: "transparent",
+            color: C.green,
+            fontFamily: "'Space Mono', monospace",
+            fontSize: 11,
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            cursor: "pointer",
+            padding: 0,
+            textShadow: "0 0 14px rgba(0,204,80,0.18)",
+          }}
+        >
+          back
         </button>
       </div>
     </div>
@@ -1145,6 +1285,7 @@ export default function FonosaurSite({ notes = [] }) {
   const [isMobile, setIsMobile] = useState(isMobileNow);
   const [screen, setScreen] = useState(screenFromHash);
   const [ambientOn, setAmbientOn] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const [warpKey, setWarpKey] = useState(0);
   const [activeKey, setActiveKey] = useState(null);
   const [mounted, setMounted] = useState(false);
@@ -1184,6 +1325,9 @@ export default function FonosaurSite({ notes = [] }) {
   useEffect(() => setMounted(true), []);
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [screen]);
+  useEffect(() => {
+    if (screen !== "hub") setAboutOpen(false);
   }, [screen]);
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1310,6 +1454,7 @@ export default function FonosaurSite({ notes = [] }) {
 
   const go = (target) => {
     if (target === screen) return;
+    setAboutOpen(false);
     setWarpKey((k) => k + 1);
     setScreen(target);
   };
@@ -1339,6 +1484,9 @@ export default function FonosaurSite({ notes = [] }) {
           ambientOn={ambientOn}
           onAmbientToggle={toggleAmbient}
           isMobile={false}
+          aboutOpen={aboutOpen}
+          onAboutOpen={() => setAboutOpen(true)}
+          onAboutClose={() => setAboutOpen(false)}
         />
       );
     }
@@ -1496,7 +1644,11 @@ export default function FonosaurSite({ notes = [] }) {
                 <BrandMark
                   onClick={() => go("hub")}
                   size="13px"
-                  style={{ lineHeight: 1, letterSpacing: "0.12em", flexShrink: 0 }}
+                  style={{
+                    lineHeight: 1,
+                    letterSpacing: "0.12em",
+                    flexShrink: 0,
+                  }}
                 />
                 <span
                   style={{
@@ -1574,6 +1726,9 @@ export default function FonosaurSite({ notes = [] }) {
                   ambientOn={ambientOn}
                   onAmbientToggle={toggleAmbient}
                   isMobile
+                  aboutOpen={aboutOpen}
+                  onAboutOpen={() => setAboutOpen(true)}
+                  onAboutClose={() => setAboutOpen(false)}
                 />
               </div>
             ) : (

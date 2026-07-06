@@ -6,9 +6,9 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
     />
-    <title>FONOSAUR - Sample deck</title>
+    <title>FONOSAUR - Sampler</title>
     <style>
-      @import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap");
+      @import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Unbounded:wght@200;400;700&display=swap");
 
       :root {
         --bg: #0a0a0c;
@@ -84,6 +84,111 @@
         justify-content: center;
         gap: 10px;
         padding: 10px 10px 28px;
+      }
+
+      .share-intro {
+        width: min(100%, 520px);
+        display: grid;
+        gap: 12px;
+        justify-items: start;
+        padding: 8px 2px 2px;
+      }
+
+      .share-intro[hidden] {
+        display: none;
+      }
+
+      .share-brand {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 0;
+        color: var(--text);
+        text-decoration: none;
+        font-family: "Unbounded", sans-serif;
+        font-size: clamp(24px, 7vw, 34px);
+        letter-spacing: 0;
+        white-space: nowrap;
+        line-height: 0.92;
+      }
+
+      .share-brand .fono {
+        font-weight: 200;
+      }
+
+      .share-brand .saur {
+        position: relative;
+        display: inline-block;
+        font-weight: 700;
+        animation: drift 10s ease infinite;
+      }
+
+      .share-brand .saur::before {
+        content: "SAUR";
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: rgba(59, 139, 255, 0.5);
+        opacity: 0;
+        pointer-events: none;
+        mix-blend-mode: screen;
+        animation: bSp 4s ease infinite;
+      }
+
+      .share-brand .saur::after {
+        content: "SAUR";
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: #fff;
+        text-shadow:
+          0 0 4px #fff,
+          0 0 15px rgba(0, 204, 80, 0.6),
+          0 0 40px rgba(59, 139, 255, 0.3);
+        opacity: 0;
+        pointer-events: none;
+        animation: bSh 4s ease infinite;
+      }
+
+      .share-copy {
+        margin: 0;
+        color: var(--sub);
+        font-size: 14px;
+        line-height: 1.6;
+        max-width: 34rem;
+      }
+
+      .share-explore {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 42px;
+        padding: 0 15px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        background: rgba(18, 18, 22, 0.88);
+        color: var(--text);
+        text-decoration: none;
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        transition:
+          transform 180ms ease,
+          border-color 180ms ease,
+          background 180ms ease;
+      }
+
+      .share-explore:hover,
+      .share-explore:focus-visible {
+        transform: translateY(-1px);
+        border-color: rgba(232, 232, 234, 0.3);
+        background: rgba(24, 24, 28, 0.94);
+      }
+
+      .share-brand:focus-visible,
+      .share-explore:focus-visible {
+        outline: 2px solid var(--green);
+        outline-offset: 3px;
       }
 
       .device {
@@ -735,6 +840,21 @@
           padding: 6px 4px 24px;
         }
 
+        .share-intro {
+          gap: 10px;
+          padding: 6px 2px 0;
+        }
+
+        .share-copy {
+          font-size: 13px;
+        }
+
+        .share-explore {
+          min-height: 40px;
+          padding: 0 14px;
+          font-size: 10px;
+        }
+
         .device-ui {
           gap: 6px;
           padding: 7px;
@@ -829,6 +949,10 @@
           padding: 6px 3px 22px;
         }
 
+        .share-brand {
+          font-size: clamp(22px, 8vw, 30px);
+        }
+
         .device-ui {
           gap: 5px;
           padding: 6px;
@@ -887,10 +1011,77 @@
           font-size: 13px;
         }
       }
+
+      @keyframes drift {
+        0%, 100% { color: #3b8bff; text-shadow: 0 0 20px rgba(59, 139, 255, 0.15); }
+        25% { color: #8b5cf6; text-shadow: 0 0 20px rgba(139, 92, 246, 0.15); }
+        50% { color: #a06820; text-shadow: 0 0 20px rgba(160, 104, 32, 0.2); }
+        75% { color: #00cc50; text-shadow: 0 0 22px rgba(0, 204, 80, 0.18); }
+      }
+
+      @keyframes bSh {
+        0%, 100% { opacity: 0; transform: translate(0, 0); }
+        8% { opacity: 0; }
+        8.1% { opacity: 1; transform: translate(3px, -2px); }
+        8.2% { opacity: 0; transform: translate(-2px, 1px); }
+        8.3% { opacity: 1; transform: translate(-3px, -1px); }
+        8.5% { opacity: 1; transform: translate(1px, -2px); }
+        8.7% { opacity: 0.8; transform: translate(-2px, 0); }
+        9% { opacity: 0.5; }
+        9.2% { opacity: 0; transform: translate(0, 0); }
+        32% { opacity: 0; }
+        32.1% { opacity: 1; transform: translate(-3px, 1px); }
+        32.3% { opacity: 1; transform: translate(3px, 1px); }
+        32.5% { opacity: 0.9; transform: translate(1px, -1px); }
+        32.6% { opacity: 0; }
+        58% { opacity: 0; }
+        58.1% { opacity: 1; transform: translate(2px, -1px); }
+        58.25% { opacity: 0; transform: translate(-3px, 2px); }
+        58.4% { opacity: 0.7; }
+        58.5% { opacity: 0; }
+        80% { opacity: 0; }
+        80.1% { opacity: 1; transform: translate(-2px, -2px); }
+        80.3% { opacity: 1; transform: translate(-1px, 2px); }
+        80.5% { opacity: 0.6; }
+        80.9% { opacity: 0; transform: translate(0, 0); }
+      }
+
+      @keyframes bSp {
+        0%, 100% { opacity: 0; transform: translate(0, 0); }
+        8.1% { opacity: 0.7; transform: translate(-4px, 0); color: rgba(0, 204, 80, 0.6); }
+        8.4% { opacity: 0.5; transform: translate(4px, 1px); color: rgba(139, 92, 246, 0.5); }
+        9% { opacity: 0; }
+        32.1% { opacity: 0.6; transform: translate(3px, -1px); color: rgba(0, 204, 80, 0.5); }
+        32.4% { opacity: 0; }
+        58.1% { opacity: 0.5; transform: translate(-3px, 1px); color: rgba(160, 104, 32, 0.5); }
+        58.4% { opacity: 0; }
+        80.1% { opacity: 0.7; transform: translate(-4px, 0); color: rgba(139, 92, 246, 0.5); }
+        80.9% { opacity: 0; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .share-brand .saur {
+          animation: none;
+          color: var(--green);
+        }
+
+        .share-brand .saur::before,
+        .share-brand .saur::after {
+          animation: none;
+          opacity: 0;
+        }
+      }
     </style>
   </head>
   <body>
     <main class="wrap">
+      <section class="share-intro" id="shareIntro" hidden>
+        <a class="share-brand" href="/#hub" aria-label="Go to the FONOSAUR world">
+          <span class="fono">FONO</span><span class="saur">SAUR</span>
+        </a>
+        <p class="share-copy">This loop was made at fonosaur.com</p>
+        <a class="share-explore" href="/#hub">Make your own &#9656;</a>
+      </section>
       <div class="device">
         <div class="skin" id="skin"></div>
         <div class="skinveil"></div>
@@ -1398,11 +1589,19 @@
         );
       }
 
-      const SKINS = [70141, 930277, 514088];
+      const SKINS = [
+        { kind: "plain" },
+        { kind: "seed", seed: 70141 },
+        { kind: "seed", seed: 930277 },
+        { kind: "seed", seed: 514088 },
+      ];
+      const SHARE_MESSAGE =
+        "This loop was made at fonosaur.com";
 
       // ---------- DOM ----------
       const rootEl = document.documentElement;
       const wrapEl = document.querySelector(".wrap");
+      const shareIntroEl = document.getElementById("shareIntro");
       const deviceEl = document.querySelector(".device");
       const grid = document.getElementById("grid");
       const skinEl = document.getElementById("skin");
@@ -1780,6 +1979,56 @@
         }, 2000);
       }
 
+      function updateShareIntro() {
+        if (!shareIntroEl) return;
+        const show = !embedded && runtime.loadedFromShare && loop.events.length > 0;
+        shareIntroEl.hidden = !show;
+      }
+
+      function isMobileShareCapable() {
+        return (
+          typeof navigator !== "undefined" &&
+          typeof navigator.share === "function" &&
+          window.matchMedia &&
+          window.matchMedia("(max-width: 768px)").matches
+        );
+      }
+
+      async function copyShareLink(url) {
+        if (navigator.clipboard) {
+          try {
+            await navigator.clipboard.writeText(url);
+          } catch (error) {}
+        }
+        flashShareFeedback();
+        showToast("Link copied - your kit + loop");
+      }
+
+      async function shareCurrentLink(url) {
+        if (!isMobileShareCapable()) {
+          await copyShareLink(url);
+          return;
+        }
+        try {
+          await navigator.share({
+            title: "FONOSAUR",
+            text: SHARE_MESSAGE,
+            url,
+          });
+          shareBtn.classList.add("is-copied");
+          shareLabel.innerHTML = "SHARED &#10003;";
+          shareBtn.setAttribute("aria-label", "Shared");
+          shareBtn.setAttribute("title", "Shared");
+          window.clearTimeout(shareTimer);
+          shareTimer = window.setTimeout(() => {
+            resetShareFeedback();
+          }, 2000);
+        } catch (error) {
+          if (error && error.name === "AbortError") return;
+          await copyShareLink(url);
+        }
+      }
+
       function updateBarsReadout() {
         bpmTxt.textContent = String(bpm);
         lcdBars.innerHTML =
@@ -1857,6 +2106,7 @@
         updateBarsReadout();
         updateMetroButton();
         updateQuantButton();
+        updateShareIntro();
 
         if (runtime.mode === "countin") {
           lcdStatus.textContent = runtime.recordType === "overdub" ? "DUB IN" : "COUNT-IN";
@@ -1893,7 +2143,14 @@
       }
 
       function applySkin() {
-        skinEl.style.backgroundImage = 'url("' + skinURI(SKINS[skinIdx]) + '")';
+        const skin = SKINS[skinIdx] || SKINS[0];
+        if (!skin || skin.kind === "plain") {
+          skinEl.style.backgroundImage = "none";
+          skinEl.style.opacity = "0";
+          return;
+        }
+        skinEl.style.opacity = "0.16";
+        skinEl.style.backgroundImage = 'url("' + skinURI(skin.seed) + '")';
       }
 
       function setBpm(next) {
@@ -2137,49 +2394,68 @@
       }
 
       // ---------- share ----------
-      function encode() {
-        const payload = {
-          s: seed,
-          l: Math.round(loop.length || fixedLoopLength()),
-          b: bpm,
-          q: 0,
-          k: skinIdx,
-          p: loop.layers.map((layer) =>
-            layer.events.map(([i, t]) => [i, Math.round(t)]),
-          ),
-          e: loop.events.map(([i, t]) => [i, Math.round(t)]),
-        };
-        return btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+      function packLayer(events) {
+        let prev = 0;
+        return events
+          .map(([i, t], index) => {
+            const rounded = Math.round(t);
+            const delta = index === 0 ? rounded : rounded - prev;
+            prev = rounded;
+            return i.toString(36) + delta.toString(36);
+          })
+          .join(".");
       }
 
-      function decode(str) {
-        return JSON.parse(decodeURIComponent(escape(atob(str))));
+      function unpackLayer(layerStr) {
+        if (!layerStr) return [];
+        let prev = 0;
+        return layerStr
+          .split(".")
+          .filter(Boolean)
+          .map((token, index) => {
+            const i = parseInt(token.charAt(0), 36);
+            const delta = parseInt(token.slice(1) || "0", 36);
+            const t = index === 0 ? delta : prev + delta;
+            prev = t;
+            return [i, t];
+          });
+      }
+
+      function encode() {
+        const layerStr = loop.layers
+          .map((layer) => packLayer(layer.events))
+          .filter(Boolean)
+          .join("~");
+        const head = [
+          "f2",
+          (seed >>> 0).toString(36),
+          bpm.toString(36),
+          skinIdx.toString(36),
+        ];
+        return layerStr ? head.concat(layerStr).join(".") : head.join(".");
       }
 
       function loadHash() {
         if (location.hash.length < 3) return false;
         try {
-          const payload = decode(location.hash.slice(1));
-          seed = payload.s >>> 0;
-          bpm = Math.max(60, Math.min(160, payload.b || 90));
-          skinIdx = payload.k || 0;
-          if (Array.isArray(payload.p) && payload.p.length) {
-            loop.layers = payload.p.map((layer) => ({
-              events: normalizeLayer(
-                (layer || []).map(([i, t]) => [i, t]),
-                payload.l || fixedLoopLength(),
-              ),
-            }));
-            syncLoopEvents();
-          } else {
-            const legacy = normalizeLayer(
-              (payload.e || []).map(([i, t]) => [i, t]),
-              payload.l || fixedLoopLength(),
-            );
-            loop.layers = legacy.length ? [{ events: legacy }] : [];
-            syncLoopEvents();
-          }
-          loop.length = payload.l || fixedLoopLength();
+          const raw = location.hash.slice(1);
+          const parts = raw.split(".");
+          if (parts[0] !== "f2") return false;
+          seed = parseInt(parts[1], 36) >>> 0;
+          bpm = Math.max(60, Math.min(160, parseInt(parts[2], 36) || 90));
+          skinIdx = Math.max(
+            0,
+            Math.min(SKINS.length - 1, parseInt(parts[3], 36) || 0),
+          );
+          const targetLength = fixedLoopLength();
+          const layerStr = parts.slice(4).join(".");
+          loop.layers = layerStr
+            ? layerStr.split("~").filter(Boolean).map((layer) => ({
+                events: normalizeLayer(unpackLayer(layer), targetLength),
+              }))
+            : [];
+          syncLoopEvents();
+          loop.length = targetLength;
           runtime.loadedFromShare = loop.events.length > 0;
           return true;
         } catch (e) {
@@ -2268,14 +2544,10 @@
         updateDisplay();
       });
 
-      shareBtn.addEventListener("click", () => {
+      shareBtn.addEventListener("click", async () => {
         location.hash = encode();
         const url = location.href;
-        if (navigator.clipboard) {
-          navigator.clipboard.writeText(url).catch(() => {});
-        }
-        flashShareFeedback();
-        showToast("Link copied - your kit + loop");
+        await shareCurrentLink(url);
       });
 
       shuffleBtn.addEventListener("click", () => {
