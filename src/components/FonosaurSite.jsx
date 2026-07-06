@@ -129,8 +129,8 @@ const AMBIENT_TRACKS = [
 ];
 const AMBIENT_VOLUME = 0.16;
 const LANDING_RING = {
-  desktop: { cx: 50, cy: 54, rx: 31, ry: 31 },
-  mobile: { cx: 50, cy: 38, rx: 30, ry: 28 },
+  desktop: { cx: 50, cy: 56, rx: 31, ry: 31 },
+  mobile: { cx: 50, cy: 40, rx: 30, ry: 28 },
 };
 const ABOUT_FONOSAUR =
   "Fonosaur blends sampled, electronic and organic sounds on an MPC. Drawing inspiration from the music of the African diaspora, the London-based producer creates textured electronic music rooted in hip hop and UK garage.";
@@ -1323,12 +1323,19 @@ function AboutScene({ go, isMobile, reduced }) {
           <p
             style={{
               margin: 0,
+              width: isMobile
+                ? "min(340px, calc(100vw - 40px))"
+                : "min(460px, calc(100vw - 64px))",
+              flexShrink: 0,
               textAlign: "center",
               fontFamily: "'Syne', sans-serif",
               fontWeight: 400,
               fontSize: 14,
               lineHeight: 1.7,
               color: "#dcdce2",
+              hyphens: "none",
+              overflowWrap: "normal",
+              wordBreak: "normal",
             }}
           >
             {ABOUT_FONOSAUR}
