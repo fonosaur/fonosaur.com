@@ -1211,9 +1211,9 @@ const ABOUT_RINGS = [
 ];
 
 function AboutScene({ go, isMobile, reduced }) {
-  const labelSize = isMobile ? 172 : 250;
-  const ringStep = isMobile ? 30 : 42;
-  const ringStart = labelSize + (isMobile ? 26 : 40);
+  const labelSize = isMobile ? 208 : 250;
+  const ringStep = isMobile ? 24 : 42;
+  const ringStart = labelSize + (isMobile ? 18 : 40);
 
   return (
     <div
@@ -1317,7 +1317,7 @@ function AboutScene({ go, isMobile, reduced }) {
             alignItems: "center",
             justifyContent: "center",
             boxSizing: "border-box",
-            padding: isMobile ? 24 : 32,
+            padding: isMobile ? 20 : 32,
             zIndex: 2,
           }}
         >
