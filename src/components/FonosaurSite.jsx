@@ -31,6 +31,7 @@ const C = {
   amber: "#ff8a3d",
   bronze: "#a06820",
   green: "#00cc50",
+  coral: "#ff6b5c",
 };
 
 const ZONES = {
@@ -81,7 +82,7 @@ const LANDING_NODES = [
   "play",
   "explore",
 ];
-const VALID_SCREENS = ["hub", ...ORDER];
+const VALID_SCREENS = ["hub", ...ORDER, "about"];
 const ICON = {
   listen: Headphones,
   explore: Compass,
@@ -930,34 +931,26 @@ function BrandMark({ onClick, size = "clamp(34px,12vw,54px)", style = {} }) {
 }
 
 /* ---------------------------------------------------------- landing world */
-function ConstellationLanding({
-  go,
-  ambientOn,
-  onAmbientToggle,
-  isMobile,
-  aboutOpen,
-  onAboutOpen,
-  onAboutClose,
-}) {
+function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
   const ring = isMobile ? LANDING_RING.mobile : LANDING_RING.desktop;
   const orbitCenterY = `${ring.cy}%`;
-  const landingBottomPadding = isMobile ? 28 : 170;
+  const landingBottomPadding = isMobile ? 28 : 40;
   // FOLLOW node always sits at the bottom of the ring (angle 90deg), so its
   // center is at cy + ry. The about link is anchored below it using that
   // same percentage coordinate space as the nodes, rather than a
   // viewport-measured pixel offset, so it can never end up outside the
   // container it's meant to sit in.
-  const aboutLinkTop = `calc(${ring.cy + ring.ry}% + ${isMobile ? 62 : 82}px)`;
+  const aboutLinkTop = `calc(${ring.cy + ring.ry}% + ${isMobile ? 46 : 52}px)`;
 
   return (
     <div
       style={{
-        height: "100%",
+        position: "absolute",
+        inset: 0,
         display: "flex",
         flexDirection: "column",
         padding: `${isMobile ? 40 : 34}px ${isMobile ? 18 : 32}px ${landingBottomPadding}px`,
         boxSizing: "border-box",
-        position: "relative",
         overflowX: "hidden",
         overflowY: "auto",
       }}
@@ -987,8 +980,6 @@ function ConstellationLanding({
           flex: 1,
           minHeight: isMobile ? 430 : "clamp(430px, 58vh, 600px)",
           marginTop: isMobile ? 16 : 18,
-          opacity: aboutOpen ? 0.32 : 1,
-          transition: "opacity .35s ease",
         }}
       >
         <div
@@ -1177,16 +1168,13 @@ function ConstellationLanding({
             position: "absolute",
             left: "50%",
             top: aboutLinkTop,
+            transform: "translateX(-50%)",
             zIndex: 3,
-            opacity: aboutOpen ? 0 : 1,
-            transform: `translate(-50%, ${aboutOpen ? "8px" : "0"})`,
-            transition: "opacity .24s ease, transform .24s ease",
-            pointerEvents: aboutOpen ? "none" : "auto",
           }}
         >
           <button
             id="aboutLink"
-            onClick={onAboutOpen}
+            onClick={() => go("about")}
             style={{
               border: "1px solid rgba(255,255,255,0.09)",
               borderRadius: 999,
@@ -1205,81 +1193,171 @@ function ConstellationLanding({
               textShadow: "0 0 12px rgba(232,232,234,0.12)",
             }}
           >
-            who is fonosaur?
+            about
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ----------------------------------------------------------- about scene */
+const ABOUT_RINGS = [
+  { color: "blue", dur: 74, dir: "normal", angle: 10 },
+  { color: "coral", dur: 82, dir: "reverse", angle: 95 },
+  { color: "purple", dur: 90, dir: "normal", angle: 190 },
+  { color: "green", dur: 78, dir: "reverse", angle: 260 },
+  { color: "bronze", dur: 86, dir: "normal", angle: 330 },
+];
+
+function AboutScene({ go, isMobile, reduced }) {
+  const labelSize = isMobile ? 172 : 250;
+  const ringStep = isMobile ? 30 : 42;
+  const ringStart = labelSize + (isMobile ? 26 : 40);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        overflow: "hidden",
+        boxSizing: "border-box",
+      }}
+    >
       <div
-        id="aboutBackdrop"
-        onClick={onAboutClose}
         style={{
           position: "absolute",
           inset: 0,
+          background:
+            "radial-gradient(circle at 50% 46%, rgba(59,139,255,0.05), transparent 62%)",
+          pointerEvents: "none",
+        }}
+      />
+      <BrandMark
+        onClick={() => go("hub")}
+        size={isMobile ? "13px" : "15px"}
+        style={{
+          position: "absolute",
+          top: isMobile ? 16 : 20,
+          left: isMobile ? 16 : 20,
           zIndex: 4,
-          background: "rgba(6,6,8,0.56)",
-          opacity: aboutOpen ? 1 : 0,
-          pointerEvents: aboutOpen ? "auto" : "none",
-          transition: "opacity .28s ease",
+          letterSpacing: "0.14em",
         }}
       />
       <div
-        id="aboutPanel"
-        role="dialog"
-        aria-modal="true"
-        aria-hidden={!aboutOpen}
         style={{
           position: "absolute",
-          left: "50%",
-          bottom: isMobile ? 22 : 86,
-          width: "min(420px, calc(100% - 40px))",
-          transform: `translate(-50%, ${aboutOpen ? "0" : "22px"})`,
-          opacity: aboutOpen ? 1 : 0,
-          pointerEvents: aboutOpen ? "auto" : "none",
-          transition: "transform .34s ease, opacity .26s ease",
-          zIndex: 5,
-          borderRadius: 18,
-          border: "none",
-          background:
-            "linear-gradient(180deg, rgba(30,26,44,0.7), rgba(12,10,18,0.85))",
-          backdropFilter: "blur(6px)",
-          WebkitBackdropFilter: "blur(6px)",
-          boxShadow:
-            "0 0 0 1px rgba(139,92,246,0.35), 0 0 40px rgba(59,139,255,0.12), inset 0 1px 0 rgba(255,255,255,0.06)",
-          padding: isMobile ? "24px 22px 22px" : "28px",
-          textAlign: "center",
+          top: isMobile ? 16 : 20,
+          right: isMobile ? 16 : 20,
+          zIndex: 4,
         }}
-        onClick={(event) => event.stopPropagation()}
       >
-        <p
-          style={{
-            margin: 0,
-            color: "#d8d8dc",
-            fontSize: isMobile ? 13 : 14,
-            lineHeight: 1.65,
-          }}
-        >
-          {ABOUT_FONOSAUR}
-        </p>
-        <button
-          id="aboutClose"
-          onClick={onAboutClose}
-          style={{
-            marginTop: 20,
-            border: "none",
-            background: "transparent",
-            color: C.green,
-            fontFamily: "'Space Mono', monospace",
-            fontSize: 11,
-            letterSpacing: "0.12em",
-            textTransform: "uppercase",
-            cursor: "pointer",
-            padding: 0,
-            textShadow: "0 0 14px rgba(0,204,80,0.18)",
-          }}
-        >
-          back
-        </button>
+        <Eyebrow color="rgba(139,92,246,0.75)">About</Eyebrow>
       </div>
+
+      <div style={{ position: "absolute", left: "50%", top: "50%" }}>
+        {ABOUT_RINGS.map((ring, i) => {
+          const size = ringStart + i * ringStep;
+          const spin = reduced
+            ? undefined
+            : `spinGroove ${ring.dur}s linear infinite`;
+          return (
+            <div
+              key={ring.color}
+              style={{
+                position: "absolute",
+                left: 0,
+                top: 0,
+                width: size,
+                height: size,
+                marginLeft: -size / 2,
+                marginTop: -size / 2,
+                borderRadius: "50%",
+                border: "1px solid rgba(232,232,234,0.07)",
+                animation: spin,
+                animationDirection: reduced ? undefined : ring.dir,
+                animationDelay: reduced
+                  ? undefined
+                  : `${-(ring.angle / 360) * ring.dur}s`,
+                transform: reduced ? `rotate(${ring.angle}deg)` : undefined,
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: "50%",
+                  width: 3,
+                  height: 3,
+                  borderRadius: "50%",
+                  background: C[ring.color],
+                  opacity: 0.38,
+                  transform: "translate(-50%,-50%)",
+                }}
+              />
+            </div>
+          );
+        })}
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: labelSize,
+            height: labelSize,
+            marginLeft: -labelSize / 2,
+            marginTop: -labelSize / 2,
+            borderRadius: "50%",
+            background:
+              "radial-gradient(circle, rgba(14,13,19,0.97) 0%, rgba(10,10,12,0.93) 70%, rgba(10,10,12,0.8) 100%)",
+            border: "1px solid rgba(255,255,255,0.07)",
+            boxShadow:
+              "0 0 50px rgba(59,139,255,0.06), inset 0 1px 0 rgba(255,255,255,0.05)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxSizing: "border-box",
+            padding: isMobile ? 24 : 32,
+            zIndex: 2,
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              textAlign: "center",
+              fontFamily: "'Syne', sans-serif",
+              fontWeight: 400,
+              fontSize: 14,
+              lineHeight: 1.7,
+              color: "#dcdce2",
+            }}
+          >
+            {ABOUT_FONOSAUR}
+          </p>
+        </div>
+      </div>
+
+      <button
+        onClick={() => go("hub")}
+        style={{
+          position: "absolute",
+          bottom: isMobile ? 20 : 26,
+          left: isMobile ? 16 : 20,
+          zIndex: 4,
+          border: "none",
+          background: "transparent",
+          color: C.green,
+          fontFamily: "'Space Mono', monospace",
+          fontSize: 11,
+          letterSpacing: "0.12em",
+          textTransform: "uppercase",
+          cursor: "pointer",
+          padding: 0,
+          textShadow: "0 0 14px rgba(0,204,80,0.18)",
+        }}
+      >
+        back
+      </button>
     </div>
   );
 }
@@ -1297,7 +1375,6 @@ export default function FonosaurSite({ notes = [] }) {
   const [isMobile, setIsMobile] = useState(isMobileNow);
   const [screen, setScreen] = useState(screenFromHash);
   const [ambientOn, setAmbientOn] = useState(false);
-  const [aboutOpen, setAboutOpen] = useState(false);
   const [warpKey, setWarpKey] = useState(0);
   const [activeKey, setActiveKey] = useState(null);
   const [mounted, setMounted] = useState(false);
@@ -1337,9 +1414,6 @@ export default function FonosaurSite({ notes = [] }) {
   useEffect(() => setMounted(true), []);
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
-  }, [screen]);
-  useEffect(() => {
-    if (screen !== "hub") setAboutOpen(false);
   }, [screen]);
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1466,7 +1540,6 @@ export default function FonosaurSite({ notes = [] }) {
 
   const go = (target) => {
     if (target === screen) return;
-    setAboutOpen(false);
     setWarpKey((k) => k + 1);
     setScreen(target);
   };
@@ -1481,7 +1554,8 @@ export default function FonosaurSite({ notes = [] }) {
     return null;
   };
 
-  const accent = ZONES[screen]?.accent || "#e8e8ea";
+  const accent =
+    ZONES[screen]?.accent || (screen === "about" ? C.purple : "#e8e8ea");
   const compactMobileTabs = size.w < 430;
 
   useEffect(() => () => teardownAmbient(), []);
@@ -1496,11 +1570,11 @@ export default function FonosaurSite({ notes = [] }) {
           ambientOn={ambientOn}
           onAmbientToggle={toggleAmbient}
           isMobile={false}
-          aboutOpen={aboutOpen}
-          onAboutOpen={() => setAboutOpen(true)}
-          onAboutClose={() => setAboutOpen(false)}
         />
       );
+    }
+    if (screen === "about") {
+      return <AboutScene go={go} isMobile={false} reduced={reduced} />;
     }
     const cur = DESK_POS[screen] || DESK_POS.listen;
     const world = {
@@ -1629,7 +1703,7 @@ export default function FonosaurSite({ notes = [] }) {
 
   /* ---------------------------- mobile world ----------------------------- */
   const renderMobile = () => {
-    const inZone = screen !== "hub";
+    const inZone = screen !== "hub" && screen !== "about";
     const z = ZONES[screen] || ZONES.listen;
     const compactMobileHeader = size.w < 430;
     return (
@@ -1738,10 +1812,13 @@ export default function FonosaurSite({ notes = [] }) {
                   ambientOn={ambientOn}
                   onAmbientToggle={toggleAmbient}
                   isMobile
-                  aboutOpen={aboutOpen}
-                  onAboutOpen={() => setAboutOpen(true)}
-                  onAboutClose={() => setAboutOpen(false)}
                 />
+              </div>
+            ) : screen === "about" ? (
+              <div
+                style={{ ...FRAME, position: "relative", minHeight: "100dvh" }}
+              >
+                <AboutScene go={go} isMobile reduced={reduced} />
               </div>
             ) : (
               <div
@@ -1827,7 +1904,7 @@ export default function FonosaurSite({ notes = [] }) {
       }}
     >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200;400;700&family=Space+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200;400;700&family=Space+Mono:wght@400;700&family=Syne:wght@400&display=swap');
         * { -webkit-tap-highlight-color: transparent; }
         .saur { font-weight:700; position:relative; display:inline-block; animation: drift 10s ease infinite; }
         .saur::before{ content:'SAUR'; position:absolute; left:0; top:0; color:rgba(59,139,255,.5); opacity:0; pointer-events:none; mix-blend-mode:screen; animation:bSp 4s ease infinite; }
@@ -1839,6 +1916,7 @@ export default function FonosaurSite({ notes = [] }) {
         @keyframes screenIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         @keyframes spinSlow { from{transform:translate(-50%,-50%) rotate(0)} to{transform:translate(-50%,-50%) rotate(360deg)} }
         @keyframes spinReverse { from{transform:translate(-50%,-50%) rotate(360deg)} to{transform:translate(-50%,-50%) rotate(0)} }
+        @keyframes spinGroove { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes nodeFloat { 0%,100%{transform:translate(-50%,-50%) translateY(0)} 50%{transform:translate(-50%,-50%) translateY(-10px)} }
         @keyframes ambientPulse { 0%,100%{transform:scale(1);opacity:.85} 50%{transform:scale(1.12);opacity:.42} }
         @keyframes ambientBreath { 0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.38} 50%{transform:translate(-50%,-50%) scale(1.03);opacity:.62} }
