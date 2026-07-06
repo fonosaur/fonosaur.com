@@ -129,7 +129,7 @@ const AMBIENT_TRACKS = [
 ];
 const AMBIENT_VOLUME = 0.16;
 const LANDING_RING = {
-  desktop: { cx: 50, cy: 56, rx: 31, ry: 31 },
+  desktop: { cx: 50, cy: 48, rx: 31, ry: 31 },
   mobile: { cx: 50, cy: 40, rx: 30, ry: 28 },
 };
 const ABOUT_FONOSAUR =
@@ -934,12 +934,8 @@ function BrandMark({ onClick, size = "clamp(34px,12vw,54px)", style = {} }) {
 function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
   const ring = isMobile ? LANDING_RING.mobile : LANDING_RING.desktop;
   const orbitCenterY = `${ring.cy}%`;
+  const landingEdgeInset = isMobile ? 40 : 34;
   const landingBottomPadding = isMobile ? 28 : 40;
-  // FOLLOW node always sits at the bottom of the ring (angle 90deg), so its
-  // center is at cy + ry. The about link is anchored below it using that
-  // same percentage coordinate space as the nodes, with an independently
-  // tuned gap so shifting the orbit does not tuck ABOUT into FOLLOW.
-  const aboutLinkTop = `calc(${ring.cy + ring.ry}% + ${isMobile ? 70 : 66}px)`;
 
   return (
     <div
@@ -948,7 +944,7 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
         inset: 0,
         display: "flex",
         flexDirection: "column",
-        padding: `${isMobile ? 40 : 34}px ${isMobile ? 18 : 32}px ${landingBottomPadding}px`,
+        padding: `${landingEdgeInset}px ${isMobile ? 18 : 32}px ${landingBottomPadding}px`,
         boxSizing: "border-box",
         overflowX: "hidden",
         overflowY: "auto",
@@ -1162,39 +1158,39 @@ function ConstellationLanding({ go, ambientOn, onAmbientToggle, isMobile }) {
             />
           </span>
         </button>
-        <div
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          left: "50%",
+          bottom: landingEdgeInset,
+          transform: "translateX(-50%)",
+          zIndex: 3,
+        }}
+      >
+        <button
+          id="aboutLink"
+          onClick={() => go("about")}
           style={{
-            position: "absolute",
-            left: "50%",
-            top: aboutLinkTop,
-            transform: "translateX(-50%)",
-            zIndex: 3,
+            border: "1px solid rgba(255,255,255,0.09)",
+            borderRadius: 999,
+            background: "rgba(10,10,12,0.68)",
+            backdropFilter: "blur(4px)",
+            WebkitBackdropFilter: "blur(4px)",
+            boxShadow: "0 0 22px rgba(10,10,12,0.72)",
+            color: C.text,
+            fontFamily: "'Space Mono', monospace",
+            fontSize: isMobile ? 10 : 11,
+            letterSpacing: "0.1em",
+            textTransform: "uppercase",
+            whiteSpace: "nowrap",
+            cursor: "pointer",
+            padding: "7px 11px",
+            textShadow: "0 0 12px rgba(232,232,234,0.12)",
           }}
         >
-          <button
-            id="aboutLink"
-            onClick={() => go("about")}
-            style={{
-              border: "1px solid rgba(255,255,255,0.09)",
-              borderRadius: 999,
-              background: "rgba(10,10,12,0.68)",
-              backdropFilter: "blur(4px)",
-              WebkitBackdropFilter: "blur(4px)",
-              boxShadow: "0 0 22px rgba(10,10,12,0.72)",
-              color: C.text,
-              fontFamily: "'Space Mono', monospace",
-              fontSize: isMobile ? 10 : 11,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              whiteSpace: "nowrap",
-              cursor: "pointer",
-              padding: "7px 11px",
-              textShadow: "0 0 12px rgba(232,232,234,0.12)",
-            }}
-          >
-            about
-          </button>
-        </div>
+          about
+        </button>
       </div>
     </div>
   );
