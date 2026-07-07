@@ -57,7 +57,7 @@ const ZONES = {
     label: "Play",
     accent: C.amber,
     tag: "game",
-    desc: "Dino Sling, ready to play",
+    desc: "Rex, ready to play",
   },
   collect: {
     label: "Collect",
@@ -395,7 +395,6 @@ function Listen({ isMobile = false }) {
   };
   return (
     <div>
-      <Eyebrow color={C.sub}>Traversal EP / 2022 / 6 tracks</Eyebrow>
       <h2
         style={{
           fontFamily: "'Unbounded', sans-serif",
@@ -513,7 +512,6 @@ function Explore({ notes = [] }) {
       : "";
   return (
     <div>
-      <Eyebrow color={C.blue}>Explore / field notes</Eyebrow>
       <h2
         style={{
           fontFamily: "'Unbounded', sans-serif",
@@ -676,7 +674,6 @@ function Explore({ notes = [] }) {
 function Create() {
   return (
     <div>
-      <Eyebrow color={C.purple}>CREATE / SAMPLER</Eyebrow>
       <h2
         style={{
           fontFamily: "'Unbounded', sans-serif",
@@ -729,7 +726,6 @@ function Create() {
 function PlayZone() {
   return (
     <div>
-      <Eyebrow color={C.amber}>Play / Dino Sling</Eyebrow>
       <h2
         style={{
           fontFamily: "'Unbounded', sans-serif",
@@ -739,7 +735,7 @@ function PlayZone() {
           lineHeight: 1.05,
         }}
       >
-        Dino Sling
+        Rex
       </h2>
       <p
         style={{
@@ -763,8 +759,8 @@ function PlayZone() {
         }}
       >
         <iframe
-          title="Dino Sling"
-          src="/dino-sling.html"
+          title="Rex"
+          src="/rex.html"
           sandbox="allow-scripts allow-same-origin"
           style={{
             width: "100%",
@@ -778,10 +774,18 @@ function PlayZone() {
     </div>
   );
 }
-function Collect() {
+function Collect({ isMobile = false }) {
   return (
-    <div style={{ textAlign: "center", paddingTop: 8 }}>
-      <Eyebrow color={C.bronze}>Collect</Eyebrow>
+    <div
+      style={{
+        minHeight: isMobile ? "calc(100dvh - 220px)" : "min(54vh, 520px)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+      }}
+    >
       <h2
         style={{
           fontFamily: "'Unbounded', sans-serif",
@@ -793,7 +797,7 @@ function Collect() {
       >
         Merch
         <br />
-        coming soon
+        Coming Soon
       </h2>
       <div
         style={{
@@ -815,8 +819,16 @@ function Collect() {
 }
 function Follow({ isMobile = false }) {
   return (
-    <div style={{ textAlign: "center", paddingTop: 8 }}>
-      <Eyebrow color={C.green}>Follow</Eyebrow>
+    <div
+      style={{
+        minHeight: isMobile ? "calc(100dvh - 220px)" : "min(54vh, 520px)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+      }}
+    >
       <h2
         style={{
           fontFamily: "'Unbounded', sans-serif",
@@ -942,11 +954,7 @@ function ConstellationLanding({
   const mobileViewportHeight = viewport?.h || 568;
   const mobileCenterY =
     44 +
-    Math.min(
-      1,
-      Math.max(0, (mobileViewportHeight - 568) / (844 - 568)),
-    ) *
-      2;
+    Math.min(1, Math.max(0, (mobileViewportHeight - 568) / (844 - 568))) * 2;
   const ring = isMobile ? { ...baseRing, cy: mobileCenterY } : baseRing;
   const orbitCenterY = `${ring.cy}%`;
   const landingEdgeInset = isMobile ? 40 : 34;
@@ -1566,7 +1574,7 @@ export default function FonosaurSite({ notes = [] }) {
     if (id === "explore") return <Explore notes={notes} />;
     if (id === "create") return <Create />;
     if (id === "play") return <PlayZone />;
-    if (id === "collect") return <Collect />;
+    if (id === "collect") return <Collect isMobile={isMobile} />;
     if (id === "follow") return <Follow isMobile={isMobile} />;
     return null;
   };

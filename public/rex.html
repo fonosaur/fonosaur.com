@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FONOSAUR — Rex</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0908;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:'Unbounded',sans-serif;color:#e8e0d4;overflow:hidden}
+canvas{display:block;border-radius:8px;cursor:crosshair;image-rendering:auto}
+.ui{position:absolute;top:0;left:0;width:100%;pointer-events:none;padding:16px 20px;display:flex;justify-content:space-between;align-items:flex-start;z-index:10}
+.score{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase}
+.p1-score{color:#00cc50}
+.p2-score{color:#3b8bff}
+.turn-info{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;text-transform:uppercase;color:rgba(232,224,212,.5);pointer-events:none;z-index:10;transition:opacity .3s}
+.controls{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(232,224,212,.2);pointer-events:none;z-index:10;text-align:center;line-height:1.8}
+.title-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;background:rgba(10,9,8,.9);backdrop-filter:blur(4px);transition:opacity .5s}
+.title-screen.hide{opacity:0;pointer-events:none}
+.title-screen h1{font-weight:200;font-size:clamp(28px,6vw,52px);letter-spacing:-1px;margin-bottom:6px}
+.title-screen h1 b{font-weight:700;color:#00cc50}
+.title-screen p{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;color:rgba(232,224,212,.3);margin-bottom:30px}
+.start-btn{font-family:'Unbounded',sans-serif;font-size:12px;font-weight:500;letter-spacing:3px;text-transform:uppercase;color:#e8e0d4;background:none;border:1px solid rgba(0,204,80,.2);padding:14px 36px;cursor:pointer;border-radius:4px;transition:all .2s}
+.start-btn:hover{border-color:rgba(0,204,80,.5);background:rgba(0,204,80,.05);color:#00cc50}
+.start-btn:focus-visible{outline:2px solid #00cc50;outline-offset:3px;border-color:rgba(0,204,80,.55);background:rgba(0,204,80,.08)}
+.game-over{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;background:rgba(10,9,8,.85);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .5s}
+.game-over.show{opacity:1;pointer-events:all}
+.game-over h2{font-weight:300;font-size:clamp(20px,4vw,36px);margin-bottom:6px}
+.game-over .winner{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:3px;opacity:.4;margin-bottom:24px}
+</style>
+</head>
+<body>
+
+<div class="ui">
+  <span class="score p1-score" id="p1Score">YOU: 0</span>
+  <span class="score p2-score" id="p2Score">CPU: 0</span>
+</div>
+<span class="turn-info" id="turnInfo"></span>
+<div class="controls" id="controls">Click &amp; drag from your dino to aim · release to throw · arrow keys adjust angle/power</div>
+
+<canvas id="c"></canvas>
+
+<div class="title-screen" id="titleScreen">
+  <h1>REX</h1>
+  <p>A Fonosaur game</p>
+  <button class="start-btn" id="startBtn" aria-label="Play Rex">Play Rex</button>
+</div>
+
+<div class="game-over" id="gameOver">
+  <h2 id="goTitle">Victory</h2>
+  <p class="winner" id="goWinner"></p>
+  <button class="start-btn" id="restartBtn">Again</button>
+</div>
+
+<script>
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+
+// Sizing
+let W,H;
+function resize(){
+  const maxW=Math.min(window.innerWidth-20,900);
+  const maxH=Math.min(window.innerHeight-20,560);
+  const aspect=16/10;
+  if(maxW/maxH>aspect){W=Math.floor(maxH*aspect);H=Math.floor(maxH)}
+  else{W=Math.floor(maxW);H=Math.floor(maxW/aspect)}
+  W=Math.max(W,320);H=Math.max(H,200);
+  canvas.width=W;canvas.height=H;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+}
+resize();
+window.addEventListener('resize',()=>{resize();if(state==='idle')generateCity()});
+
+// ===== GAME STATE =====
+const GRAVITY=0.15;
+const WIN_SCORE=3;
+let state='title'; // title, aiming, flying, exploding, gameover
+let turn=0; // 0=P1, 1=P2
+let scores=[0,0];
+let buildings=[];
+let dinos=[{x:0,y:0},{x:0,y:0}];
+let projectile=null;
+let explosions=[];
+let particles=[];
+let fireTrail=[];
+let aimAngle=45;
+let aimPower=60;
+let dragging=false;
+let dragStart={x:0,y:0};
+
+// Moon
+let moonX,moonY,moonR;
+let stars=[];
+
+// ===== SKY & ENVIRONMENT =====
+function generateStars(){
+  stars=[];
+  for(let i=0;i<80;i++){
+    stars.push({x:Math.random()*W,y:Math.random()*H*.5,r:Math.random()*1.2+.3,b:Math.random()*.4+.3,twinkle:Math.random()*Math.PI*2});
+  }
+  moonX=W*(.3+Math.random()*.4);
+  moonY=H*(.08+Math.random()*.12);
+  moonR=14+Math.random()*6;
+}
+
+function drawSky(){
+  // Dusk/night gradient
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#0a0a1a');    // deep night at top
+  g.addColorStop(.25,'#111428');   // dark blue
+  g.addColorStop(.5,'#1a1535');    // purple dusk
+  g.addColorStop(.7,'#2d1a2e');   // warm purple
+  g.addColorStop(.85,'#3d1f28');  // dusk red
+  g.addColorStop(1,'#1a1210');    // dark horizon
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,W,H);
+
+  // Stars
+  const t=Date.now()/1000;
+  stars.forEach(s=>{
+    const twinkle=.5+Math.sin(t*1.5+s.twinkle)*.5;
+    ctx.globalAlpha=s.b*twinkle;
+    ctx.fillStyle='#e8e0d4';
+    ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+  });
+  ctx.globalAlpha=1;
+
+  // Ringed Planet
+  ctx.save();
+  ctx.translate(moonX,moonY);
+  // Planet body
+  const pg=ctx.createRadialGradient(-moonR*.2,-moonR*.2,0,0,0,moonR);
+  pg.addColorStop(0,'#c8a878');pg.addColorStop(.5,'#8b6b40');pg.addColorStop(1,'#4a3520');
+  ctx.fillStyle=pg;ctx.globalAlpha=.22;
+  ctx.beginPath();ctx.arc(0,0,moonR,0,Math.PI*2);ctx.fill();
+  // Atmospheric band
+  ctx.strokeStyle='rgba(200,170,120,.07)';ctx.lineWidth=moonR*.15;
+  ctx.beginPath();ctx.arc(0,0,moonR*.7,-.3,.3);ctx.stroke();
+  // Planet glow
+  const plg=ctx.createRadialGradient(0,0,moonR,0,0,moonR*3.5);
+  plg.addColorStop(0,'rgba(210,180,120,.10)');plg.addColorStop(.5,'rgba(180,140,80,.035)');plg.addColorStop(1,'transparent');
+  ctx.globalAlpha=1;ctx.fillStyle=plg;
+  ctx.beginPath();ctx.arc(0,0,moonR*3.5,0,Math.PI*2);ctx.fill();
+  // Rings — behind (bottom half, drawn first)
+  ctx.globalAlpha=.18;ctx.strokeStyle='#c8a878';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.ellipse(0,0,moonR*2.4,moonR*.5,-.15,Math.PI*.05,Math.PI*.95);ctx.stroke();
+  ctx.strokeStyle='rgba(200,170,120,.2)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.ellipse(0,0,moonR*2.8,moonR*.6,-.15,Math.PI*.08,Math.PI*.92);ctx.stroke();
+  ctx.strokeStyle='rgba(200,170,120,.12)';
+  ctx.beginPath();ctx.ellipse(0,0,moonR*3.1,moonR*.65,-.15,Math.PI*.1,Math.PI*.9);ctx.stroke();
+  // Redraw planet body over bottom ring portions
+  ctx.globalAlpha=.22;ctx.fillStyle=pg;
+  ctx.beginPath();ctx.arc(0,0,moonR,0,Math.PI*2);ctx.fill();
+  // Rings — front (top half, drawn over planet)
+  ctx.globalAlpha=.18;ctx.strokeStyle='#d4b888';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.ellipse(0,0,moonR*2.4,moonR*.5,-.15,Math.PI*1.05,Math.PI*1.95);ctx.stroke();
+  ctx.strokeStyle='rgba(212,184,136,.25)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.ellipse(0,0,moonR*2.8,moonR*.6,-.15,Math.PI*1.08,Math.PI*1.92);ctx.stroke();
+  ctx.strokeStyle='rgba(212,184,136,.15)';
+  ctx.beginPath();ctx.ellipse(0,0,moonR*3.1,moonR*.65,-.15,Math.PI*1.1,Math.PI*1.9);ctx.stroke();
+  ctx.globalAlpha=1;
+  ctx.restore();
+}
+
+// ===== CITY =====
+function generateCity(){
+  buildings=[];
+  const minW=W*.04,maxW=W*.08;
+  let x=0;
+  while(x<W){
+    const bw=minW+Math.random()*(maxW-minW);
+    const bh=H*.15+Math.random()*H*.35;
+    buildings.push({x,w:bw,h:bh,
+      color:`hsl(${220+Math.random()*30},${8+Math.random()*12}%,${8+Math.random()*10}%)`,
+      windows:Math.random()>.3
+    });
+    x+=bw+1;
+  }
+  // Place dinos on buildings (guard against a too-small canvas)
+  if(buildings.length<4){buildings.push({x:0,w:Math.max(W,40),h:H*.2,color:'#111',windows:false})}
+  const n=buildings.length;
+  const b1=buildings[Math.min(n-1,1+Math.floor(Math.random()*2))]||buildings[0];
+  const b2=buildings[Math.max(0,n-2-Math.floor(Math.random()*2))]||buildings[n-1];
+  dinos[0]={x:b1.x+b1.w/2,y:H-b1.h};
+  dinos[1]={x:b2.x+b2.w/2,y:H-b2.h};
+  generateStars();
+}
+
+function drawBuildings(){
+  buildings.forEach(b=>{
+    const by=H-b.h;
+    ctx.fillStyle=b.color;
+    ctx.fillRect(b.x,by,b.w,b.h);
+    // Windows
+    if(b.windows){
+      const cols=Math.floor(b.w/10);
+      const rows=Math.floor(b.h/14);
+      for(let r=0;r<rows;r++){
+        for(let c=0;c<cols;c++){
+          if(Math.random()>.4){
+            const wx=b.x+4+c*(b.w/cols);
+            const wy=by+6+r*14;
+            ctx.fillStyle=Math.random()>.6?'rgba(200,170,80,.15)':'rgba(100,120,160,.06)';
+            ctx.fillRect(wx,wy,4,6);
+          }
+        }
+      }
+    }
+  });
+}
+
+// ===== DINOSAURS — Pez Dispenser inspired, no crown =====
+function drawDino(x,y,facing,color1,color2,isActive){
+  ctx.save();
+  ctx.translate(x,y);
+  if(facing<0)ctx.scale(-1,1);
+  ctx.lineCap='round';ctx.lineJoin='round';
+  
+  const s=.65;
+  ctx.scale(s,s);
+
+  // Stronger fill - more contrast with dark outline
+  ctx.strokeStyle='#0a0908';ctx.lineWidth=2.5;
+
+  // Body
+  ctx.fillStyle=color1;
+  ctx.beginPath();
+  ctx.moveTo(-5,-28);ctx.lineTo(-6,-6);ctx.lineTo(6,-6);ctx.lineTo(7,-28);
+  ctx.closePath();ctx.fill();ctx.stroke();
+
+  // Head
+  ctx.beginPath();
+  ctx.moveTo(-8,-28);ctx.lineTo(-9,-40);ctx.lineTo(16,-42);ctx.lineTo(17,-28);
+  ctx.closePath();ctx.fill();ctx.stroke();
+
+  // Jaw
+  ctx.beginPath();
+  ctx.moveTo(-8,-26);ctx.lineTo(-8,-21);ctx.lineTo(17,-21);ctx.lineTo(17,-26);
+  ctx.closePath();ctx.fill();ctx.stroke();
+
+  // Teeth
+  ctx.fillStyle='#e8e0d4';ctx.strokeStyle='#0a0908';ctx.lineWidth=1.2;
+  [-5,0,5,10].forEach(tx=>{
+    ctx.beginPath();ctx.moveTo(tx,-26);ctx.lineTo(tx+2,-26+2.5);ctx.lineTo(tx+4,-26);ctx.fill();ctx.stroke();
+  });
+  [-4,1,6,11].forEach(tx=>{
+    ctx.beginPath();ctx.moveTo(tx,-21);ctx.lineTo(tx+1.8,-21-2);ctx.lineTo(tx+3.5,-21);ctx.fill();ctx.stroke();
+  });
+
+  // Eye
+  ctx.strokeStyle='#0a0908';ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(6,-36,3,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#e8e0d4';
+  ctx.beginPath();ctx.arc(6,-36,1.8,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#0a0908';
+  ctx.beginPath();ctx.arc(7,-36,1,0,Math.PI*2);ctx.fill();
+
+  // Tiny arms
+  ctx.strokeStyle='#0a0908';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(7,-18);ctx.lineTo(12,-14);ctx.lineTo(10,-12);ctx.stroke();
+
+  // Legs
+  ctx.fillStyle=color1;ctx.strokeStyle='#0a0908';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(-5,-6);ctx.lineTo(-6,8);ctx.lineTo(-2,8);ctx.lineTo(-1,-6);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.moveTo(2,-6);ctx.lineTo(1,8);ctx.lineTo(5,8);ctx.lineTo(6,-6);ctx.fill();ctx.stroke();
+  ctx.fillRect(-8,7,8,3);ctx.strokeRect(-8,7,8,3);
+  ctx.fillRect(-1,7,8,3);ctx.strokeRect(-1,7,8,3);
+
+  // Tail
+  ctx.beginPath();ctx.moveTo(-5,-24);ctx.lineTo(-18,-18);ctx.lineTo(-5,-12);ctx.fill();ctx.stroke();
+
+  // Active
+  if(isActive){
+    ctx.strokeStyle=color2;ctx.lineWidth=1;ctx.globalAlpha=.3+Math.sin(Date.now()/300)*.2;
+    ctx.setLineDash([3,4]);ctx.beginPath();ctx.arc(2,-18,30,0,Math.PI*2);ctx.stroke();
+    ctx.setLineDash([]);ctx.globalAlpha=1;
+  }
+
+  ctx.restore();
+}
+
+// ===== PROJECTILE (vinyl record with fire trail) =====
+function drawProjectile(){
+  if(!projectile)return;
+  const p=projectile;
+
+  // Fire trail
+  fireTrail.forEach((ft,i)=>{
+    const age=1-ft.life/ft.maxLife;
+    const r=3*(1-age);
+    ctx.globalAlpha=ft.life/ft.maxLife*.6;
+    // Fire colours: orange → red → dark
+    const hue=30-age*30;
+    ctx.fillStyle=`hsl(${hue},90%,${55-age*40}%)`;
+    ctx.beginPath();ctx.arc(ft.x,ft.y,r+Math.random(),0,Math.PI*2);ctx.fill();
+    // Sparks
+    if(Math.random()>.7){
+      ctx.fillStyle='rgba(255,200,60,.4)';
+      ctx.beginPath();ctx.arc(ft.x+Math.random()*6-3,ft.y+Math.random()*6-3,1,0,Math.PI*2);ctx.fill();
+    }
+  });
+  ctx.globalAlpha=1;
+
+  // Vinyl record
+  ctx.save();
+  ctx.translate(p.x,p.y);
+  ctx.rotate(p.spin);
+
+  // Outer disc
+  ctx.fillStyle='#1a1a1a';
+  ctx.beginPath();ctx.arc(0,0,7,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle='#333';ctx.lineWidth=.5;
+  ctx.beginPath();ctx.arc(0,0,7,0,Math.PI*2);ctx.stroke();
+  // Grooves
+  ctx.strokeStyle='rgba(255,255,255,.06)';
+  ctx.beginPath();ctx.arc(0,0,5.5,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.arc(0,0,4,0,Math.PI*2);ctx.stroke();
+  // Label
+  ctx.fillStyle=turn===0?'#00cc50':'#3b8bff';
+  ctx.beginPath();ctx.arc(0,0,2.5,0,Math.PI*2);ctx.fill();
+  // Centre hole
+  ctx.fillStyle='#0a0908';
+  ctx.beginPath();ctx.arc(0,0,.8,0,Math.PI*2);ctx.fill();
+
+  ctx.restore();
+}
+
+// ===== EXPLOSIONS =====
+function drawExplosions(){
+  explosions.forEach(e=>{
+    const age=1-e.life/e.maxLife;
+    const r=e.r*(1+age*2);
+    // Shockwave ring
+    ctx.strokeStyle=`rgba(232,224,212,${.4*(1-age)})`;
+    ctx.lineWidth=2;
+    ctx.beginPath();ctx.arc(e.x,e.y,r,0,Math.PI*2);ctx.stroke();
+    // Inner glow
+    const ig=ctx.createRadialGradient(e.x,e.y,0,e.x,e.y,r*.6);
+    ig.addColorStop(0,`rgba(255,180,60,${.3*(1-age)})`);
+    ig.addColorStop(1,'transparent');
+    ctx.fillStyle=ig;
+    ctx.beginPath();ctx.arc(e.x,e.y,r*.6,0,Math.PI*2);ctx.fill();
+  });
+
+  // Debris particles
+  particles.forEach(p=>{
+    ctx.globalAlpha=p.life/p.maxLife;
+    ctx.fillStyle=p.color;
+    ctx.fillRect(p.x-p.s/2,p.y-p.s/2,p.s,p.s);
+  });
+  ctx.globalAlpha=1;
+}
+
+// ===== AIM LINE =====
+function drawAimLine(){
+  if(state!=='aiming')return;
+  const d=dinos[turn];
+  const ang=turn===0?-aimAngle*Math.PI/180:-(180-aimAngle)*Math.PI/180;
+  const pow=aimPower*1.2;
+
+  ctx.strokeStyle=`rgba(232,224,212,.15)`;
+  ctx.setLineDash([4,4]);ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(d.x,d.y-14);
+
+  // Trajectory preview (dotted arc)
+  for(let t=0;t<40;t++){
+    const px=d.x+Math.cos(ang)*pow*.1*t;
+    const py=(d.y-14)+Math.sin(ang)*pow*.1*t+.5*GRAVITY*t*t;
+    if(py>H||px<0||px>W)break;
+    ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Power/angle text
+  ctx.fillStyle='rgba(232,224,212,.25)';
+  ctx.font='9px "JetBrains Mono"';
+  ctx.textAlign=turn===0?'left':'right';
+  ctx.fillText(`${Math.round(aimAngle)}° / ${Math.round(aimPower)}%`,d.x+(turn===0?20:-20),d.y-30);
+}
+
+// ===== DAMAGE =====
+function applyDamage(x,y,r){
+  buildings.forEach(b=>{
+    const by=H-b.h;
+    // Check if explosion overlaps building
+    const cx=Math.max(b.x,Math.min(x,b.x+b.w));
+    const cy=Math.max(by,Math.min(y,H));
+    const dist=Math.hypot(cx-x,cy-y);
+    if(dist<r){
+      // Carve chunk from top
+      const overlap=r-dist;
+      b.h=Math.max(10,b.h-overlap*1.5);
+    }
+  });
+}
+
+function checkHit(x,y){
+  const target=1-turn;
+  const d=dinos[target];
+  const dist=Math.hypot(x-d.x,y-(d.y-14));
+  return dist<22;
+}
+
+function checkBuildingCollision(x,y){
+  for(const b of buildings){
+    const by=H-b.h;
+    if(x>=b.x&&x<=b.x+b.w&&y>=by&&y<=H)return true;
+  }
+  return false;
+}
+
+// ===== LAUNCH =====
+function launch(){
+  const d=dinos[turn];
+  const ang=turn===0?-aimAngle*Math.PI/180:-(180-aimAngle)*Math.PI/180;
+  const pow=aimPower*1.2;
+  projectile={
+    x:d.x+(turn===0?10:-10),y:d.y-12,
+    vx:Math.cos(ang)*pow*.1,
+    vy:Math.sin(ang)*pow*.1,
+    spin:0
+  };
+  fireTrail=[];
+  state='flying';
+}
+
+function explode(x,y,big){
+  const r=big?30:18;
+  explosions.push({x,y,r,life:30,maxLife:30});
+  applyDamage(x,y,r);
+  // Debris
+  for(let i=0;i<(big?25:12);i++){
+    const ang=Math.random()*Math.PI*2;
+    const spd=1+Math.random()*3;
+    particles.push({
+      x,y,
+      vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd-2,
+      s:1+Math.random()*3,
+      color:big?`hsl(${30+Math.random()*20},80%,${50+Math.random()*20}%)`:'rgba(232,224,212,.4)',
+      life:20+Math.random()*20,maxLife:40,
+    });
+  }
+}
+
+// ===== UPDATE =====
+function update(){
+  if(state==='flying'&&projectile){
+    const p=projectile;
+    p.vy+=GRAVITY;
+    p.x+=p.vx;p.y+=p.vy;
+    p.spin+=.15;
+
+    // Fire trail
+    fireTrail.push({x:p.x-p.vx*.5+Math.random()*2-1,y:p.y-p.vy*.5+Math.random()*2-1,life:15,maxLife:15});
+
+    // Update trail
+    fireTrail=fireTrail.filter(ft=>{ft.life--;return ft.life>0});
+
+    // Check hit on dino
+    if(checkHit(p.x,p.y)){
+      explode(p.x,p.y,true);
+      scores[turn]++;
+      updateScoreUI();
+      projectile=null;
+      state='exploding';
+      setTimeout(()=>{
+        if(scores[turn]>=WIN_SCORE){
+          showGameOver();
+        }else{
+          turn=1-turn;
+          state='aiming';
+          generateCity();
+          updateTurnUI();
+          maybeAI();
+        }
+      },1200);
+      return;
+    }
+
+    // Check building collision
+    if(checkBuildingCollision(p.x,p.y)){
+      explode(p.x,p.y,false);
+      projectile=null;
+      state='exploding';
+      setTimeout(()=>{turn=1-turn;state='aiming';updateTurnUI();maybeAI()},800);
+      return;
+    }
+
+    // Out of bounds
+    if(p.y>H+20||p.x<-50||p.x>W+50){
+      projectile=null;
+      fireTrail=[];
+      turn=1-turn;state='aiming';updateTurnUI();maybeAI();
+    }
+  }
+
+  // Update explosions
+  explosions=explosions.filter(e=>{e.life--;return e.life>0});
+  particles=particles.filter(p=>{p.life--;p.x+=p.vx;p.y+=p.vy;p.vy+=.08;return p.life>0});
+}
+
+// ===== DRAW =====
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  drawSky();
+  drawBuildings();
+  drawDino(dinos[0].x,dinos[0].y,1,'#00dd55','#00cc50',turn===0&&state==='aiming');
+  drawDino(dinos[1].x,dinos[1].y,-1,'#4488ee','#3b8bff',turn===1&&state==='aiming');
+  drawAimLine();
+  drawProjectile();
+  drawExplosions();
+}
+
+function gameLoop(){
+  update();draw();
+  requestAnimationFrame(gameLoop);
+}
+
+// ===== INPUT =====
+canvas.addEventListener('mousedown',e=>{
+  if(state!=='aiming'||turn!==0)return;
+  const rect=canvas.getBoundingClientRect();
+  dragStart={x:e.clientX-rect.left,y:e.clientY-rect.top};
+  dragging=true;
+});
+
+canvas.addEventListener('mousemove',e=>{
+  if(!dragging||state!=='aiming'||turn!==0)return;
+  const rect=canvas.getBoundingClientRect();
+  const mx=e.clientX-rect.left;
+  const my=e.clientY-rect.top;
+  const d=dinos[turn];
+  const dx=mx-d.x;const dy=my-d.y;
+  // Angle from dino to mouse
+  let ang=Math.atan2(-dy,turn===0?dx:-dx)*180/Math.PI;
+  aimAngle=Math.max(5,Math.min(85,ang));
+  aimPower=Math.min(100,Math.hypot(dx,dy)/2);
+});
+
+canvas.addEventListener('mouseup',()=>{
+  if(dragging&&state==='aiming'){launch()}
+  dragging=false;
+});
+
+// Touch
+canvas.addEventListener('touchstart',e=>{
+  if(state!=='aiming'||turn!==0)return;
+  const rect=canvas.getBoundingClientRect();
+  const t=e.touches[0];
+  dragStart={x:t.clientX-rect.left,y:t.clientY-rect.top};
+  dragging=true;
+  e.preventDefault();
+},{passive:false});
+
+canvas.addEventListener('touchmove',e=>{
+  if(!dragging||state!=='aiming'||turn!==0)return;
+  const rect=canvas.getBoundingClientRect();
+  const t=e.touches[0];
+  const mx=t.clientX-rect.left;
+  const my=t.clientY-rect.top;
+  const d=dinos[turn];
+  const dx=mx-d.x;const dy=my-d.y;
+  let ang=Math.atan2(-dy,turn===0?dx:-dx)*180/Math.PI;
+  aimAngle=Math.max(5,Math.min(85,ang));
+  aimPower=Math.min(100,Math.hypot(dx,dy)/2);
+  e.preventDefault();
+},{passive:false});
+
+canvas.addEventListener('touchend',e=>{
+  if(dragging&&state==='aiming'){launch()}
+  dragging=false;
+  e.preventDefault();
+},{passive:false});
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if(state!=='aiming'||turn!==0)return;
+  if(e.key==='ArrowUp')aimAngle=Math.min(85,aimAngle+2);
+  if(e.key==='ArrowDown')aimAngle=Math.max(5,aimAngle-2);
+  if(e.key==='ArrowRight')aimPower=Math.min(100,aimPower+3);
+  if(e.key==='ArrowLeft')aimPower=Math.max(10,aimPower-3);
+  if(e.key===' '||e.key==='Enter'){e.preventDefault();launch()}
+});
+
+// ===== UI =====
+function updateScoreUI(){
+  document.getElementById('p1Score').textContent=`YOU: ${scores[0]}`;
+  document.getElementById('p2Score').textContent=`CPU: ${scores[1]}`;
+}
+function updateTurnUI(){
+  const info=document.getElementById('turnInfo');
+  info.textContent=turn===0?'← AIM & THROW →':'COMPUTER IS AIMING…';
+  info.style.color=turn===0?'rgba(0,204,80,.4)':'rgba(59,139,255,.4)';
+}
+function showGameOver(){
+  state='gameover';
+  const go=document.getElementById('gameOver');
+  document.getElementById('goTitle').textContent=turn===0?'YOU WIN':'COMPUTER WINS';
+  document.getElementById('goTitle').style.color=turn===0?'#00cc50':'#3b8bff';
+  document.getElementById('goWinner').textContent=`${scores[0]} — ${scores[1]}`;
+  go.classList.add('show');
+}
+
+function aiAim(){
+  const target=dinos[0];
+  const sx=dinos[1].x-10,sy=dinos[1].y-12;
+  let best=null,bestDist=Infinity;
+  for(let a=18;a<=82;a+=4){
+    for(let pw=28;pw<=100;pw+=4){
+      const ang=-(180-a)*Math.PI/180;
+      let x=sx,y=sy,vx=Math.cos(ang)*pw*.1,vy=Math.sin(ang)*pw*.1;
+      for(let s=0;s<500;s++){
+        vy+=GRAVITY;x+=vx;y+=vy;
+        if(y>H+40||x<-60||x>W+60)break;
+        const dd=Math.hypot(x-target.x,y-(target.y-14));
+        if(dd<bestDist){bestDist=dd;best={a,pw};}
+        if(dd<16)break;
+      }
+    }
+  }
+  if(!best)best={a:55,pw:70};
+  aimAngle=Math.max(5,Math.min(85,best.a+(Math.random()*10-5)));
+  aimPower=Math.max(12,Math.min(100,best.pw+(Math.random()*12-6)));
+}
+function maybeAI(){
+  if(turn!==1||state!=='aiming')return;
+  setTimeout(()=>{
+    if(turn!==1||state!=='aiming')return;
+    aiAim();
+    setTimeout(()=>{if(turn===1&&state==='aiming')launch();},550);
+  },650);
+}
+
+// ===== START =====
+document.getElementById('startBtn').addEventListener('click',startGame);
+document.getElementById('restartBtn').addEventListener('click',()=>{
+  document.getElementById('gameOver').classList.remove('show');
+  startGame();
+});
+
+function startGame(){
+  document.getElementById('titleScreen').classList.add('hide');
+  scores=[0,0];updateScoreUI();
+  turn=0;aimAngle=45;aimPower=60;
+  projectile=null;explosions=[];particles=[];fireTrail=[];
+  generateCity();
+  state='aiming';
+  updateTurnUI();
+}
+
+generateCity();
+gameLoop();
+</script>
+</body>
+</html>
