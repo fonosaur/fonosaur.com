@@ -192,9 +192,14 @@ function Dust({ reduced }) {
 }
 
 /* ----------------------------------------- hyperspace warp between screens */
-function Warp({ trigger, color, reduced }) {
+function Warp({ trigger, color, reduced, imagePool = [] }) {
   const ref = useRef(null);
+  const imagePoolRef = useRef(imagePool);
+  const recentImagesRef = useRef([]);
   const [glimpses, setGlimpses] = useState([]);
+  useEffect(() => {
+    imagePoolRef.current = imagePool;
+  }, [imagePool]);
   useEffect(() => {
     if (!trigger || reduced) {
       setGlimpses([]);
@@ -242,19 +247,46 @@ function Warp({ trigger, color, reduced }) {
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    const n = 3 + Math.floor(Math.random() * 3);
+    const pool = imagePoolRef.current;
+    const isSmall = Math.min(w, h) < 520;
+    const n = Math.min(
+      pool.length,
+      3 + Math.floor(Math.random() * (isSmall ? 2 : 3)),
+    );
+    const freshPool = pool.filter(
+      (src) => !recentImagesRef.current.includes(src),
+    );
+    const selected = [...(freshPool.length >= n ? freshPool : pool)]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, n);
+    recentImagesRef.current = selected;
+    const lanes = isSmall
+      ? [
+          { x: 18, y: 15 },
+          { x: 58, y: 27 },
+          { x: 25, y: 50 },
+          { x: 62, y: 62 },
+        ]
+      : [
+          { x: 12, y: 18 },
+          { x: 42, y: 10 },
+          { x: 70, y: 25 },
+          { x: 22, y: 52 },
+          { x: 60, y: 58 },
+        ];
     setGlimpses(
-      [...GLIMPSES]
-        .sort(() => Math.random() - 0.5)
-        .slice(0, n)
-        .map((gl) => ({
-          ...gl,
-          x: 4 + Math.random() * 60,
-          y: 10 + Math.random() * 56,
-          rot: Math.random() * 16 - 8,
-          size: 120 + Math.random() * 70,
-          delay: Math.random() * 0.5,
-        })),
+      selected.map((src, index) => {
+        const lane = lanes[index % lanes.length];
+        return {
+          src,
+          x: lane.x + Math.random() * 10 - 5,
+          y: lane.y + Math.random() * 8 - 4,
+          rot: Math.random() * 18 - 9,
+          size: (isSmall ? 92 : 128) + Math.random() * (isSmall ? 58 : 96),
+          aspect: Math.random() > 0.35 ? "4 / 3" : "3 / 4",
+          delay: Math.random() * 0.42,
+        };
+      }),
     );
     const clr = setTimeout(() => setGlimpses([]), 2200);
     return () => {
@@ -297,31 +329,23 @@ function Warp({ trigger, color, reduced }) {
               <div
                 style={{
                   width: gl.size,
-                  aspectRatio: "4 / 3",
-                  borderRadius: 12,
-                  background: gl.g,
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  boxShadow: "0 24px 70px rgba(0,0,0,0.55)",
+                  aspectRatio: gl.aspect,
+                  backgroundImage: `linear-gradient(180deg, rgba(10,10,12,0.04), rgba(10,10,12,0.28)), url("${gl.src}")`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  boxShadow:
+                    "0 24px 70px rgba(0,0,0,0.45), 0 0 34px rgba(255,255,255,0.06)",
                   overflow: "hidden",
-                  display: "flex",
-                  alignItems: "flex-end",
-                  padding: 10,
                   boxSizing: "border-box",
+                  WebkitMaskImage:
+                    "radial-gradient(ellipse at center, #000 38%, rgba(0,0,0,0.62) 62%, transparent 100%)",
+                  maskImage:
+                    "radial-gradient(ellipse at center, #000 38%, rgba(0,0,0,0.62) 62%, transparent 100%)",
+                  mixBlendMode: "screen",
+                  willChange: "opacity, transform, filter",
                   animation: `glimpse 1.5s ease ${gl.delay}s both`,
                 }}
-              >
-                <span
-                  style={{
-                    fontFamily: "'Space Mono', monospace",
-                    fontSize: 9,
-                    letterSpacing: "0.14em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.62)",
-                  }}
-                >
-                  {gl.c}
-                </span>
-              </div>
+              />
             </div>
           ))}
         </div>
@@ -1401,6 +1425,7 @@ export default function FonosaurSite({ notes = [] }) {
   const [screen, setScreen] = useState(screenFromHash);
   const [ambientOn, setAmbientOn] = useState(false);
   const [warpKey, setWarpKey] = useState(0);
+  const [warpImages, setWarpImages] = useState([]);
   const [activeKey, setActiveKey] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [size, setSize] = useState(() => ({
@@ -1437,6 +1462,48 @@ export default function FonosaurSite({ notes = [] }) {
     };
   }, []);
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+    let idleId = null;
+    let timerId = null;
+    const loaded = new Set();
+    const markReady = (src) => {
+      if (cancelled || loaded.has(src)) return;
+      loaded.add(src);
+      setWarpImages(Array.from(loaded));
+    };
+    const preload = async () => {
+      try {
+        const res = await fetch(`/api/warp-images?ts=${Date.now()}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const images = Array.isArray(data.images) ? data.images : [];
+        images.forEach((src) => {
+          const img = new window.Image();
+          img.decoding = "async";
+          img.loading = "eager";
+          img.onload = () => markReady(src);
+          img.src = src;
+          if (img.complete && img.naturalWidth) markReady(src);
+        });
+      } catch (e) {}
+    };
+
+    if ("requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(preload, { timeout: 1200 });
+    } else {
+      timerId = window.setTimeout(preload, 300);
+    }
+
+    return () => {
+      cancelled = true;
+      if (idleId !== null) window.cancelIdleCallback(idleId);
+      if (timerId !== null) window.clearTimeout(timerId);
+    };
+  }, []);
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
   }, [screen]);
@@ -1938,7 +2005,7 @@ export default function FonosaurSite({ notes = [] }) {
         @keyframes drift { 0%,100%{color:#3b8bff;text-shadow:0 0 20px rgba(59,139,255,.15)} 25%{color:#8b5cf6;text-shadow:0 0 20px rgba(139,92,246,.15)} 50%{color:#a06820;text-shadow:0 0 20px rgba(160,104,32,.2)} 75%{color:#00cc50;text-shadow:0 0 22px rgba(0,204,80,.18)} }
         @keyframes bSh{0%,100%{opacity:0;transform:translate(0,0)}8%{opacity:0}8.1%{opacity:1;transform:translate(3px,-2px)}8.2%{opacity:0;transform:translate(-2px,1px)}8.3%{opacity:1;transform:translate(-3px,-1px)}8.5%{opacity:1;transform:translate(1px,-2px)}8.7%{opacity:.8;transform:translate(-2px,0)}9%{opacity:.5}9.2%{opacity:0;transform:translate(0,0)}32%{opacity:0}32.1%{opacity:1;transform:translate(-3px,1px)}32.3%{opacity:1;transform:translate(3px,1px)}32.5%{opacity:.9;transform:translate(1px,-1px)}32.6%{opacity:0}58%{opacity:0}58.1%{opacity:1;transform:translate(2px,-1px)}58.25%{opacity:0;transform:translate(-3px,2px)}58.4%{opacity:.7}58.5%{opacity:0}80%{opacity:0}80.1%{opacity:1;transform:translate(-2px,-2px)}80.3%{opacity:1;transform:translate(-1px,2px)}80.5%{opacity:.6}80.9%{opacity:0;transform:translate(0,0)}}
         @keyframes bSp{0%,100%{opacity:0;transform:translate(0,0)}8.1%{opacity:.7;transform:translate(-4px,0);color:rgba(0,204,80,.6)}8.4%{opacity:.5;transform:translate(4px,1px);color:rgba(139,92,246,.5)}9%{opacity:0}32.1%{opacity:.6;transform:translate(3px,-1px);color:rgba(0,204,80,.5)}32.4%{opacity:0}58.1%{opacity:.5;transform:translate(-3px,1px);color:rgba(160,104,32,.5)}58.4%{opacity:0}80.1%{opacity:.7;transform:translate(-4px,0);color:rgba(139,92,246,.5)}80.9%{opacity:0}}
-        @keyframes glimpse { 0%{opacity:0;transform:scale(.72) translateY(12px);filter:blur(9px)} 28%{opacity:.85;filter:blur(2px)} 62%{opacity:.7;filter:blur(2px)} 100%{opacity:0;transform:scale(1.16) translateY(-16px);filter:blur(11px)} }
+        @keyframes glimpse { 0%{opacity:0;transform:scale(.72) translateY(12px);filter:blur(6px)} 28%{opacity:.52;filter:blur(1px)} 62%{opacity:.4;filter:blur(1px)} 100%{opacity:0;transform:scale(1.16) translateY(-16px);filter:blur(8px)} }
         @keyframes screenIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         @keyframes spinSlow { from{transform:translate(-50%,-50%) rotate(0)} to{transform:translate(-50%,-50%) rotate(360deg)} }
         @keyframes spinReverse { from{transform:translate(-50%,-50%) rotate(360deg)} to{transform:translate(-50%,-50%) rotate(0)} }
@@ -1959,7 +2026,12 @@ export default function FonosaurSite({ notes = [] }) {
       `}</style>
 
       <Dust reduced={reduced} />
-      <Warp trigger={warpKey} color={accent} reduced={reduced} />
+      <Warp
+        trigger={warpKey}
+        color={accent}
+        reduced={reduced}
+        imagePool={warpImages}
+      />
 
       {isMobile ? renderMobile() : renderDesktop()}
     </div>
