@@ -229,7 +229,7 @@ function Warp({ trigger, color, reduced, imagePool = [] }) {
       ctx.fillStyle = "rgba(10,10,12,0.16)";
       ctx.fillRect(0, 0, w, h);
       const fade = t < 0.16 ? t / 0.16 : 1 - (t - 0.16) / 0.84;
-      ctx.globalAlpha = Math.max(0, fade) * 0.5;
+      ctx.globalAlpha = Math.max(0, fade) * 0.2;
       ctx.strokeStyle = color;
       ctx.lineCap = "round";
       for (const s of stars) {
