@@ -690,6 +690,7 @@
         border-radius: 12px;
         cursor: pointer;
         user-select: none;
+        touch-action: none;
         padding: 0;
         background: linear-gradient(160deg, #2a2a31, #131317);
         border: 1px solid rgba(255, 255, 255, 0.07);
@@ -2167,6 +2168,10 @@
       }
 
       // ---------- pads ----------
+      // Track active touches to prevent double-fire
+      const activeTouches = new Map(); // touch identifier -> pad index
+      let touchedRecently = false; // suppress mouse click after touch
+
       function renderPads() {
         grid.innerHTML = "";
         kit.forEach((k, i) => {
@@ -2194,10 +2199,49 @@
             '<div class="lab">' +
             CAT_LABEL[k.cat] +
             "</div>";
-          d.addEventListener("click", () => hit(i));
+          // Mouse/click for desktop — suppressed when touch fires
+          d.addEventListener("click", (e) => {
+            if (touchedRecently) { e.preventDefault(); return; }
+            hit(i);
+          });
           grid.appendChild(d);
         });
       }
+
+      // Multi-touch: handle touchstart on the grid (delegated)
+      function padIndexFromTouch(touch) {
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (!el) return -1;
+        const pad = el.closest(".pad");
+        if (!pad || !grid.contains(pad)) return -1;
+        return parseInt(pad.dataset.i, 10);
+      }
+
+      grid.addEventListener("touchstart", (e) => {
+        e.preventDefault(); // prevent scroll + suppress synthesized click
+        touchedRecently = true;
+        clearTimeout(grid._touchTimer);
+        grid._touchTimer = setTimeout(() => { touchedRecently = false; }, 400);
+        for (const touch of e.changedTouches) {
+          const idx = padIndexFromTouch(touch);
+          if (idx >= 0 && !activeTouches.has(touch.identifier)) {
+            activeTouches.set(touch.identifier, idx);
+            hit(idx);
+          }
+        }
+      }, { passive: false });
+
+      grid.addEventListener("touchend", (e) => {
+        for (const touch of e.changedTouches) {
+          activeTouches.delete(touch.identifier);
+        }
+      });
+
+      grid.addEventListener("touchcancel", (e) => {
+        for (const touch of e.changedTouches) {
+          activeTouches.delete(touch.identifier);
+        }
+      });
 
       function flash(i) {
         const el = grid.children[i];
