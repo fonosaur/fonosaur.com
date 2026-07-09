@@ -42,7 +42,11 @@
         min-height: 100vh;
         min-height: 100svh;
         background:
-          radial-gradient(circle at top, rgba(255, 255, 255, 0.025), transparent 32%),
+          radial-gradient(
+            circle at top,
+            rgba(255, 255, 255, 0.025),
+            transparent 32%
+          ),
           var(--bg);
         color: var(--text);
         font-family:
@@ -202,7 +206,11 @@
         overflow: hidden;
         border: 1px solid rgba(255, 255, 255, 0.08);
         background:
-          linear-gradient(180deg, rgba(29, 29, 35, 0.96), rgba(14, 14, 18, 0.98)),
+          linear-gradient(
+            180deg,
+            rgba(29, 29, 35, 0.96),
+            rgba(14, 14, 18, 0.98)
+          ),
           var(--panel);
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.05),
@@ -223,7 +231,11 @@
         inset: 0;
         background:
           linear-gradient(180deg, rgba(9, 9, 11, 0.52), rgba(9, 9, 11, 0.84)),
-          radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.03), transparent 42%);
+          radial-gradient(
+            circle at 50% 18%,
+            rgba(255, 255, 255, 0.03),
+            transparent 42%
+          );
       }
 
       .device-ui {
@@ -251,7 +263,11 @@
             transparent 1px,
             transparent 3px
           ),
-          radial-gradient(circle at 50% 12%, rgba(125, 255, 184, 0.08), transparent 60%),
+          radial-gradient(
+            circle at 50% 12%,
+            rgba(125, 255, 184, 0.08),
+            transparent 60%
+          ),
           linear-gradient(180deg, var(--lcd-bg), var(--lcd-bg-2));
         box-shadow:
           inset 0 0 20px rgba(0, 255, 120, 0.06),
@@ -579,7 +595,11 @@
         border-radius: 12px;
         border: 1px solid var(--line);
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(17, 17, 20, 0.96)),
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.04),
+            rgba(17, 17, 20, 0.96)
+          ),
           var(--panel-2);
         box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
         font-size: 11px;
@@ -610,7 +630,11 @@
         border-color: rgba(255, 92, 92, 0.65);
         color: #fff4f4;
         background:
-          linear-gradient(180deg, rgba(255, 76, 76, 0.28), rgba(17, 17, 20, 0.96)),
+          linear-gradient(
+            180deg,
+            rgba(255, 76, 76, 0.28),
+            rgba(17, 17, 20, 0.96)
+          ),
           var(--panel-2);
         box-shadow:
           0 0 18px rgba(255, 76, 76, 0.16),
@@ -621,7 +645,11 @@
         border-color: rgba(122, 182, 87, 0.42);
         color: #f3fff3;
         background:
-          linear-gradient(180deg, rgba(122, 182, 87, 0.2), rgba(17, 17, 20, 0.96)),
+          linear-gradient(
+            180deg,
+            rgba(122, 182, 87, 0.2),
+            rgba(17, 17, 20, 0.96)
+          ),
           var(--panel-2);
       }
 
@@ -629,7 +657,11 @@
         border-color: rgba(90, 255, 152, 0.78);
         color: #f7fff9;
         background:
-          radial-gradient(circle at top, rgba(148, 255, 188, 0.18), transparent 78%),
+          radial-gradient(
+            circle at top,
+            rgba(148, 255, 188, 0.18),
+            transparent 78%
+          ),
           linear-gradient(180deg, rgba(13, 51, 29, 0.96), rgba(9, 35, 20, 0.98));
         box-shadow:
           inset 0 1px 0 rgba(222, 255, 231, 0.07),
@@ -664,7 +696,11 @@
         border-radius: 18px;
         border: 1px solid rgba(255, 255, 255, 0.04);
         background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(0, 0, 0, 0.08)),
+          linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.015),
+            rgba(0, 0, 0, 0.08)
+          ),
           rgba(9, 9, 11, 0.3);
       }
 
@@ -780,8 +816,11 @@
         padding: 14px 16px;
         border-radius: 14px;
         border: 1px solid rgba(130, 255, 180, 0.36);
-        background:
-          linear-gradient(180deg, rgba(160, 255, 198, 0.98), rgba(112, 236, 160, 0.96));
+        background: linear-gradient(
+          180deg,
+          rgba(160, 255, 198, 0.98),
+          rgba(112, 236, 160, 0.96)
+        );
         color: #08120c;
         font-size: 14px;
         font-weight: 700;
@@ -1014,50 +1053,159 @@
       }
 
       @keyframes drift {
-        0%, 100% { color: #3b8bff; text-shadow: 0 0 20px rgba(59, 139, 255, 0.15); }
-        25% { color: #8b5cf6; text-shadow: 0 0 20px rgba(139, 92, 246, 0.15); }
-        50% { color: #a06820; text-shadow: 0 0 20px rgba(160, 104, 32, 0.2); }
-        75% { color: #00cc50; text-shadow: 0 0 22px rgba(0, 204, 80, 0.18); }
+        0%,
+        100% {
+          color: #3b8bff;
+          text-shadow: 0 0 20px rgba(59, 139, 255, 0.15);
+        }
+        25% {
+          color: #8b5cf6;
+          text-shadow: 0 0 20px rgba(139, 92, 246, 0.15);
+        }
+        50% {
+          color: #a06820;
+          text-shadow: 0 0 20px rgba(160, 104, 32, 0.2);
+        }
+        75% {
+          color: #00cc50;
+          text-shadow: 0 0 22px rgba(0, 204, 80, 0.18);
+        }
       }
 
       @keyframes bSh {
-        0%, 100% { opacity: 0; transform: translate(0, 0); }
-        8% { opacity: 0; }
-        8.1% { opacity: 1; transform: translate(3px, -2px); }
-        8.2% { opacity: 0; transform: translate(-2px, 1px); }
-        8.3% { opacity: 1; transform: translate(-3px, -1px); }
-        8.5% { opacity: 1; transform: translate(1px, -2px); }
-        8.7% { opacity: 0.8; transform: translate(-2px, 0); }
-        9% { opacity: 0.5; }
-        9.2% { opacity: 0; transform: translate(0, 0); }
-        32% { opacity: 0; }
-        32.1% { opacity: 1; transform: translate(-3px, 1px); }
-        32.3% { opacity: 1; transform: translate(3px, 1px); }
-        32.5% { opacity: 0.9; transform: translate(1px, -1px); }
-        32.6% { opacity: 0; }
-        58% { opacity: 0; }
-        58.1% { opacity: 1; transform: translate(2px, -1px); }
-        58.25% { opacity: 0; transform: translate(-3px, 2px); }
-        58.4% { opacity: 0.7; }
-        58.5% { opacity: 0; }
-        80% { opacity: 0; }
-        80.1% { opacity: 1; transform: translate(-2px, -2px); }
-        80.3% { opacity: 1; transform: translate(-1px, 2px); }
-        80.5% { opacity: 0.6; }
-        80.9% { opacity: 0; transform: translate(0, 0); }
+        0%,
+        100% {
+          opacity: 0;
+          transform: translate(0, 0);
+        }
+        8% {
+          opacity: 0;
+        }
+        8.1% {
+          opacity: 1;
+          transform: translate(3px, -2px);
+        }
+        8.2% {
+          opacity: 0;
+          transform: translate(-2px, 1px);
+        }
+        8.3% {
+          opacity: 1;
+          transform: translate(-3px, -1px);
+        }
+        8.5% {
+          opacity: 1;
+          transform: translate(1px, -2px);
+        }
+        8.7% {
+          opacity: 0.8;
+          transform: translate(-2px, 0);
+        }
+        9% {
+          opacity: 0.5;
+        }
+        9.2% {
+          opacity: 0;
+          transform: translate(0, 0);
+        }
+        32% {
+          opacity: 0;
+        }
+        32.1% {
+          opacity: 1;
+          transform: translate(-3px, 1px);
+        }
+        32.3% {
+          opacity: 1;
+          transform: translate(3px, 1px);
+        }
+        32.5% {
+          opacity: 0.9;
+          transform: translate(1px, -1px);
+        }
+        32.6% {
+          opacity: 0;
+        }
+        58% {
+          opacity: 0;
+        }
+        58.1% {
+          opacity: 1;
+          transform: translate(2px, -1px);
+        }
+        58.25% {
+          opacity: 0;
+          transform: translate(-3px, 2px);
+        }
+        58.4% {
+          opacity: 0.7;
+        }
+        58.5% {
+          opacity: 0;
+        }
+        80% {
+          opacity: 0;
+        }
+        80.1% {
+          opacity: 1;
+          transform: translate(-2px, -2px);
+        }
+        80.3% {
+          opacity: 1;
+          transform: translate(-1px, 2px);
+        }
+        80.5% {
+          opacity: 0.6;
+        }
+        80.9% {
+          opacity: 0;
+          transform: translate(0, 0);
+        }
       }
 
       @keyframes bSp {
-        0%, 100% { opacity: 0; transform: translate(0, 0); }
-        8.1% { opacity: 0.7; transform: translate(-4px, 0); color: rgba(0, 204, 80, 0.6); }
-        8.4% { opacity: 0.5; transform: translate(4px, 1px); color: rgba(139, 92, 246, 0.5); }
-        9% { opacity: 0; }
-        32.1% { opacity: 0.6; transform: translate(3px, -1px); color: rgba(0, 204, 80, 0.5); }
-        32.4% { opacity: 0; }
-        58.1% { opacity: 0.5; transform: translate(-3px, 1px); color: rgba(160, 104, 32, 0.5); }
-        58.4% { opacity: 0; }
-        80.1% { opacity: 0.7; transform: translate(-4px, 0); color: rgba(139, 92, 246, 0.5); }
-        80.9% { opacity: 0; }
+        0%,
+        100% {
+          opacity: 0;
+          transform: translate(0, 0);
+        }
+        8.1% {
+          opacity: 0.7;
+          transform: translate(-4px, 0);
+          color: rgba(0, 204, 80, 0.6);
+        }
+        8.4% {
+          opacity: 0.5;
+          transform: translate(4px, 1px);
+          color: rgba(139, 92, 246, 0.5);
+        }
+        9% {
+          opacity: 0;
+        }
+        32.1% {
+          opacity: 0.6;
+          transform: translate(3px, -1px);
+          color: rgba(0, 204, 80, 0.5);
+        }
+        32.4% {
+          opacity: 0;
+        }
+        58.1% {
+          opacity: 0.5;
+          transform: translate(-3px, 1px);
+          color: rgba(160, 104, 32, 0.5);
+        }
+        58.4% {
+          opacity: 0;
+        }
+        80.1% {
+          opacity: 0.7;
+          transform: translate(-4px, 0);
+          color: rgba(139, 92, 246, 0.5);
+        }
+        80.9% {
+          opacity: 0;
+        }
       }
 
       @media (prefers-reduced-motion: reduce) {
@@ -1077,7 +1225,11 @@
   <body>
     <main class="wrap">
       <section class="share-intro" id="shareIntro" hidden>
-        <a class="share-brand" href="/#hub" aria-label="Go to the FONOSAUR world">
+        <a
+          class="share-brand"
+          href="/#hub"
+          aria-label="Go to the FONOSAUR world"
+        >
           <span class="fono">FONO</span><span class="saur">SAUR</span>
         </a>
         <p class="share-copy">This loop was made at fonosaur.com</p>
@@ -1193,10 +1345,10 @@
             </div>
 
             <div class="lcd-steps" id="lcdSteps" aria-hidden="true">
-              <span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span><span></span>
+              <span></span><span></span><span></span><span></span> <span></span
+              ><span></span><span></span><span></span> <span></span><span></span
+              ><span></span><span></span> <span></span><span></span><span></span
+              ><span></span>
             </div>
           </section>
 
@@ -1475,7 +1627,17 @@
 
       // ---------- procedural collage skin ----------
       function bust(x, y, s, fill) {
-        return '<path transform="translate(' + x + "," + y + ") scale(" + s + ')" fill="' + fill + '" d="M40 4c18 0 30 15 30 34 0 11-5 17-5 25l7 8-9 4 2 13c0 9-9 15-20 15-17 0-30-9-30-30 0-9 2-13 2-22C19 26 22 4 40 4z"/>';
+        return (
+          '<path transform="translate(' +
+          x +
+          "," +
+          y +
+          ") scale(" +
+          s +
+          ')" fill="' +
+          fill +
+          '" d="M40 4c18 0 30 15 30 34 0 11-5 17-5 25l7 8-9 4 2 13c0 9-9 15-20 15-17 0-30-9-30-30 0-9 2-13 2-22C19 26 22 4 40 4z"/>'
+        );
       }
 
       function rings(cx, cy, r, st) {
@@ -1502,15 +1664,48 @@
             cy +
             ')"/>';
         }
-        return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.5 + '" fill="' + st + '"/>' + out;
+        return (
+          '<circle cx="' +
+          cx +
+          '" cy="' +
+          cy +
+          '" r="' +
+          r * 0.5 +
+          '" fill="' +
+          st +
+          '"/>' +
+          out
+        );
       }
 
       function bird(x, y, s, fill) {
-        return '<path transform="translate(' + x + "," + y + ") scale(" + s + ')" fill="' + fill + '" d="M2 22c9-3 15-12 24-12 6 0 9 3 15 3 5 0 8-3 9-8 2 6-1 13-8 16-8 4-18 4-27 7-6 2-12 3-17 8 0-9 5-17 -6-10z"/>';
+        return (
+          '<path transform="translate(' +
+          x +
+          "," +
+          y +
+          ") scale(" +
+          s +
+          ')" fill="' +
+          fill +
+          '" d="M2 22c9-3 15-12 24-12 6 0 9 3 15 3 5 0 8-3 9-8 2 6-1 13-8 16-8 4-18 4-27 7-6 2-12 3-17 8 0-9 5-17 -6-10z"/>'
+        );
       }
 
       function leaf(x, y, s, rot, fill) {
-        return '<g transform="translate(' + x + "," + y + ") rotate(" + rot + ") scale(" + s + ')"><path fill="' + fill + '" d="M0 40C-20 20 -20 -14 0 -40 20 -14 20 20 0 40z"/></g>';
+        return (
+          '<g transform="translate(' +
+          x +
+          "," +
+          y +
+          ") rotate(" +
+          rot +
+          ") scale(" +
+          s +
+          ')"><path fill="' +
+          fill +
+          '" d="M0 40C-20 20 -20 -14 0 -40 20 -14 20 20 0 40z"/></g>'
+        );
       }
 
       const SKIN_PAL = ["#3b8bff", "#8b5cf6", "#a06820", "#00cc50"];
@@ -1596,8 +1791,7 @@
         { kind: "seed", seed: 930277 },
         { kind: "seed", seed: 514088 },
       ];
-      const SHARE_MESSAGE =
-        "This loop was made at fonosaur.com";
+      const SHARE_MESSAGE = "This loop was made at fonosaur.com";
 
       // ---------- DOM ----------
       const rootEl = document.documentElement;
@@ -1927,7 +2121,8 @@
           parseFloat(wrapStyle.paddingBottom || 0);
         const gap = parseFloat(wrapStyle.rowGap || wrapStyle.gap || 0);
         const siblings = Array.from(wrapEl.children).filter(
-          (child) => child !== deviceEl && getComputedStyle(child).display !== "none",
+          (child) =>
+            child !== deviceEl && getComputedStyle(child).display !== "none",
         );
         const extrasHeight = siblings.reduce(
           (sum, child) => sum + child.getBoundingClientRect().height,
@@ -1937,10 +2132,18 @@
           392,
           window.innerHeight - padY - extrasHeight - gap * siblings.length,
         );
-        const horizontalReserve = window.innerWidth <= 360 ? 34 : window.innerWidth <= 420 ? 20 : 0;
-        const availableWidth = Math.max(260, wrapEl.clientWidth - horizontalReserve);
+        const horizontalReserve =
+          window.innerWidth <= 360 ? 34 : window.innerWidth <= 420 ? 20 : 0;
+        const availableWidth = Math.max(
+          260,
+          wrapEl.clientWidth - horizontalReserve,
+        );
         const widthFromHeight = availableHeight * DEVICE_RATIO;
-        const targetWidth = Math.min(DEVICE_MAX_WIDTH, availableWidth, widthFromHeight);
+        const targetWidth = Math.min(
+          DEVICE_MAX_WIDTH,
+          availableWidth,
+          widthFromHeight,
+        );
         const targetHeight = targetWidth / DEVICE_RATIO;
         deviceEl.style.width = Math.round(targetWidth) + "px";
         deviceEl.style.height = Math.round(targetHeight) + "px";
@@ -1982,7 +2185,8 @@
 
       function updateShareIntro() {
         if (!shareIntroEl) return;
-        const show = !embedded && runtime.loadedFromShare && loop.events.length > 0;
+        const show =
+          !embedded && runtime.loadedFromShare && loop.events.length > 0;
         shareIntroEl.hidden = !show;
       }
 
@@ -2056,7 +2260,10 @@
           "aria-label",
           quantizeOn ? "Turn quantise off" : "Turn quantise on",
         );
-        quantBtn.setAttribute("title", quantizeOn ? "Quantise on" : "Quantise off");
+        quantBtn.setAttribute(
+          "title",
+          quantizeOn ? "Quantise on" : "Quantise off",
+        );
       }
 
       function hideCountdown() {
@@ -2098,7 +2305,8 @@
       }
 
       function currentIdleMessage() {
-        if (runtime.loadedFromShare && loop.events.length) return "SHARED LOOP READY";
+        if (runtime.loadedFromShare && loop.events.length)
+          return "SHARED LOOP READY";
         if (loop.events.length) return "LOOP READY \u00b7 REC TO DUB";
         return "READY TO RECORD";
       }
@@ -2110,22 +2318,27 @@
         updateShareIntro();
 
         if (runtime.mode === "countin") {
-          lcdStatus.textContent = runtime.recordType === "overdub" ? "DUB IN" : "COUNT-IN";
+          lcdStatus.textContent =
+            runtime.recordType === "overdub" ? "DUB IN" : "COUNT-IN";
           lcdMessage.textContent =
-            runtime.recordType === "overdub" ? "OVERDUB STARTS IN" : "RECORD STARTS IN";
+            runtime.recordType === "overdub"
+              ? "OVERDUB STARTS IN"
+              : "RECORD STARTS IN";
         } else if (runtime.mode === "recording") {
-          lcdStatus.textContent = runtime.recordType === "overdub" ? "DUB" : "REC";
+          lcdStatus.textContent =
+            runtime.recordType === "overdub" ? "DUB" : "REC";
           lcdMessage.textContent =
-            runtime.recordType === "overdub" ? "LAYERING NEW PASS" : "CAPTURING 4 BARS";
+            runtime.recordType === "overdub"
+              ? "LAYERING NEW PASS"
+              : "CAPTURING 4 BARS";
         } else if (runtime.mode === "playing") {
           lcdStatus.textContent = "PLAY";
           lcdMessage.textContent = runtime.loadedFromShare
             ? "PLAYING SHARED LOOP"
             : "LOOP PLAYBACK";
         } else {
-          lcdStatus.textContent = runtime.loadedFromShare && loop.events.length
-            ? "SHARED"
-            : "READY";
+          lcdStatus.textContent =
+            runtime.loadedFromShare && loop.events.length ? "SHARED" : "READY";
           lcdMessage.textContent = currentIdleMessage();
         }
       }
@@ -2201,7 +2414,10 @@
             "</div>";
           // Mouse/click for desktop — suppressed when touch fires
           d.addEventListener("click", (e) => {
-            if (touchedRecently) { e.preventDefault(); return; }
+            if (touchedRecently) {
+              e.preventDefault();
+              return;
+            }
             hit(i);
           });
           grid.appendChild(d);
@@ -2217,19 +2433,25 @@
         return parseInt(pad.dataset.i, 10);
       }
 
-      grid.addEventListener("touchstart", (e) => {
-        e.preventDefault(); // prevent scroll + suppress synthesized click
-        touchedRecently = true;
-        clearTimeout(grid._touchTimer);
-        grid._touchTimer = setTimeout(() => { touchedRecently = false; }, 400);
-        for (const touch of e.changedTouches) {
-          const idx = padIndexFromTouch(touch);
-          if (idx >= 0 && !activeTouches.has(touch.identifier)) {
-            activeTouches.set(touch.identifier, idx);
-            hit(idx);
+      grid.addEventListener(
+        "touchstart",
+        (e) => {
+          e.preventDefault(); // prevent scroll + suppress synthesized click
+          touchedRecently = true;
+          clearTimeout(grid._touchTimer);
+          grid._touchTimer = setTimeout(() => {
+            touchedRecently = false;
+          }, 400);
+          for (const touch of e.changedTouches) {
+            const idx = padIndexFromTouch(touch);
+            if (idx >= 0 && !activeTouches.has(touch.identifier)) {
+              activeTouches.set(touch.identifier, idx);
+              hit(idx);
+            }
           }
-        }
-      }, { passive: false });
+        },
+        { passive: false },
+      );
 
       grid.addEventListener("touchend", (e) => {
         for (const touch of e.changedTouches) {
@@ -2258,7 +2480,13 @@
         if (runtime.mode === "recording" && !fromLoop) {
           runtime.recordLayer.events.push([
             i,
-            Math.max(0, Math.min(performance.now() - runtime.recordStart, fixedLoopLength() - 1)),
+            Math.max(
+              0,
+              Math.min(
+                performance.now() - runtime.recordStart,
+                fixedLoopLength() - 1,
+              ),
+            ),
           ]);
         }
       }
@@ -2359,8 +2587,7 @@
         if (!loop.events.length || targetLength <= 0) return;
         const lower = start === 0 ? -0.0001 : start;
         loop.events.forEach(([i, t]) => {
-          const scaled =
-            loop.length > 0 ? (t / loop.length) * targetLength : t;
+          const scaled = loop.length > 0 ? (t / loop.length) * targetLength : t;
           if (scaled > lower && scaled <= end) hit(i, true);
         });
       }
@@ -2494,9 +2721,12 @@
           const targetLength = fixedLoopLength();
           const layerStr = parts.slice(4).join(".");
           loop.layers = layerStr
-            ? layerStr.split("~").filter(Boolean).map((layer) => ({
-                events: normalizeLayer(unpackLayer(layer), targetLength),
-              }))
+            ? layerStr
+                .split("~")
+                .filter(Boolean)
+                .map((layer) => ({
+                  events: normalizeLayer(unpackLayer(layer), targetLength),
+                }))
             : [];
           syncLoopEvents();
           loop.length = targetLength;
@@ -2578,7 +2808,12 @@
       });
 
       undoBtn.addEventListener("click", () => {
-        if (!loop.layers.length || runtime.mode === "countin" || runtime.mode === "recording") return;
+        if (
+          !loop.layers.length ||
+          runtime.mode === "countin" ||
+          runtime.mode === "recording"
+        )
+          return;
         stopTransport();
         loop.layers.pop();
         syncLoopEvents();
@@ -2630,13 +2865,15 @@
 
       // ---------- init ----------
       const params = new URLSearchParams(location.search);
-      const embedded = window.self !== window.top || params.get("embed") === "1";
+      const embedded =
+        window.self !== window.top || params.get("embed") === "1";
       rootEl.classList.toggle("is-embedded", embedded);
       const preset = params.get("preset");
       let demoMode = params.get("demo");
       if (preset) {
         const [presetDemo] = preset.split("-");
-        if (!demoMode && presetDemo && presetDemo !== "base") demoMode = presetDemo;
+        if (!demoMode && presetDemo && presetDemo !== "base")
+          demoMode = presetDemo;
       }
       if (params.get("metro") === "off") metronomeOn = false;
       if (params.get("quant") === "off") quantizeOn = false;
