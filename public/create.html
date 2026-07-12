@@ -1999,6 +1999,8 @@
         stutterStartTime: 0,
         stutterLastTick: -1,
         stutterPointerId: null,
+        fxPitchRate: 1,
+        playLastFrameTime: 0,
         fxAssignments: { x: "delay", y: "filter" },
       };
 
@@ -2408,7 +2410,10 @@
       let fxPhaserStages;
       let fxPhaserOsc;
       let fxPhaserLfoGain;
+      let fxReverbSend;
+      let fxReverbConv;
       let noiseBuf;
+      const liveSources = new Set();
 
       function initAudio() {
         if (ctx) return;
@@ -2452,6 +2457,8 @@
         fxPhaserDry = ctx.createGain();
         fxPhaserWet = ctx.createGain();
         fxPhaserLfoGain = ctx.createGain();
+        fxReverbSend = ctx.createGain();
+        fxReverbConv = ctx.createConvolver();
         fxPhaserStages = [420, 690, 1120, 1780].map((frequency) => {
           const stage = ctx.createBiquadFilter();
           stage.type = "allpass";
@@ -2469,6 +2476,18 @@
         fxDry.gain.value = 1;
         fxPhaserDry.gain.value = 1;
         fxPhaserWet.gain.value = 0;
+        fxReverbSend.gain.value = 0;
+
+        const fxRevLen = ctx.sampleRate * 2.4;
+        const fxIr = ctx.createBuffer(2, fxRevLen, ctx.sampleRate);
+        for (let ch = 0; ch < 2; ch++) {
+          const d = fxIr.getChannelData(ch);
+          for (let i = 0; i < fxRevLen; i++) {
+            const decay = Math.pow(1 - i / fxRevLen, 2.15);
+            d[i] = (Math.random() * 2 - 1) * decay;
+          }
+        }
+        fxReverbConv.buffer = fxIr;
 
         fxInput.connect(fxFilterDry).connect(fxFilterOut);
         fxInput.connect(fxLowpass).connect(fxLowGain).connect(fxFilterOut);
@@ -2491,6 +2510,7 @@
         fxPhaserOsc.start();
         fxPhaserOut.connect(fxDry);
         fxPhaserOut.connect(fxDelay);
+        fxPhaserOut.connect(fxReverbSend).connect(fxReverbConv).connect(master);
         fxDelay.connect(fxDelayFilter).connect(fxDelayFeedback).connect(fxDelay);
         fxDelay.connect(fxDelayWet);
         connectFxOutput(fxDry);
@@ -2567,6 +2587,29 @@
         });
       }
 
+      function neutralReverb(ramp) {
+        if (!ctx || !fxInput) return;
+        setAudioParam(fxReverbSend.gain, 0, Math.max(ramp, 0.18));
+      }
+
+      function setPitchRate(rate, ramp = 0.035) {
+        runtime.fxPitchRate = rate;
+        if (!ctx) return;
+        const now = ctx.currentTime;
+        liveSources.forEach((src) => {
+          try {
+            src.playbackRate.cancelScheduledValues(now);
+            src.playbackRate.setTargetAtTime(rate, now, ramp);
+          } catch (e) {
+            /* source may already be gone */
+          }
+        });
+      }
+
+      function neutralPitch(ramp) {
+        setPitchRate(1, ramp);
+      }
+
       function applyFilterValue(value, active) {
         const lowAmount = Math.max(0, (0.5 - value) * 2);
         const highAmount = Math.max(0, (value - 0.5) * 2);
@@ -2605,6 +2648,24 @@
         });
       }
 
+      function applyReverbValue(value, active) {
+        const shaped = Math.pow(value, 1.08);
+        setAudioParam(fxReverbSend.gain, active ? shaped * 0.72 : 0, active ? 0.05 : 0.22);
+      }
+
+      function pitchRateFromValue(value) {
+        const minRate = 0.58;
+        const maxRate = 1.72;
+        if (value < 0.5) {
+          return minRate * Math.pow(1 / minRate, value / 0.5);
+        }
+        return Math.pow(maxRate, (value - 0.5) / 0.5);
+      }
+
+      function applyPitchValue(value, active) {
+        setPitchRate(active ? pitchRateFromValue(value) : 1, active ? 0.035 : 0.08);
+      }
+
       const EFFECT_BANK = [
         {
           id: "filter",
@@ -2635,6 +2696,26 @@
           },
           apply: applyPhaserValue,
           neutral: neutralPhaser,
+        },
+        {
+          id: "reverb",
+          label: "REVERB",
+          ranges: {
+            x: { min: "Dry", max: "Wet" },
+            y: { min: "Dry", max: "Wet" },
+          },
+          apply: applyReverbValue,
+          neutral: neutralReverb,
+        },
+        {
+          id: "pitch",
+          label: "PITCH",
+          ranges: {
+            x: { min: "Slow/low", max: "Fast/high" },
+            y: { min: "Slow/low", max: "Fast/high" },
+          },
+          apply: applyPitchValue,
+          neutral: neutralPitch,
         },
       ];
 
@@ -2735,10 +2816,13 @@
 
         const src = ctx.createBufferSource();
         src.buffer = buf;
+        src.playbackRate.value = runtime.fxPitchRate || 1;
         const g = ctx.createGain();
         g.gain.value = 1;
         src.connect(g);
         connectToFx(g);
+        liveSources.add(src);
+        src.onended = () => liveSources.delete(src);
         src.start(t);
 
         if (group) {
@@ -3252,7 +3336,7 @@
         const total = fixedLoopLength();
         if (!total) return 0;
         if (runtime.mode === "playing") {
-          return wrapLoopTime(now - runtime.playStart, total);
+          return wrapLoopTime(runtime.lastProgress || 0, total);
         }
         return wrapLoopTime(runtime.lastProgress || 0, total);
       }
@@ -3519,6 +3603,7 @@
         runtime.mode = "idle";
         runtime.lastBeat = -1;
         runtime.lastProgress = 0;
+        runtime.playLastFrameTime = 0;
         runtime.recordLayer = null;
         runtime.recordType = "base";
         hideCountdown();
@@ -3586,6 +3671,7 @@
         runtime.mode = "playing";
         runtime.playStart = performance.now();
         runtime.lastProgress = 0;
+        runtime.playLastFrameTime = runtime.playStart;
         updateButtons();
         updateDisplay();
         runtime.rafId = requestAnimationFrame(runTransportFrame);
@@ -3643,21 +3729,27 @@
 
       function runPlaybackFrame(now) {
         const targetLength = fixedLoopLength();
-        let pos = now - runtime.playStart;
-
-        if (pos >= targetLength) {
-          fireLoopWindow(runtime.lastProgress, targetLength, targetLength);
-          const wraps = Math.floor(pos / targetLength);
-          runtime.playStart += targetLength * wraps;
-          pos = now - runtime.playStart;
-          runtime.lastProgress = 0;
-        }
+        const previous = runtime.lastProgress || 0;
+        const lastFrame = runtime.playLastFrameTime || now;
+        const delta = Math.max(0, now - lastFrame);
+        const rate = runtime.fxPitchRate || 1;
+        let pos = previous + delta * rate;
+        runtime.playLastFrameTime = now;
 
         if (runtime.stutterActive) {
           runStutterFrame(now, targetLength);
+        } else if (pos >= targetLength) {
+          fireLoopWindow(previous, targetLength, targetLength);
+          const wraps = Math.floor(pos / targetLength);
+          pos = wrapLoopTime(pos, targetLength);
+          for (let i = 1; i < wraps; i++) {
+            fireLoopWindow(0, targetLength, targetLength);
+          }
+          fireLoopWindow(0, pos, targetLength);
         } else {
-          fireLoopWindow(runtime.lastProgress, pos, targetLength);
+          fireLoopWindow(previous, pos, targetLength);
         }
+        if (pos >= targetLength) pos = wrapLoopTime(pos, targetLength);
         runtime.lastProgress = pos;
         renderStepReadout(pos, targetLength);
       }
