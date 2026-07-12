@@ -1486,36 +1486,57 @@
       ];
       // ---------- sound library ----------
       const KICK_FILES = [
-        "kicks/kick1_909", "kicks/kick2_808", "kicks/kick3_707",
-        "kicks/kick4_DD30", "kicks/kick5_SDPM48",
+        "kicks/kick1_909",
+        "kicks/kick2_808",
+        "kicks/kick3_707",
+        "kicks/kick4_DD30",
+        "kicks/kick5_SDPM48",
       ];
       const SNARE_FILES = [
-        "snares/snare1_808", "snares/snare2_909", "snares/snare3_linn",
-        "snares/snare4_CR80", "snares/snare5_kr100",
+        "snares/snare1_808",
+        "snares/snare2_909",
+        "snares/snare3_linn",
+        "snares/snare4_CR80",
+        "snares/snare5_kr100",
       ];
       const CLAP_FILES = [
-        "claps/clap1_YADD5", "claps/clap2_SDPM48", "claps/clap3_909",
-        "claps/clap4_Miami", "claps/clap5_mt500",
+        "claps/clap1_YADD5",
+        "claps/clap2_SDPM48",
+        "claps/clap3_909",
+        "claps/clap4_Miami",
+        "claps/clap5_mt500",
       ];
       const PERC_FILES = [
-        "perc/perc1_808_shaker", "perc/perc2_SCD_tamb",
-        "perc/perc3_F9000_tamb", "perc/perc4_cowbell",
-        "perc/perc5_RX120_shaker", "perc/perc6_triangle",
-        "perc/perc7_clave", "perc/perc8_woodblock",
+        "perc/perc1_808_shaker",
+        "perc/perc2_SCD_tamb",
+        "perc/perc3_F9000_tamb",
+        "perc/perc4_cowbell",
+        "perc/perc5_RX120_shaker",
+        "perc/perc6_triangle",
+        "perc/perc7_clave",
+        "perc/perc8_woodblock",
       ];
       const HIHAT_MACHINES = [
-        "hihat1_808", "hihat2_707", "hihat3_DR220",
-        "hihat4_LM1", "hihat5_909",
+        "hihat1_808",
+        "hihat2_707",
+        "hihat3_DR220",
+        "hihat4_LM1",
+        "hihat5_909",
       ];
       const SIREN_FILES = [
-        "sirens/siren1_urbanwarrior", "sirens/siren2_dread",
-        "sirens/siren3_dreadlock", "sirens/siren4_ganjasmoke",
+        "sirens/siren1_urbanwarrior",
+        "sirens/siren2_dread",
+        "sirens/siren3_dreadlock",
+        "sirens/siren4_ganjasmoke",
         "sirens/siren5_kingston sound",
       ];
       const VOX_FILES = [
-        "vox/vox1_manwhattyson", "vox/vox2_rockrockrock",
-        "vox/vox3_haecho", "vox/vox4_freedom",
-        "vox/vox5_attention", "vox/vox6_ohsnap",
+        "vox/vox1_manwhattyson",
+        "vox/vox2_rockrockrock",
+        "vox/vox3_haecho",
+        "vox/vox4_freedom",
+        "vox/vox5_attention",
+        "vox/vox6_ohsnap",
       ];
       const PROGRESSIONS = ["amin", "dmin", "cmaj", "fmaj", "gmin"];
       const PENT_NOTES = {
@@ -1528,10 +1549,20 @@
       const TRIAD_INSTRUMENTS = ["strings", "pad"];
       const TRIAD_LABELS = { strings: "STRINGS", pad: "PAD" };
       const SINGLE_INSTRUMENTS = ["pluck", "kalimba", "bell"];
-      const SINGLE_LABELS = { pluck: "PLUCK", kalimba: "KALIMBA", bell: "BELL" };
+      const SINGLE_LABELS = {
+        pluck: "PLUCK",
+        kalimba: "KALIMBA",
+        bell: "BELL",
+      };
       const PERC_LABELS = [
-        "SHAKER", "TAMB", "TAMB", "COWBELL",
-        "SHAKER", "TRIANGLE", "CLAVE", "BLOCK",
+        "SHAKER",
+        "TAMB",
+        "TAMB",
+        "COWBELL",
+        "SHAKER",
+        "TRIANGLE",
+        "CLAVE",
+        "BLOCK",
       ];
 
       const CAT_COLOR = {
@@ -1580,7 +1611,9 @@
         if (bufferCache[url]) return bufferCache[url];
         const resp = await fetch(url);
         const arr = await resp.arrayBuffer();
-        const buf = await (ctx || new (window.AudioContext || window.webkitAudioContext)()).decodeAudioData(arr);
+        const buf = await (
+          ctx || new (window.AudioContext || window.webkitAudioContext)()
+        ).decodeAudioData(arr);
         bufferCache[url] = buf;
         return buf;
       }
@@ -1589,14 +1622,18 @@
       }
       async function loadKit() {
         initAudio();
-        await Promise.all(kit.map(function (k) {
-          return loadBuffer(soundURL(k.file));
-        }));
+        await Promise.all(
+          kit.map(function (k) {
+            return loadBuffer(soundURL(k.file));
+          }),
+        );
       }
 
       // ---------- kit generation ----------
       function pickOther(notes, rootNote, rnd) {
-        const others = notes.filter(function (n) { return n !== rootNote; });
+        const others = notes.filter(function (n) {
+          return n !== rootNote;
+        });
         return others[Math.floor(rnd() * others.length)];
       }
 
@@ -1635,23 +1672,93 @@
           // Row 1: kick kick snare snare
           { cat: "kick", key: KEYS[0], file: KICK_FILES[kick1], label: "KICK" },
           { cat: "kick", key: KEYS[1], file: KICK_FILES[kick2], label: "KICK" },
-          { cat: "snare", key: KEYS[2], file: SNARE_FILES[snare1], label: "SNARE" },
-          { cat: "snare", key: KEYS[3], file: SNARE_FILES[snare2], label: "SNARE" },
+          {
+            cat: "snare",
+            key: KEYS[2],
+            file: SNARE_FILES[snare1],
+            label: "SNARE",
+          },
+          {
+            cat: "snare",
+            key: KEYS[3],
+            file: SNARE_FILES[snare2],
+            label: "SNARE",
+          },
           // Row 2: hat-cl hat-op clap perc
-          { cat: "hat", key: KEYS[4], file: "hihats/" + hatMachine + "_cl", label: "HAT CL" },
-          { cat: "hat", key: KEYS[5], file: "hihats/" + hatMachine + "_op", label: "HAT OP" },
-          { cat: "clap", key: KEYS[6], file: CLAP_FILES[clapIdx], label: "CLAP" },
-          { cat: "perc", key: KEYS[7], file: PERC_FILES[percIdx], label: PERC_LABELS[percIdx] },
+          {
+            cat: "hat",
+            key: KEYS[4],
+            file: "hihats/" + hatMachine + "_cl",
+            label: "HAT CL",
+          },
+          {
+            cat: "hat",
+            key: KEYS[5],
+            file: "hihats/" + hatMachine + "_op",
+            label: "HAT OP",
+          },
+          {
+            cat: "clap",
+            key: KEYS[6],
+            file: CLAP_FILES[clapIdx],
+            label: "CLAP",
+          },
+          {
+            cat: "perc",
+            key: KEYS[7],
+            file: PERC_FILES[percIdx],
+            label: PERC_LABELS[percIdx],
+          },
           // Row 3: rhodes 1-4
-          { cat: "rhodes", key: KEYS[8], file: "rhodes/rhodes_" + prog + "_1", label: "CHORD 1" },
-          { cat: "rhodes", key: KEYS[9], file: "rhodes/rhodes_" + prog + "_2", label: "CHORD 2" },
-          { cat: "rhodes", key: KEYS[10], file: "rhodes/rhodes_" + prog + "_3", label: "CHORD 3" },
-          { cat: "rhodes", key: KEYS[11], file: "rhodes/rhodes_" + prog + "_4", label: "CHORD 4" },
+          {
+            cat: "rhodes",
+            key: KEYS[8],
+            file: "rhodes/rhodes_" + prog + "_1",
+            label: "CHORD 1",
+          },
+          {
+            cat: "rhodes",
+            key: KEYS[9],
+            file: "rhodes/rhodes_" + prog + "_2",
+            label: "CHORD 2",
+          },
+          {
+            cat: "rhodes",
+            key: KEYS[10],
+            file: "rhodes/rhodes_" + prog + "_3",
+            label: "CHORD 3",
+          },
+          {
+            cat: "rhodes",
+            key: KEYS[11],
+            file: "rhodes/rhodes_" + prog + "_4",
+            label: "CHORD 4",
+          },
           // Row 4: triad triad single single
-          { cat: "triad", key: KEYS[12], file: triadInst + "/" + triadInst + "_" + rootNote + "4", label: TRIAD_LABELS[triadInst] },
-          { cat: "triad", key: KEYS[13], file: triadInst + "/" + triadInst + "_" + triadOther + "4", label: TRIAD_LABELS[triadInst] },
-          { cat: "single", key: KEYS[14], file: singleInst + "/" + singleInst + "_" + rootNote + "4", label: SINGLE_LABELS[singleInst] },
-          { cat: "single", key: KEYS[15], file: singleInst + "/" + singleInst + "_" + singleOther + "4", label: SINGLE_LABELS[singleInst] },
+          {
+            cat: "triad",
+            key: KEYS[12],
+            file: triadInst + "/" + triadInst + "_" + rootNote + "4",
+            label: TRIAD_LABELS[triadInst],
+          },
+          {
+            cat: "triad",
+            key: KEYS[13],
+            file: triadInst + "/" + triadInst + "_" + triadOther + "4",
+            label: TRIAD_LABELS[triadInst],
+          },
+          {
+            cat: "single",
+            key: KEYS[14],
+            file: singleInst + "/" + singleInst + "_" + rootNote + "4",
+            label: SINGLE_LABELS[singleInst],
+          },
+          {
+            cat: "single",
+            key: KEYS[15],
+            file: singleInst + "/" + singleInst + "_" + singleOther + "4",
+            label: SINGLE_LABELS[singleInst],
+          },
         ];
       }
 
@@ -1961,7 +2068,9 @@
             prev.gain.setValueAtTime(prev.gain.value, t);
             prev.gain.linearRampToValueAtTime(0, t + 0.015);
             prev.src.stop(t + 0.02);
-          } catch (e) { /* already stopped */ }
+          } catch (e) {
+            /* already stopped */
+          }
         }
 
         const src = ctx.createBufferSource();
