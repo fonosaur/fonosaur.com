@@ -1602,6 +1602,7 @@
         recordLayer: null,
         recordType: "base",
         loadedFromShare: false,
+        loadedStandaloneShare: false,
       };
 
       // ---------- sample buffer cache ----------
@@ -2229,8 +2230,7 @@
 
       function updateShareIntro() {
         if (!shareIntroEl) return;
-        const show =
-          !embedded && runtime.loadedFromShare && loop.events.length > 0;
+        const show = runtime.loadedStandaloneShare && loop.events.length > 0;
         shareIntroEl.hidden = !show;
       }
 
@@ -2266,7 +2266,11 @@
 
       function canNativeShare(data) {
         if (!prefersNativeShare()) return false;
-        if (navigator.canShare && !navigator.canShare(data)) return false;
+        try {
+          if (navigator.canShare && !navigator.canShare(data)) return false;
+        } catch (error) {
+          return false;
+        }
         return true;
       }
 
@@ -2591,6 +2595,7 @@
         resumeAudio();
         stopTransport();
         runtime.loadedFromShare = false;
+        runtime.loadedStandaloneShare = false;
         runtime.recordType = loop.layers.length ? "overdub" : "base";
         runtime.recordLayer = { events: [] };
         if (!loop.layers.length) {
@@ -2798,6 +2803,8 @@
           syncLoopEvents();
           loop.length = targetLength;
           runtime.loadedFromShare = loop.events.length > 0;
+          runtime.loadedStandaloneShare =
+            !embedded && runtime.loadedFromShare;
           return true;
         } catch (e) {
           return false;
@@ -2867,6 +2874,7 @@
         stopTransport();
         resetLoopData();
         runtime.loadedFromShare = false;
+        runtime.loadedStandaloneShare = false;
         updateButtons();
         updateDisplay();
       });
@@ -2883,6 +2891,7 @@
         syncLoopEvents();
         if (!loop.events.length) loop.length = fixedLoopLength();
         runtime.loadedFromShare = false;
+        runtime.loadedStandaloneShare = false;
         updateButtons();
         updateDisplay();
       });
