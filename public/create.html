@@ -222,15 +222,15 @@
         inset: 0;
         background-size: cover;
         background-position: center;
-        opacity: 0.16;
-        filter: saturate(0.9) brightness(0.72);
+        opacity: 0.55;
+        filter: saturate(1) brightness(0.85);
       }
 
       .skinveil {
         position: absolute;
         inset: 0;
         background:
-          linear-gradient(180deg, rgba(9, 9, 11, 0.52), rgba(9, 9, 11, 0.84)),
+          linear-gradient(180deg, rgba(9, 9, 11, 0.18), rgba(9, 9, 11, 0.48)),
           radial-gradient(
             circle at 50% 18%,
             rgba(255, 255, 255, 0.03),
@@ -1484,47 +1484,69 @@
         "C",
         "V",
       ];
-      const LAYOUT = [
-        "kick",
-        "kick",
-        "snare",
-        "snare",
-        "hat",
-        "hat",
-        "perc",
-        "perc",
-        "bass",
-        "bass",
-        "keys",
-        "keys",
-        "siren",
-        "siren",
-        "vox",
-        "texture",
+      // ---------- sound library ----------
+      const KICK_FILES = [
+        "kicks/kick1_909", "kicks/kick2_808", "kicks/kick3_707",
+        "kicks/kick4_DD30", "kicks/kick5_SDPM48",
       ];
+      const SNARE_FILES = [
+        "snares/snare1_808", "snares/snare2_909", "snares/snare3_linn",
+        "snares/snare4_CR80", "snares/snare5_kr100",
+      ];
+      const CLAP_FILES = [
+        "claps/clap1_YADD5", "claps/clap2_SDPM48", "claps/clap3_909",
+        "claps/clap4_Miami", "claps/clap5_mt500",
+      ];
+      const PERC_FILES = [
+        "perc/perc1_808_shaker", "perc/perc2_SCD_tamb",
+        "perc/perc3_F9000_tamb", "perc/perc4_cowbell",
+        "perc/perc5_RX120_shaker", "perc/perc6_triangle",
+        "perc/perc7_clave", "perc/perc8_woodblock",
+      ];
+      const HIHAT_MACHINES = [
+        "hihat1_808", "hihat2_707", "hihat3_DR220",
+        "hihat4_LM1", "hihat5_909",
+      ];
+      const SIREN_FILES = [
+        "sirens/siren1_urbanwarrior", "sirens/siren2_dread",
+        "sirens/siren3_dreadlock", "sirens/siren4_ganjasmoke",
+        "sirens/siren5_kingston sound",
+      ];
+      const VOX_FILES = [
+        "vox/vox1_manwhattyson", "vox/vox2_rockrockrock",
+        "vox/vox3_haecho", "vox/vox4_freedom",
+        "vox/vox5_attention", "vox/vox6_ohsnap",
+      ];
+      const PROGRESSIONS = ["amin", "dmin", "cmaj", "fmaj", "gmin"];
+      const PENT_NOTES = {
+        amin: ["A", "C", "D", "E", "G"],
+        dmin: ["D", "F", "G", "A", "C"],
+        cmaj: ["C", "D", "E", "G", "A"],
+        fmaj: ["F", "G", "A", "C", "D"],
+        gmin: ["G", "A#", "C", "D", "F"],
+      };
+      const TRIAD_INSTRUMENTS = ["strings", "pad"];
+      const TRIAD_LABELS = { strings: "STRINGS", pad: "PAD" };
+      const SINGLE_INSTRUMENTS = ["pluck", "kalimba", "bell"];
+      const SINGLE_LABELS = { pluck: "PLUCK", kalimba: "KALIMBA", bell: "BELL" };
+      const PERC_LABELS = [
+        "SHAKER", "TAMB", "TAMB", "COWBELL",
+        "SHAKER", "TRIANGLE", "CLAVE", "BLOCK",
+      ];
+
       const CAT_COLOR = {
         kick: "#a06820",
         snare: "#8b5cf6",
         hat: "#3b8bff",
+        clap: "#ff6b5c",
         perc: "#00cc50",
-        bass: "#c8862f",
-        keys: "#a78bfa",
-        siren: "#00cc50",
+        rhodes: "#a78bfa",
+        triad: "#3b8bff",
+        single: "#00cc50",
+        siren: "#ff6b5c",
         vox: "#3b8bff",
-        texture: "#8b5cf6",
       };
-      const CAT_LABEL = {
-        kick: "KICK",
-        snare: "SNARE",
-        hat: "HAT",
-        perc: "PERC",
-        bass: "BASS",
-        keys: "KEYS",
-        siren: "SIREN",
-        vox: "VOX",
-        texture: "TEXTURE",
-      };
-      const PENT = [0, 3, 5, 7, 10];
+
       const LOOP_BARS = 4;
       const DISPLAY_STEPS = 16;
       const COUNT_IN_BEATS = 4;
@@ -1533,8 +1555,7 @@
 
       let seed = 0;
       let kit = [];
-      let bpm = 90;
-      let root = 57;
+      let bpm = 105;
       let skinIdx = 0;
       let metronomeOn = true;
       let quantizeOn = true;
@@ -1553,76 +1574,85 @@
         loadedFromShare: false,
       };
 
-      function makeParams(cat, prng) {
-        const r = () => prng();
-        switch (cat) {
-          case "kick":
-            return {
-              f0: 120 + r() * 60,
-              f1: 38 + r() * 14,
-              pd: 0.05 + r() * 0.05,
-              dec: 0.28 + r() * 0.2,
-            };
-          case "snare":
-            return {
-              tone: 180 + r() * 140,
-              dec: 0.14 + r() * 0.1,
-              noise: 0.5 + r() * 0.4,
-            };
-          case "hat":
-            return { hp: 6000 + r() * 4000, dec: 0.03 + r() * 0.06 };
-          case "perc":
-            return {
-              f: 300 + r() * 500,
-              dec: 0.09 + r() * 0.12,
-              tri: r() > 0.5,
-            };
-          case "bass":
-            return {
-              deg: Math.floor(r() * 5),
-              dec: 0.22 + r() * 0.25,
-              cut: 400 + r() * 500,
-            };
-          case "keys":
-            return {
-              deg: Math.floor(r() * 5),
-              dec: 0.5 + r() * 0.6,
-              sixth: r() > 0.5,
-              cut: 1200 + r() * 1400,
-            };
-          case "siren":
-            return {
-              base: 300 + r() * 260,
-              depth: 80 + r() * 160,
-              rate: 4 + r() * 7,
-              dec: 0.6 + r() * 0.5,
-            };
-          case "vox":
-            return {
-              deg: Math.floor(r() * 5),
-              f1: 600 + r() * 300,
-              f2: 1100 + r() * 700,
-              dec: 0.28 + r() * 0.2,
-            };
-          case "texture":
-            return {
-              cut: 500 + r() * 900,
-              dec: 1.4 + r() * 1.6,
-              deg: Math.floor(r() * 5),
-            };
-        }
+      // ---------- sample buffer cache ----------
+      const bufferCache = {};
+      async function loadBuffer(url) {
+        if (bufferCache[url]) return bufferCache[url];
+        const resp = await fetch(url);
+        const arr = await resp.arrayBuffer();
+        const buf = await (ctx || new (window.AudioContext || window.webkitAudioContext)()).decodeAudioData(arr);
+        bufferCache[url] = buf;
+        return buf;
+      }
+      function soundURL(path) {
+        return "/sounds/" + path.replace(/#/g, "%23") + ".mp3";
+      }
+      async function loadKit() {
+        initAudio();
+        await Promise.all(kit.map(function (k) {
+          return loadBuffer(soundURL(k.file));
+        }));
+      }
+
+      // ---------- kit generation ----------
+      function pickOther(notes, rootNote, rnd) {
+        const others = notes.filter(function (n) { return n !== rootNote; });
+        return others[Math.floor(rnd() * others.length)];
       }
 
       function buildKit(s) {
         seed = s >>> 0;
         const rnd = mulberry32(seed);
-        root = 48 + Math.floor(rnd() * 10);
-        kit = LAYOUT.map((cat, i) => {
-          const prng = mulberry32(seed * 2654435761 + i * 40503);
-          const variant = Math.floor(prng() * 10);
-          for (let k = 0; k < variant; k++) prng();
-          return { cat, key: KEYS[i], variant, params: makeParams(cat, prng) };
-        });
+
+        // 1. Pick progression
+        const progIdx = Math.floor(rnd() * PROGRESSIONS.length);
+        const prog = PROGRESSIONS[progIdx];
+        const notes = PENT_NOTES[prog];
+        const rootNote = notes[0];
+
+        // 2. Drums
+        const kick1 = Math.floor(rnd() * KICK_FILES.length);
+        const kick2 = Math.floor(rnd() * KICK_FILES.length);
+        const snare1 = Math.floor(rnd() * SNARE_FILES.length);
+        const snare2 = Math.floor(rnd() * SNARE_FILES.length);
+        const hatIdx = Math.floor(rnd() * HIHAT_MACHINES.length);
+        const clapIdx = Math.floor(rnd() * CLAP_FILES.length);
+        const percIdx = Math.floor(rnd() * PERC_FILES.length);
+
+        // 3. Triad instrument + notes
+        const triadInstIdx = Math.floor(rnd() * TRIAD_INSTRUMENTS.length);
+        const triadInst = TRIAD_INSTRUMENTS[triadInstIdx];
+        const triadOther = pickOther(notes, rootNote, rnd);
+
+        // 4. Single instrument + notes
+        const singleInstIdx = Math.floor(rnd() * SINGLE_INSTRUMENTS.length);
+        const singleInst = SINGLE_INSTRUMENTS[singleInstIdx];
+        const singleOther = pickOther(notes, rootNote, rnd);
+
+        const hatMachine = HIHAT_MACHINES[hatIdx];
+
+        kit = [
+          // Row 1: kick kick snare snare
+          { cat: "kick", key: KEYS[0], file: KICK_FILES[kick1], label: "KICK" },
+          { cat: "kick", key: KEYS[1], file: KICK_FILES[kick2], label: "KICK" },
+          { cat: "snare", key: KEYS[2], file: SNARE_FILES[snare1], label: "SNARE" },
+          { cat: "snare", key: KEYS[3], file: SNARE_FILES[snare2], label: "SNARE" },
+          // Row 2: hat-cl hat-op clap perc
+          { cat: "hat", key: KEYS[4], file: "hihats/" + hatMachine + "_cl", label: "HAT CL" },
+          { cat: "hat", key: KEYS[5], file: "hihats/" + hatMachine + "_op", label: "HAT OP" },
+          { cat: "clap", key: KEYS[6], file: CLAP_FILES[clapIdx], label: "CLAP" },
+          { cat: "perc", key: KEYS[7], file: PERC_FILES[percIdx], label: PERC_LABELS[percIdx] },
+          // Row 3: rhodes 1-4
+          { cat: "rhodes", key: KEYS[8], file: "rhodes/rhodes_" + prog + "_1", label: "CHORD 1" },
+          { cat: "rhodes", key: KEYS[9], file: "rhodes/rhodes_" + prog + "_2", label: "CHORD 2" },
+          { cat: "rhodes", key: KEYS[10], file: "rhodes/rhodes_" + prog + "_3", label: "CHORD 3" },
+          { cat: "rhodes", key: KEYS[11], file: "rhodes/rhodes_" + prog + "_4", label: "CHORD 4" },
+          // Row 4: triad triad single single
+          { cat: "triad", key: KEYS[12], file: triadInst + "/" + triadInst + "_" + rootNote + "4", label: TRIAD_LABELS[triadInst] },
+          { cat: "triad", key: KEYS[13], file: triadInst + "/" + triadInst + "_" + triadOther + "4", label: TRIAD_LABELS[triadInst] },
+          { cat: "single", key: KEYS[14], file: singleInst + "/" + singleInst + "_" + rootNote + "4", label: SINGLE_LABELS[singleInst] },
+          { cat: "single", key: KEYS[15], file: singleInst + "/" + singleInst + "_" + singleOther + "4", label: SINGLE_LABELS[singleInst] },
+        ];
       }
 
       // ---------- procedural collage skin ----------
@@ -1905,155 +1935,46 @@
         osc.stop(t + 0.07);
       }
 
-      function play(cat, p) {
+      // Choke groups: voices in the same group cut each other off
+      const chokeVoices = { rhodes: null, hat: null };
+
+      function chokeGroup(padIndex) {
+        const k = kit[padIndex];
+        if (k.cat === "rhodes") return "rhodes";
+        if (k.cat === "hat") return "hat";
+        return null;
+      }
+
+      function play(file, padIndex) {
         if (!ctx) return;
+        const url = soundURL(file);
+        const buf = bufferCache[url];
+        if (!buf) return;
         const t = ctx.currentTime;
-        if (cat === "kick") {
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          o.type = "sine";
-          o.frequency.setValueAtTime(p.f0, t);
-          o.frequency.exponentialRampToValueAtTime(p.f1, t + p.pd);
-          env(g, t, 0.002, p.dec, 1);
-          o.connect(g);
-          snd(g);
-          o.start(t);
-          o.stop(t + p.dec + 0.05);
-        } else if (cat === "snare") {
-          const n = ctx.createBufferSource();
-          n.buffer = noiseBuf;
-          const bp = ctx.createBiquadFilter();
-          bp.type = "highpass";
-          bp.frequency.value = 1400;
-          const g = ctx.createGain();
-          env(g, t, 0.001, p.dec, p.noise);
-          n.connect(bp).connect(g);
-          snd(g);
-          const o = ctx.createOscillator();
-          const g2 = ctx.createGain();
-          o.type = "triangle";
-          o.frequency.value = p.tone;
-          env(g2, t, 0.001, p.dec * 0.7, 0.5);
-          o.connect(g2);
-          snd(g2);
-          n.start(t);
-          n.stop(t + p.dec + 0.05);
-          o.start(t);
-          o.stop(t + p.dec);
-        } else if (cat === "hat") {
-          const n = ctx.createBufferSource();
-          n.buffer = noiseBuf;
-          const hp = ctx.createBiquadFilter();
-          hp.type = "highpass";
-          hp.frequency.value = p.hp;
-          const g = ctx.createGain();
-          env(g, t, 0.001, p.dec, 0.4);
-          n.connect(hp).connect(g);
-          snd(g);
-          n.start(t);
-          n.stop(t + p.dec + 0.03);
-        } else if (cat === "perc") {
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          o.type = p.tri ? "triangle" : "square";
-          o.frequency.setValueAtTime(p.f, t);
-          o.frequency.exponentialRampToValueAtTime(p.f * 0.6, t + p.dec);
-          env(g, t, 0.001, p.dec, 0.6);
-          o.connect(g);
-          snd(g);
-          o.start(t);
-          o.stop(t + p.dec + 0.03);
-        } else if (cat === "bass") {
-          const midi = root - 12 + PENT[p.deg];
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          const f = ctx.createBiquadFilter();
-          o.type = "sawtooth";
-          o.frequency.value = noteFreq(midi);
-          f.type = "lowpass";
-          f.frequency.value = p.cut;
-          env(g, t, 0.004, p.dec, 0.6);
-          o.connect(f).connect(g);
-          snd(g);
-          o.start(t);
-          o.stop(t + p.dec + 0.05);
-        } else if (cat === "keys") {
-          const degs = [0, 2, p.sixth ? 3 : 1];
-          const g = ctx.createGain();
-          const f = ctx.createBiquadFilter();
-          f.type = "lowpass";
-          f.frequency.value = p.cut;
-          env(g, t, 0.01, p.dec, 0.32);
-          f.connect(g);
-          snd(g);
-          degs.forEach((dd) => {
-            const o = ctx.createOscillator();
-            o.type = "triangle";
-            o.frequency.value = noteFreq(
-              root + PENT[(p.deg + dd) % 5] + (dd > 1 ? 12 : 0),
-            );
-            o.connect(f);
-            o.start(t);
-            o.stop(t + p.dec + 0.1);
-          });
-        } else if (cat === "siren") {
-          const o = ctx.createOscillator();
-          const lfo = ctx.createOscillator();
-          const la = ctx.createGain();
-          const g = ctx.createGain();
-          const bp = ctx.createBiquadFilter();
-          o.type = "sawtooth";
-          o.frequency.value = p.base;
-          lfo.frequency.value = p.rate;
-          la.gain.value = p.depth;
-          lfo.connect(la).connect(o.frequency);
-          bp.type = "bandpass";
-          bp.frequency.value = p.base * 1.5;
-          bp.Q.value = 6;
-          env(g, t, 0.02, p.dec, 0.34);
-          o.connect(bp).connect(g);
-          snd(g);
-          o.start(t);
-          lfo.start(t);
-          o.stop(t + p.dec + 0.1);
-          lfo.stop(t + p.dec + 0.1);
-        } else if (cat === "vox") {
-          const midi = root + PENT[p.deg];
-          [p.f1, p.f2].forEach((fq, k) => {
-            const o = ctx.createOscillator();
-            const bp = ctx.createBiquadFilter();
-            const g = ctx.createGain();
-            o.type = "sawtooth";
-            o.frequency.value = noteFreq(midi);
-            bp.type = "bandpass";
-            bp.frequency.value = fq;
-            bp.Q.value = 8;
-            env(g, t, 0.02, p.dec, k ? 0.18 : 0.26);
-            o.connect(bp).connect(g);
-            snd(g);
-            o.start(t);
-            o.stop(t + p.dec + 0.1);
-          });
-        } else if (cat === "texture") {
-          const n = ctx.createBufferSource();
-          n.buffer = noiseBuf;
-          n.loop = true;
-          const f = ctx.createBiquadFilter();
-          f.type = "bandpass";
-          f.frequency.value = p.cut;
-          f.Q.value = 3;
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          o.type = "triangle";
-          o.frequency.value = noteFreq(root + PENT[p.deg] + 12);
-          env(g, t, 0.25, p.dec, 0.22);
-          n.connect(f).connect(g);
-          o.connect(g);
-          snd(g);
-          n.start(t);
-          o.start(t);
-          n.stop(t + p.dec + 0.3);
-          o.stop(t + p.dec + 0.3);
+        const group = padIndex !== undefined ? chokeGroup(padIndex) : null;
+
+        // Choke: fade out previous voice in same group
+        if (group && chokeVoices[group]) {
+          const prev = chokeVoices[group];
+          try {
+            prev.gain.cancelScheduledValues(t);
+            prev.gain.setValueAtTime(prev.gain.value, t);
+            prev.gain.linearRampToValueAtTime(0, t + 0.015);
+            prev.src.stop(t + 0.02);
+          } catch (e) { /* already stopped */ }
+        }
+
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const g = ctx.createGain();
+        g.gain.value = 1;
+        src.connect(g);
+        g.connect(master);
+        g.connect(master._conv);
+        src.start(t);
+
+        if (group) {
+          chokeVoices[group] = { src: src, gain: g.gain };
         }
       }
 
@@ -2363,7 +2284,7 @@
           skinEl.style.opacity = "0";
           return;
         }
-        skinEl.style.opacity = "0.16";
+        skinEl.style.opacity = "0.55";
         skinEl.style.backgroundImage = 'url("' + skinURI(skin.seed) + '")';
       }
 
@@ -2393,7 +2314,7 @@
           d.type = "button";
           d.className = "pad";
           d.dataset.i = i;
-          d.setAttribute("aria-label", CAT_LABEL[k.cat] + " pad, key " + k.key);
+          d.setAttribute("aria-label", k.label + " pad, key " + k.key);
           d.setAttribute("aria-keyshortcuts", k.key);
           d.innerHTML =
             '<span class="dot" style="background:' +
@@ -2410,7 +2331,7 @@
             col +
             '"></div>' +
             '<div class="lab">' +
-            CAT_LABEL[k.cat] +
+            k.label +
             "</div>";
           // Mouse/click for desktop — suppressed when touch fires
           d.addEventListener("click", (e) => {
@@ -2475,7 +2396,7 @@
       function hit(i, fromLoop) {
         resumeAudio();
         const k = kit[i];
-        play(k.cat, k.params);
+        play(k.file, i);
         flash(i);
         if (runtime.mode === "recording" && !fromLoop) {
           runtime.recordLayer.events.push([
@@ -2698,7 +2619,7 @@
           .filter(Boolean)
           .join("~");
         const head = [
-          "f2",
+          "f3",
           (seed >>> 0).toString(36),
           bpm.toString(36),
           skinIdx.toString(36),
@@ -2711,9 +2632,9 @@
         try {
           const raw = location.hash.slice(1);
           const parts = raw.split(".");
-          if (parts[0] !== "f2") return false;
+          if (parts[0] !== "f3") return false;
           seed = parseInt(parts[1], 36) >>> 0;
-          bpm = Math.max(60, Math.min(160, parseInt(parts[2], 36) || 90));
+          bpm = Math.max(60, Math.min(160, parseInt(parts[2], 36) || 105));
           skinIdx = Math.max(
             0,
             Math.min(SKINS.length - 1, parseInt(parts[3], 36) || 0),
@@ -2833,6 +2754,7 @@
         stopTransport();
         buildKit((Math.random() * 4294967296) >>> 0);
         renderPads();
+        loadKit();
       });
 
       skinBtn.addEventListener("click", () => {
@@ -2893,6 +2815,7 @@
 
       applySkin();
       renderPads();
+      loadKit();
       updateButtons();
       updateDisplay();
       syncDeviceFrame();
