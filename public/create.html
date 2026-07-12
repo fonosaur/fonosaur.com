@@ -1618,7 +1618,9 @@
         return buf;
       }
       function soundURL(path) {
-        return "/sounds/" + path.replace(/#/g, "s").replace(/ /g, "%20") + ".mp3";
+        return (
+          "/sounds/" + path.replace(/#/g, "s").replace(/ /g, "%20") + ".mp3"
+        );
       }
       async function loadKit() {
         initAudio();
@@ -1670,25 +1672,100 @@
 
         kit = [
           // Row 1: kick snare hat-cl hat-op
-          { cat: "kick", key: KEYS[0], file: KICK_FILES[kickIdx], label: "KICK" },
-          { cat: "snare", key: KEYS[1], file: SNARE_FILES[snareIdx], label: "SNARE" },
-          { cat: "hat", key: KEYS[2], file: "hihats/" + hatMachine + "_cl", label: "HAT CL" },
-          { cat: "hat", key: KEYS[3], file: "hihats/" + hatMachine + "_op", label: "HAT OP" },
+          {
+            cat: "kick",
+            key: KEYS[0],
+            file: KICK_FILES[kickIdx],
+            label: "KICK",
+          },
+          {
+            cat: "snare",
+            key: KEYS[1],
+            file: SNARE_FILES[snareIdx],
+            label: "SNARE",
+          },
+          {
+            cat: "hat",
+            key: KEYS[2],
+            file: "hihats/" + hatMachine + "_cl",
+            label: "HAT CL",
+          },
+          {
+            cat: "hat",
+            key: KEYS[3],
+            file: "hihats/" + hatMachine + "_op",
+            label: "HAT OP",
+          },
           // Row 2: clap perc vox siren
-          { cat: "clap", key: KEYS[4], file: CLAP_FILES[clapIdx], label: "CLAP" },
-          { cat: "perc", key: KEYS[5], file: PERC_FILES[percIdx], label: PERC_LABELS[percIdx] },
+          {
+            cat: "clap",
+            key: KEYS[4],
+            file: CLAP_FILES[clapIdx],
+            label: "CLAP",
+          },
+          {
+            cat: "perc",
+            key: KEYS[5],
+            file: PERC_FILES[percIdx],
+            label: PERC_LABELS[percIdx],
+          },
           { cat: "vox", key: KEYS[6], file: VOX_FILES[voxIdx], label: "VOX" },
-          { cat: "siren", key: KEYS[7], file: SIREN_FILES[sirenIdx], label: "SIREN" },
+          {
+            cat: "siren",
+            key: KEYS[7],
+            file: SIREN_FILES[sirenIdx],
+            label: "SIREN",
+          },
           // Row 3: rhodes 1-4
-          { cat: "rhodes", key: KEYS[8], file: "rhodes/rhodes_" + prog + "_1", label: "CHORD 1" },
-          { cat: "rhodes", key: KEYS[9], file: "rhodes/rhodes_" + prog + "_2", label: "CHORD 2" },
-          { cat: "rhodes", key: KEYS[10], file: "rhodes/rhodes_" + prog + "_3", label: "CHORD 3" },
-          { cat: "rhodes", key: KEYS[11], file: "rhodes/rhodes_" + prog + "_4", label: "CHORD 4" },
+          {
+            cat: "rhodes",
+            key: KEYS[8],
+            file: "rhodes/rhodes_" + prog + "_1",
+            label: "CHORD 1",
+          },
+          {
+            cat: "rhodes",
+            key: KEYS[9],
+            file: "rhodes/rhodes_" + prog + "_2",
+            label: "CHORD 2",
+          },
+          {
+            cat: "rhodes",
+            key: KEYS[10],
+            file: "rhodes/rhodes_" + prog + "_3",
+            label: "CHORD 3",
+          },
+          {
+            cat: "rhodes",
+            key: KEYS[11],
+            file: "rhodes/rhodes_" + prog + "_4",
+            label: "CHORD 4",
+          },
           // Row 4: strings strings single single
-          { cat: "triad", key: KEYS[12], file: triadInst + "/" + triadInst + "_" + rootNote + "4", label: TRIAD_LABELS[triadInst] },
-          { cat: "triad", key: KEYS[13], file: triadInst + "/" + triadInst + "_" + triadOther + "4", label: TRIAD_LABELS[triadInst] },
-          { cat: "single", key: KEYS[14], file: singleInst + "/" + singleInst + "_" + rootNote + "4", label: SINGLE_LABELS[singleInst] },
-          { cat: "single", key: KEYS[15], file: singleInst + "/" + singleInst + "_" + singleOther + "4", label: SINGLE_LABELS[singleInst] },
+          {
+            cat: "triad",
+            key: KEYS[12],
+            file: triadInst + "/" + triadInst + "_" + rootNote + "4",
+            label: TRIAD_LABELS[triadInst],
+          },
+          {
+            cat: "triad",
+            key: KEYS[13],
+            file: triadInst + "/" + triadInst + "_" + triadOther + "4",
+            label: TRIAD_LABELS[triadInst],
+          },
+          {
+            cat: "single",
+            key: KEYS[14],
+            file: singleInst + "/" + singleInst + "_" + rootNote + "4",
+            label: SINGLE_LABELS[singleInst],
+          },
+          {
+            cat: "single",
+            key: KEYS[15],
+            file: singleInst + "/" + singleInst + "_" + singleOther + "4",
+            label: SINGLE_LABELS[singleInst],
+          },
         ];
       }
 
