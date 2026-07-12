@@ -2234,12 +2234,15 @@
         shareIntroEl.hidden = !show;
       }
 
-      function isMobileShareCapable() {
+      function prefersNativeShare() {
         return (
           typeof navigator !== "undefined" &&
           typeof navigator.share === "function" &&
-          window.matchMedia &&
-          window.matchMedia("(max-width: 768px)").matches
+          window.isSecureContext &&
+          (navigator.maxTouchPoints > 0 ||
+            (window.matchMedia &&
+              (window.matchMedia("(pointer: coarse)").matches ||
+                window.matchMedia("(max-width: 768px)").matches)))
         );
       }
 
@@ -2253,29 +2256,49 @@
         showToast("Link copied - your kit + loop");
       }
 
-      async function shareCurrentLink(url) {
-        if (!isMobileShareCapable()) {
-          await copyShareLink(url);
+      function nativeShareData(url) {
+        return {
+          title: "FONOSAUR",
+          text: SHARE_MESSAGE,
+          url,
+        };
+      }
+
+      function canNativeShare(data) {
+        if (!prefersNativeShare()) return false;
+        if (navigator.canShare && !navigator.canShare(data)) return false;
+        return true;
+      }
+
+      function flashNativeShareFeedback() {
+        shareBtn.classList.add("is-copied");
+        shareLabel.innerHTML = "SHARED &#10003;";
+        shareBtn.setAttribute("aria-label", "Shared");
+        shareBtn.setAttribute("title", "Shared");
+        window.clearTimeout(shareTimer);
+        shareTimer = window.setTimeout(() => {
+          resetShareFeedback();
+        }, 2000);
+      }
+
+      function shareCurrentLink(url) {
+        const data = nativeShareData(url);
+        if (canNativeShare(data)) {
+          // Call directly from the tap/click stack so mobile browsers keep
+          // the transient user activation required by the Web Share API.
+          navigator
+            .share(data)
+            .then(() => {
+              flashNativeShareFeedback();
+            })
+            .catch((error) => {
+              if (error && error.name === "AbortError") return;
+              copyShareLink(url);
+            });
           return;
         }
-        try {
-          await navigator.share({
-            title: "FONOSAUR",
-            text: SHARE_MESSAGE,
-            url,
-          });
-          shareBtn.classList.add("is-copied");
-          shareLabel.innerHTML = "SHARED &#10003;";
-          shareBtn.setAttribute("aria-label", "Shared");
-          shareBtn.setAttribute("title", "Shared");
-          window.clearTimeout(shareTimer);
-          shareTimer = window.setTimeout(() => {
-            resetShareFeedback();
-          }, 2000);
-        } catch (error) {
-          if (error && error.name === "AbortError") return;
-          await copyShareLink(url);
-        }
+
+        copyShareLink(url);
       }
 
       function standaloneShareUrl(encodedLoop) {
@@ -2864,11 +2887,11 @@
         updateDisplay();
       });
 
-      shareBtn.addEventListener("click", async () => {
+      shareBtn.addEventListener("click", () => {
         const encodedLoop = encode();
-        location.hash = encodedLoop;
         const url = standaloneShareUrl(encodedLoop);
-        await shareCurrentLink(url);
+        shareCurrentLink(url);
+        location.hash = encodedLoop;
       });
 
       shuffleBtn.addEventListener("click", () => {
