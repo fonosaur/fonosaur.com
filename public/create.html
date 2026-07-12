@@ -1967,6 +1967,7 @@
       const QUANTIZE_BLEND = 0.92;
       const FIXED_BPM = 105;
       const LOOP_BOUNDARY_GRACE_MS = 45;
+      const MOBILE_LOOP_BOUNDARY_GRACE_MS = 128;
 
       let seed = 0;
       let kit = [];
@@ -2754,6 +2755,27 @@
         return LOOP_BARS * 4 * beatMs();
       }
 
+      function hasMobileTiming() {
+        const coarsePointer =
+          window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+        const compactViewport =
+          window.matchMedia && window.matchMedia("(max-width: 768px)").matches;
+        return navigator.maxTouchPoints > 0 && (coarsePointer || compactViewport);
+      }
+
+      function boundaryGraceMs(targetLength) {
+        const rawGrace = hasMobileTiming()
+          ? MOBILE_LOOP_BOUNDARY_GRACE_MS
+          : LOOP_BOUNDARY_GRACE_MS;
+        const firstStep = targetLength / QUANTIZE_STEPS;
+        return Math.min(rawGrace, Math.max(LOOP_BOUNDARY_GRACE_MS, firstStep - 10));
+      }
+
+      function isNearLoopBoundary(t, targetLength) {
+        const grace = boundaryGraceMs(targetLength);
+        return t <= grace || targetLength - t <= grace;
+      }
+
       function wrapLoopTime(t, targetLength) {
         if (!targetLength || targetLength <= 0) return 0;
         const wrapped = ((t % targetLength) + targetLength) % targetLength;
@@ -2782,6 +2804,9 @@
         const step = targetLength / QUANTIZE_STEPS;
         return normalizeLayer(
           normalized.map(([i, t]) => {
+            if (isNearLoopBoundary(t, targetLength)) {
+              return [i, 0];
+            }
             const nearestStep = Math.round(t / step);
             if (nearestStep <= 0 || nearestStep >= QUANTIZE_STEPS) {
               return [i, 0];
@@ -3380,7 +3405,7 @@
               e.preventDefault();
               return;
             }
-            hit(i);
+            hit(i, false, inputTimestamp(e));
           });
           grid.appendChild(d);
         });
@@ -3408,7 +3433,7 @@
             const idx = padIndexFromTouch(touch);
             if (idx >= 0 && !activeTouches.has(touch.identifier)) {
               activeTouches.set(touch.identifier, idx);
-              hit(idx);
+              hit(idx, false, inputTimestamp(e));
             }
           }
         },
@@ -3434,9 +3459,22 @@
         setTimeout(() => el.classList.remove("hit"), 24);
       }
 
-      function hit(i, fromLoop) {
-        resumeAudio();
+      function inputTimestamp(event) {
+        if (!event || typeof event.timeStamp !== "number") return performance.now();
         const now = performance.now();
+        const stamp = event.timeStamp;
+        if (Math.abs(stamp - now) < 60000) return stamp;
+        if (performance.timeOrigin) {
+          const relativeStamp = stamp - performance.timeOrigin;
+          if (Math.abs(relativeStamp - now) < 60000) return relativeStamp;
+        }
+        return now;
+      }
+
+      function hit(i, fromLoop, inputTime) {
+        resumeAudio();
+        const now =
+          !fromLoop && Number.isFinite(inputTime) ? inputTime : performance.now();
         const k = kit[i];
         play(k.file, i);
         flash(i);
@@ -3448,7 +3486,7 @@
           } else if (runtime.mode === "countin") {
             const scheduledStart =
               runtime.countInStart + COUNT_IN_BEATS * beatMs();
-            if (now >= scheduledStart - LOOP_BOUNDARY_GRACE_MS) {
+            if (now >= scheduledStart - boundaryGraceMs(total)) {
               eventTime = now - scheduledStart;
             }
           }
@@ -3466,7 +3504,7 @@
       document.addEventListener("keydown", (e) => {
         if (e.repeat) return;
         const i = keyMap[e.key.toLowerCase()];
-        if (i !== undefined) hit(i);
+        if (i !== undefined) hit(i, false, inputTimestamp(e));
       });
 
       // ---------- transport ----------
@@ -3600,7 +3638,7 @@
         runtime.lastProgress = clampedElapsed;
         renderStepReadout(clampedElapsed, total);
 
-        if (elapsed >= total + LOOP_BOUNDARY_GRACE_MS) finishRecording();
+        if (elapsed >= total + boundaryGraceMs(total)) finishRecording();
       }
 
       function runPlaybackFrame(now) {
