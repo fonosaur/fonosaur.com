@@ -270,6 +270,49 @@
         height: 100%;
       }
 
+      .mode-switch {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 5px;
+        flex-shrink: 0;
+      }
+
+      .mode-btn {
+        min-height: 30px;
+        border-radius: 11px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(10, 10, 12, 0.82)),
+          rgba(13, 13, 16, 0.84);
+        color: rgba(232, 232, 234, 0.58);
+        font-family: "Space Mono", monospace;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        transition:
+          border-color 0.16s ease,
+          background 0.16s ease,
+          color 0.16s ease,
+          box-shadow 0.16s ease,
+          transform 0.16s ease;
+      }
+
+      .mode-btn.is-active {
+        border-color: rgba(125, 255, 184, 0.35);
+        background:
+          radial-gradient(circle at 50% 0, rgba(91, 255, 154, 0.16), transparent 70%),
+          linear-gradient(180deg, rgba(19, 54, 34, 0.82), rgba(10, 18, 13, 0.92));
+        color: var(--lcd-ink);
+        box-shadow:
+          inset 0 0 0 1px rgba(125, 255, 184, 0.06),
+          0 0 16px rgba(0, 255, 120, 0.1);
+      }
+
+      .mode-btn:active {
+        transform: translateY(1px);
+      }
+
       .lcd {
         position: relative;
         --lcd-text-font: var(--lcd-base-font);
@@ -728,6 +771,252 @@
             rgba(0, 0, 0, 0.08)
           ),
           rgba(9, 9, 11, 0.3);
+      }
+
+      .fx-zone {
+        flex: 1;
+        min-height: 0;
+        display: none;
+        grid-template-rows: minmax(0, 1fr) auto;
+        gap: 7px;
+      }
+
+      .device-ui[data-mode="fx"] .pad-zone,
+      .device-ui[data-mode="fx"] .bottom-row {
+        display: none;
+      }
+
+      .device-ui[data-mode="fx"] .fx-zone {
+        display: grid;
+      }
+
+      .xy-pad {
+        position: relative;
+        min-height: 0;
+        border-radius: 18px;
+        border: 1px solid rgba(125, 255, 184, 0.15);
+        overflow: hidden;
+        touch-action: none;
+        user-select: none;
+        cursor: crosshair;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(125, 255, 184, 0.08), transparent 26%),
+          linear-gradient(0deg, rgba(22, 80, 42, 0.38), rgba(6, 12, 18, 0.48) 50%, rgba(58, 94, 154, 0.34)),
+          rgba(7, 8, 10, 0.64);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.035),
+          inset 0 -38px 60px rgba(0, 0, 0, 0.34);
+      }
+
+      .xy-pad::before,
+      .xy-pad::after {
+        content: "";
+        position: absolute;
+        pointer-events: none;
+      }
+
+      .xy-pad::before {
+        inset: 12px;
+        border-radius: 14px;
+        background:
+          linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(232, 232, 234, 0.18) 50%, transparent calc(50% + 0.5px)),
+          linear-gradient(0deg, transparent calc(50% - 0.5px), rgba(232, 232, 234, 0.18) 50%, transparent calc(50% + 0.5px));
+        opacity: 0.7;
+      }
+
+      .xy-pad::after {
+        inset: 0;
+        background:
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.028) 0 1px, transparent 1px 42px),
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.024) 0 1px, transparent 1px 42px);
+        mix-blend-mode: screen;
+        opacity: 0.68;
+      }
+
+      .xy-range-label {
+        position: absolute;
+        z-index: 2;
+        color: rgba(232, 232, 234, 0.58);
+        font-family: "Space Mono", monospace;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        pointer-events: none;
+        padding: 3px 6px;
+        border-radius: 999px;
+        background: rgba(5, 8, 7, 0.58);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+      }
+
+      .xy-range-label.y-max {
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .xy-range-label.y-min {
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .xy-range-label.x-min {
+        top: 50%;
+        left: 12px;
+        transform: translateY(-50%);
+      }
+
+      .xy-range-label.x-max {
+        top: 50%;
+        right: 12px;
+        transform: translateY(-50%);
+      }
+
+      .axis-picker {
+        position: absolute;
+        z-index: 6;
+        font-family: "Space Mono", monospace;
+        text-transform: uppercase;
+      }
+
+      .axis-picker.y-axis {
+        top: 10px;
+        left: 10px;
+      }
+
+      .axis-picker.x-axis {
+        left: 50%;
+        bottom: 30px;
+        transform: translateX(-50%);
+      }
+
+      .axis-btn {
+        min-height: 30px;
+        border-radius: 999px;
+        border: 1px solid rgba(125, 255, 184, 0.2);
+        background:
+          linear-gradient(180deg, rgba(8, 24, 17, 0.94), rgba(5, 12, 9, 0.9)),
+          rgba(6, 10, 8, 0.88);
+        color: var(--lcd-ink);
+        font-family: inherit;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        padding: 0 12px;
+        box-shadow:
+          0 10px 22px rgba(0, 0, 0, 0.28),
+          inset 0 0 0 1px rgba(125, 255, 184, 0.05);
+      }
+
+      .axis-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        min-width: 120px;
+        padding: 5px;
+        border-radius: 12px;
+        border: 1px solid rgba(125, 255, 184, 0.18);
+        background:
+          linear-gradient(180deg, rgba(9, 22, 16, 0.98), rgba(5, 10, 8, 0.98)),
+          rgba(6, 10, 8, 0.98);
+        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.44);
+      }
+
+      .axis-picker.x-axis .axis-menu {
+        top: auto;
+        bottom: calc(100% + 6px);
+        left: 50%;
+        transform: translateX(-50%);
+      }
+
+      .axis-menu[hidden] {
+        display: none;
+      }
+
+      .axis-option {
+        width: 100%;
+        min-height: 30px;
+        border: none;
+        border-radius: 8px;
+        background: transparent;
+        color: rgba(232, 232, 234, 0.78);
+        font-family: inherit;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-align: left;
+        padding: 0 9px;
+      }
+
+      .axis-option.is-selected {
+        color: var(--lcd-ink);
+        background: rgba(125, 255, 184, 0.1);
+      }
+
+      .axis-option:disabled {
+        color: rgba(232, 232, 234, 0.3);
+        cursor: not-allowed;
+      }
+
+      .xy-cursor {
+        position: absolute;
+        z-index: 3;
+        left: 50%;
+        top: 50%;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(182, 255, 210, 0.78);
+        background:
+          radial-gradient(circle, rgba(210, 255, 229, 0.9) 0 2px, rgba(125, 255, 184, 0.24) 3px, transparent 62%);
+        box-shadow:
+          0 0 20px rgba(0, 255, 120, 0.2),
+          inset 0 0 16px rgba(125, 255, 184, 0.2);
+        pointer-events: none;
+        transition:
+          left 0.18s ease,
+          top 0.18s ease,
+          transform 0.18s ease;
+      }
+
+      .xy-pad.is-touching .xy-cursor {
+        transform: translate(-50%, -50%) scale(1.08);
+        transition: none;
+      }
+
+      .fx-controls {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 6px;
+      }
+
+      .stutter-btn {
+        min-height: 54px;
+        border-radius: 15px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background:
+          radial-gradient(circle at 50% 0, rgba(255, 215, 120, 0.12), transparent 72%),
+          linear-gradient(180deg, rgba(32, 31, 28, 0.94), rgba(13, 13, 15, 0.98));
+        color: var(--text);
+        font-family: "Space Mono", monospace;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        touch-action: none;
+      }
+
+      .stutter-btn.is-held {
+        border-color: rgba(255, 202, 92, 0.64);
+        color: #fff8df;
+        background:
+          radial-gradient(circle at 50% 0, rgba(255, 211, 105, 0.26), transparent 72%),
+          linear-gradient(180deg, rgba(76, 50, 16, 0.92), rgba(20, 15, 10, 0.98));
+        box-shadow:
+          0 0 22px rgba(255, 174, 42, 0.18),
+          inset 0 1px 0 rgba(255, 255, 255, 0.06);
       }
 
       .grid {
@@ -1268,6 +1557,29 @@
         <div class="skinveil"></div>
 
         <div class="device-ui">
+          <div class="mode-switch" role="tablist" aria-label="Sampler mode">
+            <button
+              class="mode-btn is-active"
+              id="padsModeBtn"
+              type="button"
+              role="tab"
+              aria-selected="true"
+              aria-controls="padsPage"
+            >
+              PADS
+            </button>
+            <button
+              class="mode-btn"
+              id="fxModeBtn"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="fxPage"
+            >
+              FX
+            </button>
+          </div>
+
           <section class="lcd" aria-live="polite">
             <div class="lcd-top">
               <div class="lcd-status" id="lcdStatus">READY</div>
@@ -1418,8 +1730,65 @@
             </button>
           </div>
 
-          <div class="pad-zone">
+          <div class="pad-zone" id="padsPage" role="tabpanel" aria-labelledby="padsModeBtn">
             <div class="grid" id="grid"></div>
+          </div>
+
+          <div
+            class="fx-zone"
+            id="fxPage"
+            role="tabpanel"
+            aria-labelledby="fxModeBtn"
+            hidden
+          >
+            <div
+              class="xy-pad"
+              id="xyPad"
+              role="application"
+              aria-label="Assignable XY effects pad"
+            >
+              <div class="axis-picker y-axis">
+                <button
+                  class="axis-btn"
+                  id="yAxisBtn"
+                  type="button"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                  aria-controls="yAxisMenu"
+                >
+                  Y: FILTER
+                </button>
+                <div class="axis-menu" id="yAxisMenu" hidden></div>
+              </div>
+              <div class="axis-picker x-axis">
+                <button
+                  class="axis-btn"
+                  id="xAxisBtn"
+                  type="button"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                  aria-controls="xAxisMenu"
+                >
+                  X: DELAY
+                </button>
+                <div class="axis-menu" id="xAxisMenu" hidden></div>
+              </div>
+              <span class="xy-range-label y-max" id="yAxisMax">Highpass</span>
+              <span class="xy-range-label y-min" id="yAxisMin">Lowpass</span>
+              <span class="xy-range-label x-min" id="xAxisMin">1 bar</span>
+              <span class="xy-range-label x-max" id="xAxisMax">1/32</span>
+              <span class="xy-cursor" id="xyCursor" aria-hidden="true"></span>
+            </div>
+            <div class="fx-controls">
+              <button
+                class="stutter-btn"
+                id="stutterBtn"
+                type="button"
+                aria-label="Hold for one-sixteenth stutter"
+              >
+                Hold to stutter 1/16
+              </button>
+            </div>
           </div>
 
           <div class="bottom-row">
@@ -1619,6 +1988,17 @@
         recordType: "base",
         loadedFromShare: false,
         loadedStandaloneShare: false,
+        viewMode: "pads",
+        fxX: 0.5,
+        fxY: 0.5,
+        fxTouching: false,
+        xyPointerId: null,
+        stutterActive: false,
+        stutterSliceStart: 0,
+        stutterStartTime: 0,
+        stutterLastTick: -1,
+        stutterPointerId: null,
+        fxAssignments: { x: "delay", y: "filter" },
       };
 
       // ---------- sample buffer cache ----------
@@ -1958,6 +2338,22 @@
       const wrapEl = document.querySelector(".wrap");
       const shareIntroEl = document.getElementById("shareIntro");
       const deviceEl = document.querySelector(".device");
+      const deviceUiEl = document.querySelector(".device-ui");
+      const padsModeBtn = document.getElementById("padsModeBtn");
+      const fxModeBtn = document.getElementById("fxModeBtn");
+      const padsPage = document.getElementById("padsPage");
+      const fxPage = document.getElementById("fxPage");
+      const xyPad = document.getElementById("xyPad");
+      const xyCursor = document.getElementById("xyCursor");
+      const xAxisBtn = document.getElementById("xAxisBtn");
+      const yAxisBtn = document.getElementById("yAxisBtn");
+      const xAxisMenu = document.getElementById("xAxisMenu");
+      const yAxisMenu = document.getElementById("yAxisMenu");
+      const xAxisMin = document.getElementById("xAxisMin");
+      const xAxisMax = document.getElementById("xAxisMax");
+      const yAxisMin = document.getElementById("yAxisMin");
+      const yAxisMax = document.getElementById("yAxisMax");
+      const stutterBtn = document.getElementById("stutterBtn");
       const grid = document.getElementById("grid");
       const skinEl = document.getElementById("skin");
       const lcdEl = document.querySelector(".lcd");
@@ -1993,6 +2389,24 @@
       // ---------- audio ----------
       let ctx;
       let master;
+      let fxInput;
+      let fxDry;
+      let fxFilterOut;
+      let fxFilterDry;
+      let fxLowpass;
+      let fxLowGain;
+      let fxHighpass;
+      let fxHighGain;
+      let fxDelay;
+      let fxDelayFeedback;
+      let fxDelayFilter;
+      let fxDelayWet;
+      let fxPhaserOut;
+      let fxPhaserDry;
+      let fxPhaserWet;
+      let fxPhaserStages;
+      let fxPhaserOsc;
+      let fxPhaserLfoGain;
       let noiseBuf;
 
       function initAudio() {
@@ -2021,6 +2435,67 @@
         conv.connect(rev).connect(master);
         master._conv = conv;
 
+        fxInput = ctx.createGain();
+        fxFilterOut = ctx.createGain();
+        fxFilterDry = ctx.createGain();
+        fxLowpass = ctx.createBiquadFilter();
+        fxLowGain = ctx.createGain();
+        fxHighpass = ctx.createBiquadFilter();
+        fxHighGain = ctx.createGain();
+        fxDry = ctx.createGain();
+        fxDelay = ctx.createDelay(3);
+        fxDelayFeedback = ctx.createGain();
+        fxDelayFilter = ctx.createBiquadFilter();
+        fxDelayWet = ctx.createGain();
+        fxPhaserOut = ctx.createGain();
+        fxPhaserDry = ctx.createGain();
+        fxPhaserWet = ctx.createGain();
+        fxPhaserLfoGain = ctx.createGain();
+        fxPhaserStages = [420, 690, 1120, 1780].map((frequency) => {
+          const stage = ctx.createBiquadFilter();
+          stage.type = "allpass";
+          stage.frequency.value = frequency;
+          stage.Q.value = 1.2;
+          return stage;
+        });
+
+        fxLowpass.type = "lowpass";
+        fxHighpass.type = "highpass";
+        fxDelayFilter.type = "lowpass";
+        fxDelayFilter.frequency.value = 2600;
+        fxDelayFeedback.gain.value = 0.36;
+        fxDelayWet.gain.value = 0;
+        fxDry.gain.value = 1;
+        fxPhaserDry.gain.value = 1;
+        fxPhaserWet.gain.value = 0;
+
+        fxInput.connect(fxFilterDry).connect(fxFilterOut);
+        fxInput.connect(fxLowpass).connect(fxLowGain).connect(fxFilterOut);
+        fxInput.connect(fxHighpass).connect(fxHighGain).connect(fxFilterOut);
+        fxFilterOut.connect(fxPhaserDry).connect(fxPhaserOut);
+        fxFilterOut.connect(fxPhaserStages[0]);
+        fxPhaserStages.forEach((stage, index) => {
+          if (index < fxPhaserStages.length - 1) {
+            stage.connect(fxPhaserStages[index + 1]);
+          } else {
+            stage.connect(fxPhaserWet).connect(fxPhaserOut);
+          }
+          fxPhaserLfoGain.connect(stage.frequency);
+        });
+        fxPhaserOsc = ctx.createOscillator();
+        fxPhaserOsc.type = "sine";
+        fxPhaserOsc.frequency.value = 0.28;
+        fxPhaserLfoGain.gain.value = 0;
+        fxPhaserOsc.connect(fxPhaserLfoGain);
+        fxPhaserOsc.start();
+        fxPhaserOut.connect(fxDry);
+        fxPhaserOut.connect(fxDelay);
+        fxDelay.connect(fxDelayFilter).connect(fxDelayFeedback).connect(fxDelay);
+        fxDelay.connect(fxDelayWet);
+        connectFxOutput(fxDry);
+        connectFxOutput(fxDelayWet);
+        applyFxNeutral(true);
+
         const nl = ctx.sampleRate * 0.5;
         noiseBuf = ctx.createBuffer(1, nl, ctx.sampleRate);
         const nd = noiseBuf.getChannelData(0);
@@ -2030,6 +2505,170 @@
       function resumeAudio() {
         initAudio();
         if (ctx && ctx.state === "suspended") ctx.resume();
+      }
+
+      function connectFxOutput(node) {
+        node.connect(master);
+        node.connect(master._conv);
+      }
+
+      function connectToFx(node) {
+        if (fxInput) {
+          node.connect(fxInput);
+        } else if (master) {
+          node.connect(master);
+          node.connect(master._conv);
+        }
+      }
+
+      function delaySecondsFromX(x) {
+        const barSeconds = (4 * beatMs()) / 1000;
+        return barSeconds / Math.pow(2, x * 5);
+      }
+
+      function delaySecondsFromValue(value) {
+        const barSeconds = (4 * beatMs()) / 1000;
+        return barSeconds / Math.pow(2, value * 5);
+      }
+
+      function setAudioParam(param, value, ramp = 0.035) {
+        if (!ctx || !param) return;
+        const now = ctx.currentTime;
+        param.cancelScheduledValues(now);
+        param.setTargetAtTime(value, now, ramp);
+      }
+
+      function neutralFilter(ramp) {
+        if (!ctx || !fxInput) return;
+        setAudioParam(fxFilterDry.gain, 1, ramp);
+        setAudioParam(fxLowGain.gain, 0, ramp);
+        setAudioParam(fxHighGain.gain, 0, ramp);
+        setAudioParam(fxLowpass.frequency, 20000, ramp);
+        setAudioParam(fxHighpass.frequency, 22, ramp);
+      }
+
+      function neutralDelay(ramp) {
+        if (!ctx || !fxInput) return;
+        setAudioParam(fxDelay.delayTime, delaySecondsFromValue(0.5), ramp);
+        setAudioParam(fxDelayFeedback.gain, 0.22, Math.max(ramp, 0.22));
+        setAudioParam(fxDelayWet.gain, 0, Math.max(ramp, 0.55));
+      }
+
+      function neutralPhaser(ramp) {
+        if (!ctx || !fxInput) return;
+        setAudioParam(fxPhaserDry.gain, 1, ramp);
+        setAudioParam(fxPhaserWet.gain, 0, ramp);
+        setAudioParam(fxPhaserLfoGain.gain, 0, ramp);
+        setAudioParam(fxPhaserOsc.frequency, 0.28, ramp);
+        fxPhaserStages.forEach((stage, index) => {
+          setAudioParam(stage.frequency, [420, 690, 1120, 1780][index], ramp);
+          setAudioParam(stage.Q, 1.2, ramp);
+        });
+      }
+
+      function applyFilterValue(value, active) {
+        const lowAmount = Math.max(0, (0.5 - value) * 2);
+        const highAmount = Math.max(0, (value - 0.5) * 2);
+        const filterAmount = Math.max(highAmount, lowAmount);
+        const dryAmount = 1 - filterAmount;
+        const lowFreq = 20000 * Math.pow(180 / 20000, lowAmount);
+        const highFreq = 22 * Math.pow(3200 / 22, highAmount);
+        const ramp = active ? 0.035 : 0.08;
+        setAudioParam(fxFilterDry.gain, dryAmount, ramp);
+        setAudioParam(fxLowGain.gain, lowAmount, ramp);
+        setAudioParam(fxHighGain.gain, highAmount, ramp);
+        setAudioParam(fxLowpass.frequency, lowFreq, ramp);
+        setAudioParam(fxHighpass.frequency, highFreq, ramp);
+      }
+
+      function applyDelayValue(value, active) {
+        setAudioParam(fxDelay.delayTime, delaySecondsFromValue(value), active ? 0.012 : 0.055);
+        setAudioParam(fxDelayFeedback.gain, active ? 0.42 : 0.28, active ? 0.04 : 0.22);
+        setAudioParam(fxDelayWet.gain, active ? 0.32 : 0, active ? 0.035 : 0.55);
+      }
+
+      function applyPhaserValue(value, active) {
+        const ramp = active ? 0.035 : 0.12;
+        const shaped = Math.pow(value, 0.85);
+        const rate = 0.08 + shaped * 2.1;
+        const depth = 120 + shaped * 980;
+        const wet = 0.18 + shaped * 0.5;
+        setAudioParam(fxPhaserDry.gain, 0.9 - shaped * 0.2, ramp);
+        setAudioParam(fxPhaserWet.gain, wet, ramp);
+        setAudioParam(fxPhaserLfoGain.gain, depth, ramp);
+        setAudioParam(fxPhaserOsc.frequency, rate, ramp);
+        fxPhaserStages.forEach((stage, index) => {
+          const base = [360, 620, 980, 1480][index] * (0.85 + shaped * 0.45);
+          setAudioParam(stage.frequency, base, ramp);
+          setAudioParam(stage.Q, 0.9 + shaped * 5.2, ramp);
+        });
+      }
+
+      const EFFECT_BANK = [
+        {
+          id: "filter",
+          label: "FILTER",
+          ranges: {
+            x: { min: "Lowpass", max: "Highpass" },
+            y: { min: "Lowpass", max: "Highpass" },
+          },
+          apply: applyFilterValue,
+          neutral: neutralFilter,
+        },
+        {
+          id: "delay",
+          label: "DELAY",
+          ranges: {
+            x: { min: "1 bar", max: "1/32" },
+            y: { min: "1 bar", max: "1/32" },
+          },
+          apply: applyDelayValue,
+          neutral: neutralDelay,
+        },
+        {
+          id: "phaser",
+          label: "PHASER",
+          ranges: {
+            x: { min: "Slow", max: "Fast" },
+            y: { min: "Slow", max: "Fast" },
+          },
+          apply: applyPhaserValue,
+          neutral: neutralPhaser,
+        },
+      ];
+
+      function effectById(id) {
+        return EFFECT_BANK.find((effect) => effect.id === id) || EFFECT_BANK[0];
+      }
+
+      function axisValue(axis, x, y) {
+        return axis === "x" ? x : 1 - y;
+      }
+
+      function neutralAllEffects(ramp) {
+        EFFECT_BANK.forEach((effect) => effect.neutral(ramp));
+      }
+
+      function assignedEffectIds() {
+        return new Set(Object.values(runtime.fxAssignments));
+      }
+
+      function applyFxPosition(x, y, active) {
+        if (!ctx || !fxInput) return;
+        const assigned = assignedEffectIds();
+        EFFECT_BANK.forEach((effect) => {
+          if (!assigned.has(effect.id)) effect.neutral(active ? 0.04 : 0.08);
+        });
+        Object.entries(runtime.fxAssignments).forEach(([axis, effectId]) => {
+          effectById(effectId).apply(axisValue(axis, x, y), active);
+        });
+      }
+
+      function applyFxNeutral(immediate) {
+        runtime.fxX = 0.5;
+        runtime.fxY = 0.5;
+        if (!ctx || !fxInput) return;
+        neutralAllEffects(immediate ? 0.001 : 0.08);
       }
 
       function noteFreq(m) {
@@ -2043,8 +2682,7 @@
       }
 
       function snd(node) {
-        node.connect(master);
-        node.connect(master._conv);
+        connectToFx(node);
       }
 
       function playClick(accent) {
@@ -2099,8 +2737,7 @@
         const g = ctx.createGain();
         g.gain.value = 1;
         src.connect(g);
-        g.connect(master);
-        g.connect(master._conv);
+        connectToFx(g);
         src.start(t);
 
         if (group) {
@@ -2467,6 +3104,244 @@
         skinEl.style.backgroundImage = 'url("' + skinURI(skin.seed) + '")';
       }
 
+      function axisUi(axis) {
+        return axis === "x"
+          ? { button: xAxisBtn, menu: xAxisMenu, min: xAxisMin, max: xAxisMax }
+          : { button: yAxisBtn, menu: yAxisMenu, min: yAxisMin, max: yAxisMax };
+      }
+
+      function otherAxis(axis) {
+        return axis === "x" ? "y" : "x";
+      }
+
+      function closeAxisMenus() {
+        [xAxisBtn, yAxisBtn].forEach((button) => {
+          button.setAttribute("aria-expanded", "false");
+        });
+        [xAxisMenu, yAxisMenu].forEach((menu) => {
+          menu.hidden = true;
+        });
+      }
+
+      function renderAxisMenu(axis) {
+        const ui = axisUi(axis);
+        ui.menu.innerHTML = "";
+        EFFECT_BANK.forEach((effect) => {
+          const option = document.createElement("button");
+          option.type = "button";
+          option.className = "axis-option";
+          option.textContent = effect.label;
+          option.disabled = effect.id === runtime.fxAssignments[otherAxis(axis)];
+          option.classList.toggle(
+            "is-selected",
+            effect.id === runtime.fxAssignments[axis],
+          );
+          option.addEventListener("click", (event) => {
+            event.stopPropagation();
+            if (!option.disabled) setAxisEffect(axis, effect.id);
+          });
+          ui.menu.appendChild(option);
+        });
+      }
+
+      function updateAxisLabels() {
+        ["x", "y"].forEach((axis) => {
+          const ui = axisUi(axis);
+          const effect = effectById(runtime.fxAssignments[axis]);
+          ui.button.textContent = axis.toUpperCase() + ": " + effect.label;
+          ui.min.textContent = effect.ranges[axis].min;
+          ui.max.textContent = effect.ranges[axis].max;
+        });
+        renderAxisMenu("x");
+        renderAxisMenu("y");
+      }
+
+      function setAxisEffect(axis, effectId) {
+        if (runtime.fxAssignments[otherAxis(axis)] === effectId) return;
+        runtime.fxAssignments[axis] = effectId;
+        updateAxisLabels();
+        closeAxisMenus();
+        if (runtime.fxTouching) {
+          applyFxPosition(runtime.fxX, runtime.fxY, true);
+        } else {
+          applyFxNeutral(false);
+        }
+      }
+
+      function toggleAxisMenu(axis) {
+        const ui = axisUi(axis);
+        const open = ui.menu.hidden;
+        closeAxisMenus();
+        if (open) {
+          renderAxisMenu(axis);
+          ui.menu.hidden = false;
+          ui.button.setAttribute("aria-expanded", "true");
+        }
+      }
+
+      function setViewMode(mode) {
+        runtime.viewMode = mode;
+        const isFx = mode === "fx";
+        deviceUiEl.dataset.mode = mode;
+        padsPage.hidden = isFx;
+        fxPage.hidden = !isFx;
+        padsModeBtn.classList.toggle("is-active", !isFx);
+        fxModeBtn.classList.toggle("is-active", isFx);
+        padsModeBtn.setAttribute("aria-selected", String(!isFx));
+        fxModeBtn.setAttribute("aria-selected", String(isFx));
+        if (!isFx) {
+          stopStutter();
+          releaseXyPad();
+        }
+      }
+
+      function updateXyCursor(x, y, touching) {
+        xyCursor.style.left = x * 100 + "%";
+        xyCursor.style.top = y * 100 + "%";
+        xyPad.classList.toggle("is-touching", touching);
+      }
+
+      function setXyFromEvent(event) {
+        const rect = xyPad.getBoundingClientRect();
+        const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+        const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+        runtime.fxX = x;
+        runtime.fxY = y;
+        updateXyCursor(x, y, true);
+        resumeAudio();
+        applyFxPosition(x, y, true);
+      }
+
+      function releaseXyPad() {
+        runtime.fxTouching = false;
+        runtime.xyPointerId = null;
+        updateXyCursor(0.5, 0.5, false);
+        applyFxNeutral(false);
+      }
+
+      function stutterIntervalMs() {
+        return beatMs() / 4;
+      }
+
+      function playbackPositionAt(now) {
+        const total = fixedLoopLength();
+        if (!total) return 0;
+        if (runtime.mode === "playing") {
+          return wrapLoopTime(now - runtime.playStart, total);
+        }
+        return wrapLoopTime(runtime.lastProgress || 0, total);
+      }
+
+      function nearestSliceStart(pos, targetLength) {
+        if (!loop.events.length || targetLength <= 0) return pos;
+        const times = loop.events.map(([i, t]) =>
+          loop.length > 0 ? (t / loop.length) * targetLength : t,
+        );
+        let best = times[0];
+        let bestDistance = targetLength;
+        times.forEach((t) => {
+          const behind = wrapLoopTime(pos - t, targetLength);
+          if (behind < bestDistance) {
+            bestDistance = behind;
+            best = t;
+          }
+        });
+        return best;
+      }
+
+      function fireLoopSlice(start, length, targetLength) {
+        if (!loop.events.length || targetLength <= 0) return;
+        loop.events.forEach(([i, t]) => {
+          const scaled = loop.length > 0 ? (t / loop.length) * targetLength : t;
+          const offset = wrapLoopTime(scaled - start, targetLength);
+          if (offset <= length + 0.0001) hit(i, true);
+        });
+      }
+
+      function startStutter() {
+        resumeAudio();
+        if (!loop.events.length) {
+          lcdMessage.textContent = "RECORD A LOOP FIRST";
+          return;
+        }
+        if (runtime.mode === "idle") {
+          startLoop();
+        }
+        if (runtime.mode !== "playing") return;
+        const now = performance.now();
+        const total = fixedLoopLength();
+        runtime.stutterActive = true;
+        runtime.stutterStartTime = now;
+        runtime.stutterLastTick = -1;
+        runtime.stutterSliceStart = nearestSliceStart(playbackPositionAt(now), total);
+        stutterBtn.classList.add("is-held");
+        stutterBtn.setAttribute("aria-pressed", "true");
+      }
+
+      function stopStutter() {
+        runtime.stutterActive = false;
+        runtime.stutterLastTick = -1;
+        runtime.stutterPointerId = null;
+        stutterBtn.classList.remove("is-held");
+        stutterBtn.setAttribute("aria-pressed", "false");
+      }
+
+      function runStutterFrame(now, targetLength) {
+        const interval = stutterIntervalMs();
+        const tick = Math.floor((now - runtime.stutterStartTime) / interval);
+        if (tick === runtime.stutterLastTick) return;
+        runtime.stutterLastTick = tick;
+        fireLoopSlice(runtime.stutterSliceStart, interval, targetLength);
+      }
+
+      padsModeBtn.addEventListener("click", () => setViewMode("pads"));
+      fxModeBtn.addEventListener("click", () => setViewMode("fx"));
+      xAxisBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        toggleAxisMenu("x");
+      });
+      yAxisBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        toggleAxisMenu("y");
+      });
+      [xAxisMenu, yAxisMenu].forEach((menu) => {
+        menu.addEventListener("click", (event) => event.stopPropagation());
+      });
+      document.addEventListener("click", closeAxisMenus);
+
+      xyPad.addEventListener("pointerdown", (event) => {
+        if (event.target.closest(".axis-picker")) return;
+        event.preventDefault();
+        runtime.fxTouching = true;
+        runtime.xyPointerId = event.pointerId;
+        xyPad.setPointerCapture(event.pointerId);
+        setXyFromEvent(event);
+      });
+
+      xyPad.addEventListener("pointermove", (event) => {
+        if (!runtime.fxTouching || runtime.xyPointerId !== event.pointerId) return;
+        event.preventDefault();
+        setXyFromEvent(event);
+      });
+
+      xyPad.addEventListener("pointerup", (event) => {
+        if (runtime.xyPointerId !== event.pointerId) return;
+        releaseXyPad();
+      });
+
+      xyPad.addEventListener("pointercancel", releaseXyPad);
+
+      stutterBtn.setAttribute("aria-pressed", "false");
+      stutterBtn.addEventListener("pointerdown", (event) => {
+        event.preventDefault();
+        runtime.stutterPointerId = event.pointerId;
+        stutterBtn.setPointerCapture(event.pointerId);
+        startStutter();
+      });
+      stutterBtn.addEventListener("pointerup", stopStutter);
+      stutterBtn.addEventListener("pointercancel", stopStutter);
+      stutterBtn.addEventListener("lostpointercapture", stopStutter);
+
       // ---------- pads ----------
       // Track active touches to prevent double-fire
       const activeTouches = new Map(); // touch identifier -> pad index
@@ -2602,6 +3477,7 @@
 
       function stopTransport() {
         clearFrame();
+        stopStutter();
         runtime.mode = "idle";
         runtime.lastBeat = -1;
         runtime.lastProgress = 0;
@@ -2739,7 +3615,11 @@
           runtime.lastProgress = 0;
         }
 
-        fireLoopWindow(runtime.lastProgress, pos, targetLength);
+        if (runtime.stutterActive) {
+          runStutterFrame(now, targetLength);
+        } else {
+          fireLoopWindow(runtime.lastProgress, pos, targetLength);
+        }
         runtime.lastProgress = pos;
         renderStepReadout(pos, targetLength);
       }
@@ -2989,6 +3869,9 @@
       }
 
       applySkin();
+      updateAxisLabels();
+      updateXyCursor(0.5, 0.5, false);
+      setViewMode("pads");
       renderPads();
       loadKit();
       updateButtons();
