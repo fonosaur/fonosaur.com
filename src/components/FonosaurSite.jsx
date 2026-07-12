@@ -283,7 +283,6 @@ function Warp({ trigger, color, reduced, imagePool = [] }) {
           y: lane.y + Math.random() * 8 - 4,
           rot: Math.random() * 18 - 9,
           size: (isSmall ? 92 : 128) + Math.random() * (isSmall ? 58 : 96),
-          aspect: Math.random() > 0.35 ? "4 / 3" : "3 / 4",
           delay: Math.random() * 0.42,
         };
       }),
@@ -329,18 +328,19 @@ function Warp({ trigger, color, reduced, imagePool = [] }) {
               <div
                 style={{
                   width: gl.size,
-                  aspectRatio: gl.aspect,
+                  aspectRatio: "1 / 1",
                   backgroundImage: `linear-gradient(180deg, rgba(10,10,12,0.04), rgba(10,10,12,0.28)), url("${gl.src}")`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
+                  borderRadius: "50%",
                   boxShadow:
-                    "0 24px 70px rgba(0,0,0,0.45), 0 0 34px rgba(255,255,255,0.06)",
+                    "0 24px 70px rgba(0,0,0,0.36), 0 0 48px rgba(255,255,255,0.08)",
                   overflow: "hidden",
                   boxSizing: "border-box",
                   WebkitMaskImage:
-                    "radial-gradient(ellipse at center, #000 38%, rgba(0,0,0,0.62) 62%, transparent 100%)",
+                    "radial-gradient(circle at center, #000 0 26%, rgba(0,0,0,0.82) 42%, rgba(0,0,0,0.32) 62%, transparent 80%)",
                   maskImage:
-                    "radial-gradient(ellipse at center, #000 38%, rgba(0,0,0,0.62) 62%, transparent 100%)",
+                    "radial-gradient(circle at center, #000 0 26%, rgba(0,0,0,0.82) 42%, rgba(0,0,0,0.32) 62%, transparent 80%)",
                   mixBlendMode: "screen",
                   willChange: "opacity, transform, filter",
                   animation: `glimpse 1.5s ease ${gl.delay}s both`,
