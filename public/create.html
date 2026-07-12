@@ -483,8 +483,12 @@
         background: transparent;
         color: var(--lcd-ink);
         font-family: var(--lcd-text-font);
-        font-size: 18px;
+        font-size: 16px;
         line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
       }
 
       .lcd-stepper span {
@@ -2579,7 +2583,8 @@
 
       function beginRecording(now) {
         runtime.mode = "recording";
-        runtime.recordStart = now;
+        // Use the exact mathematical start time, not the frame time
+        runtime.recordStart = runtime.countInStart + COUNT_IN_BEATS * beatMs();
         runtime.lastBeat = -1;
         runtime.lastProgress = 0;
         hideCountdown();
@@ -2667,7 +2672,8 @@
         runtime.lastProgress = clampedElapsed;
         renderStepReadout(clampedElapsed, total);
 
-        if (elapsed >= total) finishRecording();
+        // Grace window: allow ~30ms past end so last-beat hits register
+        if (elapsed >= total + 30) finishRecording();
       }
 
       function runPlaybackFrame(now) {
