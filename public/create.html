@@ -228,8 +228,8 @@
         inset: 0;
         background-size: cover;
         background-position: center;
-        opacity: 0.55;
-        filter: saturate(1) brightness(0.85);
+        opacity: var(--skin-opacity, 0.55);
+        filter: saturate(var(--skin-saturation, 1)) brightness(var(--skin-brightness, 0.85));
       }
 
       .skinveil {
@@ -242,6 +242,22 @@
             rgba(255, 255, 255, 0.03),
             transparent 42%
           );
+      }
+
+      .device.has-print-skin .skin {
+        opacity: 0.68;
+        filter: saturate(1.04) brightness(0.92) contrast(1);
+      }
+
+      .device.has-print-skin .skinveil {
+        background:
+          linear-gradient(180deg, rgba(9, 9, 11, 0.34), rgba(9, 9, 11, 0.54)),
+          radial-gradient(
+            circle at 50% 18%,
+            rgba(255, 255, 255, 0.055),
+            transparent 38%
+          ),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.08), transparent 28%, transparent 72%, rgba(0, 0, 0, 0.1));
       }
 
       .device-ui {
@@ -1931,9 +1947,9 @@
 
       const SKINS = [
         { kind: "plain" },
-        { kind: "seed", seed: 70141 },
-        { kind: "seed", seed: 930277 },
-        { kind: "seed", seed: 514088 },
+        { kind: "image", src: "/skins/skin_1.png" },
+        { kind: "image", src: "/skins/skin_2.png" },
+        { kind: "image", src: "/skins/skin_3.png" },
       ];
       const SHARE_MESSAGE = "This loop was made at fonosaur.com";
 
@@ -2436,9 +2452,15 @@
 
       function applySkin() {
         const skin = SKINS[skinIdx] || SKINS[0];
+        deviceEl.classList.toggle("has-print-skin", skin?.kind === "image");
         if (!skin || skin.kind === "plain") {
           skinEl.style.backgroundImage = "none";
           skinEl.style.opacity = "0";
+          return;
+        }
+        if (skin.kind === "image") {
+          skinEl.style.opacity = "";
+          skinEl.style.backgroundImage = 'url("' + skin.src + '")';
           return;
         }
         skinEl.style.opacity = "0.55";
