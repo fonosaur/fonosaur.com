@@ -161,6 +161,12 @@
         max-width: 34rem;
       }
 
+      .share-copy a {
+        color: var(--text);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(232, 232, 234, 0.26);
+      }
+
       .share-explore {
         display: inline-flex;
         align-items: center;
@@ -1231,13 +1237,15 @@
       <section class="share-intro" id="shareIntro" hidden>
         <a
           class="share-brand"
-          href="/#hub"
+          href="/"
           aria-label="Go to the FONOSAUR world"
         >
           <span class="fono">FONO</span><span class="saur">SAUR</span>
         </a>
-        <p class="share-copy">This loop was made at fonosaur.com</p>
-        <a class="share-explore" href="/#hub">Make your own &#9656;</a>
+        <p class="share-copy">
+          This loop was made at <a href="/">fonosaur.com</a>
+        </p>
+        <a class="share-explore" href="/">Make your own &#9656;</a>
       </section>
       <div class="device">
         <div class="skin" id="skin"></div>
@@ -1315,26 +1323,11 @@
                 <div class="lcd-bars" id="lcdBars">
                   <span class="lcd-number">4</span> BARS
                   <span class="lcd-divider">&middot;</span>
-                  <span class="lcd-number">90</span> BPM
+                  <span class="lcd-number">105</span> BPM
                 </div>
-                <div class="lcd-stepper">
-                  <button
-                    id="bpmDown"
-                    type="button"
-                    aria-label="Decrease tempo"
-                    title="Decrease tempo"
-                  >
-                    -
-                  </button>
-                  <span class="lcd-number" id="bpmTxt">90</span>
-                  <button
-                    id="bpmUp"
-                    type="button"
-                    aria-label="Increase tempo"
-                    title="Increase tempo"
-                  >
-                    +
-                  </button>
+                <div class="lcd-stepper" aria-label="Tempo locked at 105 BPM">
+                  <span class="lcd-number" id="bpmTxt">105</span>
+                  <span>BPM</span>
                 </div>
               </div>
 
@@ -1587,10 +1580,12 @@
       const COUNT_IN_BEATS = 4;
       const QUANTIZE_STEPS = LOOP_BARS * 16;
       const QUANTIZE_BLEND = 0.92;
+      const FIXED_BPM = 105;
+      const LOOP_BOUNDARY_GRACE_MS = 45;
 
       let seed = 0;
       let kit = [];
-      let bpm = 105;
+      let bpm = FIXED_BPM;
       let skinIdx = 0;
       let metronomeOn = true;
       let quantizeOn = true;
@@ -1958,8 +1953,6 @@
       const metroBtn = document.getElementById("metroBtn");
       const quantBtn = document.getElementById("quantBtn");
       const bpmTxt = document.getElementById("bpmTxt");
-      const bpmDown = document.getElementById("bpmDown");
-      const bpmUp = document.getElementById("bpmUp");
       const playBtn = document.getElementById("playBtn");
       const playIcon = document.getElementById("playIcon");
       const playLabel = document.getElementById("playLabel");
@@ -2107,6 +2100,12 @@
         return LOOP_BARS * 4 * beatMs();
       }
 
+      function wrapLoopTime(t, targetLength) {
+        if (!targetLength || targetLength <= 0) return 0;
+        const wrapped = ((t % targetLength) + targetLength) % targetLength;
+        return wrapped >= targetLength - 0.0001 ? 0 : wrapped;
+      }
+
       function syncLoopEvents() {
         loop.events = [];
         loop.layers.forEach((layer) => {
@@ -2119,7 +2118,7 @@
 
       function normalizeLayer(events, targetLength) {
         return events
-          .map(([i, t]) => [i, Math.max(0, Math.min(t, targetLength - 1))])
+          .map(([i, t]) => [i, wrapLoopTime(t, targetLength)])
           .sort((a, b) => a[1] - b[1]);
       }
 
@@ -2129,7 +2128,11 @@
         const step = targetLength / QUANTIZE_STEPS;
         return normalizeLayer(
           normalized.map(([i, t]) => {
-            const nearest = Math.round(t / step) * step;
+            const nearestStep = Math.round(t / step);
+            if (nearestStep <= 0 || nearestStep >= QUANTIZE_STEPS) {
+              return [i, 0];
+            }
+            const nearest = nearestStep * step;
             return [i, t + (nearest - t) * QUANTIZE_BLEND];
           }),
           targetLength,
@@ -2275,6 +2278,13 @@
         }
       }
 
+      function standaloneShareUrl(encodedLoop) {
+        const url = new URL(location.href);
+        url.search = "";
+        url.hash = encodedLoop;
+        return url.href;
+      }
+
       function updateBarsReadout() {
         bpmTxt.textContent = String(bpm);
         lcdBars.innerHTML =
@@ -2408,19 +2418,6 @@
         skinEl.style.backgroundImage = 'url("' + skinURI(skin.seed) + '")';
       }
 
-      function setBpm(next) {
-        const clamped = Math.max(60, Math.min(160, next));
-        if (clamped === bpm) return;
-        bpm = clamped;
-        if (loop.events.length) {
-          retimeLoop(fixedLoopLength());
-        } else {
-          loop.length = fixedLoopLength();
-        }
-        if (runtime.mode !== "idle") stopTransport();
-        updateDisplay();
-      }
-
       // ---------- pads ----------
       // Track active touches to prevent double-fire
       const activeTouches = new Map(); // touch identifier -> pad index
@@ -2515,20 +2512,25 @@
 
       function hit(i, fromLoop) {
         resumeAudio();
+        const now = performance.now();
         const k = kit[i];
         play(k.file, i);
         flash(i);
-        if (runtime.mode === "recording" && !fromLoop) {
-          runtime.recordLayer.events.push([
-            i,
-            Math.max(
-              0,
-              Math.min(
-                performance.now() - runtime.recordStart,
-                fixedLoopLength() - 1,
-              ),
-            ),
-          ]);
+        if (!fromLoop && runtime.recordLayer) {
+          const total = fixedLoopLength();
+          let eventTime = null;
+          if (runtime.mode === "recording") {
+            eventTime = now - runtime.recordStart;
+          } else if (runtime.mode === "countin") {
+            const scheduledStart =
+              runtime.countInStart + COUNT_IN_BEATS * beatMs();
+            if (now >= scheduledStart - LOOP_BOUNDARY_GRACE_MS) {
+              eventTime = now - scheduledStart;
+            }
+          }
+          if (eventTime !== null) {
+            runtime.recordLayer.events.push([i, wrapLoopTime(eventTime, total)]);
+          }
         }
       }
 
@@ -2672,8 +2674,7 @@
         runtime.lastProgress = clampedElapsed;
         renderStepReadout(clampedElapsed, total);
 
-        // Grace window: allow ~30ms past end so last-beat hits register
-        if (elapsed >= total + 30) finishRecording();
+        if (elapsed >= total + LOOP_BOUNDARY_GRACE_MS) finishRecording();
       }
 
       function runPlaybackFrame(now) {
@@ -2756,7 +2757,7 @@
           const parts = raw.split(".");
           if (parts[0] !== "f4") return false;
           seed = parseInt(parts[1], 36) >>> 0;
-          bpm = Math.max(60, Math.min(160, parseInt(parts[2], 36) || 105));
+          bpm = FIXED_BPM;
           skinIdx = Math.max(
             0,
             Math.min(SKINS.length - 1, parseInt(parts[3], 36) || 0),
@@ -2821,9 +2822,6 @@
         updateDisplay();
       });
 
-      bpmDown.addEventListener("click", () => setBpm(bpm - 1));
-      bpmUp.addEventListener("click", () => setBpm(bpm + 1));
-
       playBtn.addEventListener("click", () => {
         if (runtime.mode === "playing") {
           stopTransport();
@@ -2867,8 +2865,9 @@
       });
 
       shareBtn.addEventListener("click", async () => {
-        location.hash = encode();
-        const url = location.href;
+        const encodedLoop = encode();
+        location.hash = encodedLoop;
+        const url = standaloneShareUrl(encodedLoop);
         await shareCurrentLink(url);
       });
 

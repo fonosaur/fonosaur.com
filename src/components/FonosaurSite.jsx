@@ -519,7 +519,18 @@ function Listen({ isMobile = false }) {
           Next release
         </div>
         <div style={{ fontSize: 14, color: C.sub, lineHeight: 1.6 }}>
-          New music is on the way. Join the list for first word.
+          New music is on the way.{" "}
+          <a
+            href="#follow"
+            style={{
+              color: C.text,
+              textDecoration: "none",
+              borderBottom: "1px solid rgba(232,232,234,0.28)",
+            }}
+          >
+            Join the list
+          </a>{" "}
+          to hear it first.
         </div>
       </div>
     </div>
@@ -556,8 +567,7 @@ function Explore({ notes = [] }) {
           maxWidth: "min(100%, 28rem)",
         }}
       >
-        Bits and pieces from the studio and beyond. Photos, recordings, ideas
-        and the occasional rediscovery.
+        Things I've made, found or rediscovered.
       </p>
       <div
         style={{
@@ -853,25 +863,13 @@ function Follow({ isMobile = false }) {
         textAlign: "center",
       }}
     >
-      <h2
-        style={{
-          fontFamily: "'Unbounded', sans-serif",
-          fontWeight: 200,
-          fontSize: "clamp(26px,7.5vw,40px)",
-          margin: "0 0 14px",
-          lineHeight: 1.1,
-        }}
-      >
-        Join the list
-      </h2>
       <p
         style={{
           color: C.sub,
           fontSize: 15,
           lineHeight: 1.6,
-          marginBottom: 26,
+          margin: "0 auto 26px",
           maxWidth: isMobile ? 360 : 560,
-          marginInline: "auto",
         }}
       >
         I'll share new music, field notes and the occasional update.
@@ -882,13 +880,13 @@ function Follow({ isMobile = false }) {
         target="_blank"
         style={{
           display: "flex",
-          flexDirection: isMobile ? "column" : "row",
-          flexWrap: "wrap",
+          flexDirection: "column",
+          flexWrap: "nowrap",
           alignItems: "stretch",
           gap: 8,
+          width: "min(100%, 440px)",
           maxWidth: 440,
           margin: "0 auto",
-          justifyContent: "center",
         }}
       >
         <input
@@ -899,7 +897,7 @@ function Follow({ isMobile = false }) {
           aria-label="Email address"
           autoComplete="email"
           style={{
-            flex: isMobile ? "none" : "1 1 240px",
+            flex: "none",
             minWidth: 0,
             background: C.panel,
             border: `1px solid ${C.line}`,
@@ -908,7 +906,7 @@ function Follow({ isMobile = false }) {
             color: C.text,
             fontSize: 15,
             outline: "none",
-            width: isMobile ? "100%" : "auto",
+            width: "100%",
             boxSizing: "border-box",
           }}
         />
@@ -928,7 +926,7 @@ function Follow({ isMobile = false }) {
             fontSize: 15,
             fontWeight: 700,
             cursor: "pointer",
-            width: isMobile ? "100%" : "auto",
+            width: "100%",
           }}
         >
           <Mail size={16} /> Join the list
