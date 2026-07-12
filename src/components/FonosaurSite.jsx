@@ -892,7 +892,7 @@ function Follow({ isMobile = false }) {
         <input
           type="email"
           name="email"
-          placeholder="you@email.com"
+          placeholder="Enter your email"
           required
           aria-label="Email address"
           autoComplete="email"
