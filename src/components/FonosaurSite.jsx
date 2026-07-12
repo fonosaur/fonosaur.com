@@ -215,7 +215,7 @@ function Warp({ trigger, color, reduced, imagePool = [] }) {
     const stars = Array.from({ length: 120 }, () => ({
       ang: Math.random() * 6.283,
       dist: Math.random() * 26,
-      speed: Math.random() * 5.5 + 2,
+      speed: Math.random() * 4.2 + 1.55,
     }));
     const DUR = 1250;
     const start = performance.now();
@@ -226,18 +226,18 @@ function Warp({ trigger, color, reduced, imagePool = [] }) {
         ctx.clearRect(0, 0, w, h);
         return;
       }
-      ctx.fillStyle = "rgba(10,10,12,0.16)";
+      ctx.fillStyle = "rgba(10,10,12,0.11)";
       ctx.fillRect(0, 0, w, h);
       const fade = t < 0.16 ? t / 0.16 : 1 - (t - 0.16) / 0.84;
-      ctx.globalAlpha = Math.max(0, fade) * 0.2;
+      ctx.globalAlpha = Math.max(0, fade) * 0.14;
       ctx.strokeStyle = color;
       ctx.lineCap = "round";
       for (const s of stars) {
-        s.dist += s.speed * (1 + t * 5.5);
+        s.dist += s.speed * (1 + t * 4.2);
         const c = Math.cos(s.ang),
           si = Math.sin(s.ang);
-        const trail = s.speed * (5 + t * 46);
-        ctx.lineWidth = 0.5 + t * 1.3;
+        const trail = s.speed * (4 + t * 38);
+        ctx.lineWidth = 0.42 + t * 1.0;
         ctx.beginPath();
         ctx.moveTo(cx + c * (s.dist - trail), cy + si * (s.dist - trail));
         ctx.lineTo(cx + c * s.dist, cy + si * s.dist);
