@@ -1618,7 +1618,7 @@
         return buf;
       }
       function soundURL(path) {
-        return "/sounds/" + path.replace(/#/g, "%23") + ".mp3";
+        return "/sounds/" + path.replace(/#/g, "s") + ".mp3";
       }
       async function loadKit() {
         initAudio();
