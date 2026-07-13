@@ -717,7 +717,7 @@ function Create() {
           lineHeight: 1.05,
         }}
       >
-        Sampler
+        FS86 Sampler
       </h2>
       <p
         style={{
@@ -728,7 +728,7 @@ function Create() {
           maxWidth: "min(100%, 28rem)",
         }}
       >
-        Make something from sounds I've curated.
+        Make a beat from sounds I've curated.
       </p>
       <div
         style={{

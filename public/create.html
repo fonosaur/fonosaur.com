@@ -205,7 +205,7 @@
         position: relative;
         width: min(100%, var(--device-width, 520px));
         height: var(--device-height, auto);
-        max-width: 520px;
+        max-width: min(520px, calc(100vw - 8px));
         aspect-ratio: 0.73;
         flex-shrink: 0;
         border-radius: 28px;
@@ -377,6 +377,31 @@
             rgba(0, 0, 0, 0.12) 3px
           );
         pointer-events: none;
+      }
+
+      .lcd.is-mute-mode {
+        border-color: rgba(255, 167, 101, 0.58);
+        background:
+          repeating-linear-gradient(
+            180deg,
+            rgba(42, 23, 4, 0.24) 0,
+            rgba(42, 23, 4, 0.24) 1px,
+            transparent 1px,
+            transparent 3px
+          ),
+          radial-gradient(
+            circle at 50% 12%,
+            rgba(255, 169, 91, 0.16),
+            transparent 62%
+          ),
+          linear-gradient(180deg, #1b1005, #080503);
+        color: #ffd19a;
+        text-shadow: 0 0 9px rgba(255, 157, 80, 0.18);
+      }
+
+      .lcd.is-mute-mode .lcd-message {
+        font-size: clamp(12px, 3.8vw, 16px);
+        letter-spacing: 0.035em;
       }
 
       .lcd-top {
@@ -741,7 +766,27 @@
           var(--panel-2);
       }
 
-      .transport-btn.is-copied {
+      .transport-btn.is-mute {
+        border-color: rgba(255, 122, 92, 0.72);
+        color: #fff1eb;
+        background:
+          radial-gradient(
+            circle at top,
+            rgba(255, 142, 102, 0.2),
+            transparent 78%
+          ),
+          linear-gradient(
+            180deg,
+            rgba(96, 37, 24, 0.94),
+            rgba(24, 12, 10, 0.98)
+          );
+        box-shadow:
+          inset 0 1px 0 rgba(255, 236, 224, 0.08),
+          0 0 18px rgba(255, 91, 65, 0.18);
+      }
+
+      .transport-btn.is-copied,
+      .bottom-btn.is-copied {
         border-color: rgba(90, 255, 152, 0.78);
         color: #f7fff9;
         background:
@@ -1186,12 +1231,39 @@
         transition: opacity 0s;
       }
 
+      .pad.is-muted {
+        opacity: 0.48;
+        filter: saturate(0.48);
+      }
+
+      .pad.is-muted::after {
+        content: "MUTE";
+        position: absolute;
+        left: 50%;
+        top: 6px;
+        transform: translateX(-50%);
+        z-index: 2;
+        padding: 2px 5px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 137, 98, 0.34);
+        background: rgba(22, 8, 5, 0.78);
+        color: #ffb094;
+        font-family: "Space Mono", monospace;
+        font-size: 7px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+      }
+
+      .pad.is-muted .lab {
+        opacity: 0.42;
+      }
+
       .bottom-row {
         position: relative;
         z-index: 2;
         flex-shrink: 0;
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px;
         margin-top: 1px;
       }
@@ -1630,7 +1702,7 @@
           <span class="fono">FONO</span><span class="saur">SAUR</span>
         </a>
         <p class="share-copy">
-          This loop was made at <a href="/">fonosaur.com</a>
+          This beat was made at <a href="/">fonosaur.com</a>
         </p>
         <a class="share-explore" href="/">Make your own &#9656;</a>
       </section>
@@ -1802,13 +1874,14 @@
             </button>
             <button
               class="transport-btn"
-              id="shareBtn"
+              id="muteBtn"
               type="button"
-              aria-label="Copy share link"
-              title="Copy share link"
+              aria-label="Enter mute mode"
+              aria-pressed="false"
+              title="Mute pads"
             >
-              <span class="transport-icon">&#8599;</span>
-              <span id="shareLabel">SHARE</span>
+              <span class="transport-icon">&#9679;</span>
+              <span>MUTE</span>
             </button>
           </div>
 
@@ -1881,11 +1954,21 @@
           <div class="bottom-row">
             <button
               class="bottom-btn"
+              id="shareBtn"
+              type="button"
+              aria-label="Copy share link"
+              title="Copy share link"
+            >
+              <span class="transport-icon">&#8599;</span>
+              <span id="shareLabel">SHARE</span>
+            </button>
+            <button
+              class="bottom-btn"
               id="shuffle"
               type="button"
               aria-label="Shuffle sounds"
             >
-              Shuffle sounds
+              Shuffle
             </button>
             <button
               class="bottom-btn"
@@ -1893,7 +1976,7 @@
               type="button"
               aria-label="Change skin"
             >
-              Change skin
+              Skin
             </button>
           </div>
         </div>
@@ -2060,10 +2143,12 @@
       let skinIdx = 0;
       let metronomeOn = true;
       let quantizeOn = true;
+      const mutedPads = new Set();
 
       const loop = { events: [], length: 0, layers: [] };
       const runtime = {
         mode: "idle",
+        muteMode: false,
         rafId: 0,
         countInStart: 0,
         recordStart: 0,
@@ -2425,7 +2510,7 @@
         { kind: "image", src: "/skins/skin_2.png" },
         { kind: "image", src: "/skins/skin_3.png" },
       ];
-      const SHARE_MESSAGE = "This loop was made at fonosaur.com";
+      const SHARE_MESSAGE = "This beat was made at fonosaur.com";
 
       // ---------- DOM ----------
       const rootEl = document.documentElement;
@@ -2467,6 +2552,7 @@
       const recDot = document.getElementById("recDot");
       const clearBtn = document.getElementById("clearBtn");
       const undoBtn = document.getElementById("undoBtn");
+      const muteBtn = document.getElementById("muteBtn");
       const shareBtn = document.getElementById("shareBtn");
       const shareLabel = document.getElementById("shareLabel");
       const shuffleBtn = document.getElementById("shuffle");
@@ -3040,6 +3126,12 @@
       }
 
       function syncDeviceFrame() {
+        const viewportWidth =
+          (window.visualViewport && window.visualViewport.width) ||
+          window.innerWidth;
+        const viewportHeight =
+          (window.visualViewport && window.visualViewport.height) ||
+          window.innerHeight;
         const wrapStyle = getComputedStyle(wrapEl);
         const padY =
           parseFloat(wrapStyle.paddingTop || 0) +
@@ -3055,13 +3147,13 @@
         );
         const availableHeight = Math.max(
           392,
-          window.innerHeight - padY - extrasHeight - gap * siblings.length,
+          viewportHeight - padY - extrasHeight - gap * siblings.length,
         );
         const horizontalReserve =
-          window.innerWidth <= 360 ? 34 : window.innerWidth <= 420 ? 20 : 0;
+          viewportWidth <= 360 ? 10 : viewportWidth <= 420 ? 8 : 0;
         const availableWidth = Math.max(
           260,
-          wrapEl.clientWidth - horizontalReserve,
+          Math.min(wrapEl.clientWidth, viewportWidth) - horizontalReserve,
         );
         const widthFromHeight = availableHeight * DEVICE_RATIO;
         const targetWidth = Math.min(
@@ -3297,6 +3389,13 @@
         updateMetroButton();
         updateQuantButton();
         updateShareIntro();
+        lcdEl.classList.toggle("is-mute-mode", runtime.muteMode);
+
+        if (runtime.muteMode) {
+          lcdStatus.textContent = "MUTE";
+          lcdMessage.textContent = "MUTE MODE \u00b7 TAP PADS TO MUTE";
+          return;
+        }
 
         if (runtime.mode === "countin") {
           lcdStatus.textContent =
@@ -3335,6 +3434,16 @@
         playBtn.setAttribute("title", playing ? "Stop loop" : "Play loop");
         recDot.classList.toggle("is-live", live);
         undoBtn.disabled = loop.layers.length === 0 || live;
+        muteBtn.classList.toggle("is-mute", runtime.muteMode);
+        muteBtn.setAttribute("aria-pressed", String(runtime.muteMode));
+        muteBtn.setAttribute(
+          "aria-label",
+          runtime.muteMode ? "Exit mute mode" : "Enter mute mode",
+        );
+        muteBtn.setAttribute(
+          "title",
+          runtime.muteMode ? "Exit mute mode" : "Mute pads",
+        );
       }
 
       function applySkin() {
@@ -3621,7 +3730,9 @@
           d.type = "button";
           d.className = "pad";
           d.dataset.i = i;
+          d.classList.toggle("is-muted", mutedPads.has(i));
           d.setAttribute("aria-label", k.label + " pad, key " + k.key);
+          d.setAttribute("aria-pressed", String(mutedPads.has(i)));
           d.setAttribute("aria-keyshortcuts", k.key);
           d.innerHTML =
             '<span class="dot" style="background:' +
@@ -3650,6 +3761,29 @@
           });
           grid.appendChild(d);
         });
+      }
+
+      function updatePadMuteStates() {
+        Array.from(grid.children).forEach((pad, index) => {
+          const isMuted = mutedPads.has(index);
+          pad.classList.toggle("is-muted", isMuted);
+          pad.setAttribute("aria-pressed", String(isMuted));
+        });
+      }
+
+      function setMuteMode(active) {
+        runtime.muteMode = active;
+        updateButtons();
+        updateDisplay();
+      }
+
+      function togglePadMute(i) {
+        if (mutedPads.has(i)) {
+          mutedPads.delete(i);
+        } else {
+          mutedPads.add(i);
+        }
+        updatePadMuteStates();
       }
 
       // Multi-touch: handle touchstart on the grid (delegated)
@@ -3715,6 +3849,11 @@
 
       function hit(i, fromLoop, inputTime) {
         resumeAudio();
+        if (!fromLoop && runtime.muteMode) {
+          togglePadMute(i);
+          return;
+        }
+        if (mutedPads.has(i)) return;
         const now =
           !fromLoop && Number.isFinite(inputTime)
             ? inputTime
@@ -4088,6 +4227,12 @@
         runtime.loadedStandaloneShare = false;
         updateButtons();
         updateDisplay();
+      });
+
+      muteBtn.addEventListener("click", () => {
+        const nextMuteMode = !runtime.muteMode;
+        if (nextMuteMode) setViewMode("pads");
+        setMuteMode(nextMuteMode);
       });
 
       shareBtn.addEventListener("click", () => {
