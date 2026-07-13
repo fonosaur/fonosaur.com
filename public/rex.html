@@ -22,6 +22,12 @@
         color: #e8e0d4;
         overflow: hidden;
       }
+      @media (max-width: 600px) and (orientation: portrait) {
+        body {
+          justify-content: flex-start;
+          padding-top: clamp(76px, 14svh, 118px);
+        }
+      }
       canvas {
         display: block;
         border-radius: 8px;
@@ -205,7 +211,6 @@
 
     <div class="title-screen" id="titleScreen">
       <h1>REX</h1>
-      <p>A Fonosaur game</p>
       <p class="hi" id="titleHi"></p>
       <button class="start-btn" id="startBtn" aria-label="Play Rex">
         Play Rex
@@ -226,8 +231,12 @@
       // Sizing
       let W, H;
       function resize() {
-        const maxW = Math.min(window.innerWidth - 20, 900);
-        const maxH = Math.min(window.innerHeight - 20, 560);
+        const isMobilePortrait =
+          window.innerWidth <= 600 && window.innerHeight > window.innerWidth;
+        const horizontalGutter = isMobilePortrait ? 4 : 20;
+        const verticalGutter = isMobilePortrait ? 140 : 20;
+        const maxW = Math.min(window.innerWidth - horizontalGutter, 900);
+        const maxH = Math.min(window.innerHeight - verticalGutter, 560);
         const aspect = 16 / 10;
         if (maxW / maxH > aspect) {
           W = Math.floor(maxH * aspect);
@@ -284,10 +293,47 @@
       let aimPower = 60;
       let dragging = false;
       let dragStart = { x: 0, y: 0 };
+      const DINO_SPRITES = [
+        {
+          src: "/rex/rex-green.png",
+          sx: 10,
+          sy: 192,
+          sw: 608,
+          sh: 638,
+          mouthX: 0.91,
+          mouthY: 0.31,
+          headX: 0.67,
+          bodyX: 0.46,
+        },
+        {
+          src: "/rex/rex-blue.png",
+          sx: 16,
+          sy: 188,
+          sw: 604,
+          sh: 644,
+          mouthX: 0.09,
+          mouthY: 0.31,
+          headX: 0.33,
+          bodyX: 0.54,
+        },
+      ];
+      const dinoImages = DINO_SPRITES.map((sprite) => {
+        const img = new Image();
+        img.decoding = "async";
+        img.src = sprite.src;
+        img.onload = () => draw();
+        return img;
+      });
+      const planetImage = new Image();
+      planetImage.decoding = "async";
+      planetImage.src = "/rex/planet-purple.png";
+      planetImage.onload = () => draw();
 
-      // Moon / stars
+      // Planet / stars
       let moonX, moonY, moonR;
       let stars = [];
+      let shootingStars = [];
+      let nextShootingStarAt = 0;
 
       // ===== SKY PALETTES (cycle per level) =====
       const SKY_PALETTES = [
@@ -319,7 +365,42 @@
         }
         moonX = W * (0.3 + Math.random() * 0.4);
         moonY = H * (0.08 + Math.random() * 0.12);
-        moonR = 14 + Math.random() * 6;
+        moonR = clamp(W * (0.052 + Math.random() * 0.012), 18, 24);
+        shootingStars = [];
+        nextShootingStarAt = performance.now() + 1800 + Math.random() * 4200;
+      }
+
+      function spawnShootingStar(now) {
+        const leftToRight = Math.random() > 0.35;
+        const y = H * (0.08 + Math.random() * 0.28);
+        const duration = 42 + Math.random() * 20;
+        shootingStars.push({
+          x: leftToRight ? -20 : W + 20,
+          y,
+          vx: (leftToRight ? 1 : -1) * (2.2 + Math.random() * 1.5),
+          vy: 0.42 + Math.random() * 0.42,
+          life: duration,
+          maxLife: duration,
+          len: 14 + Math.random() * 14,
+        });
+        nextShootingStarAt = now + 3800 + Math.random() * 7600;
+      }
+
+      function updateShootingStars(now) {
+        if (now >= nextShootingStarAt && shootingStars.length < 2) {
+          spawnShootingStar(now);
+        }
+        shootingStars = shootingStars.filter((star) => {
+          star.x += star.vx;
+          star.y += star.vy;
+          star.life--;
+          return (
+            star.life > 0 &&
+            star.x > -80 &&
+            star.x < W + 80 &&
+            star.y < H * 0.58
+          );
+        });
       }
 
       function drawSky() {
@@ -345,122 +426,69 @@
         });
         ctx.globalAlpha = 1;
 
-        // Ringed Planet
+        shootingStars.forEach((star) => {
+          const alpha = Math.max(0, star.life / star.maxLife) * 0.46;
+          const ang = Math.atan2(star.vy, star.vx);
+          const tailX = Math.cos(ang) * star.len;
+          const tailY = Math.sin(ang) * star.len;
+          const sg = ctx.createLinearGradient(
+            star.x,
+            star.y,
+            star.x - tailX,
+            star.y - tailY,
+          );
+          sg.addColorStop(0, "rgba(255,246,214," + alpha + ")");
+          sg.addColorStop(1, "rgba(255,246,214,0)");
+          ctx.strokeStyle = sg;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(star.x, star.y);
+          ctx.lineTo(star.x - tailX, star.y - tailY);
+          ctx.stroke();
+          ctx.globalAlpha = alpha;
+          ctx.fillStyle = "#fff6d6";
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, 1.1, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+        });
+
+        // Illustrated planet
         ctx.save();
         ctx.translate(moonX, moonY);
-        const pg = ctx.createRadialGradient(
-          -moonR * 0.2,
-          -moonR * 0.2,
-          0,
+        const planetSize = moonR * 3.85;
+        const plg = ctx.createRadialGradient(
           0,
           0,
           moonR,
+          0,
+          0,
+          planetSize * 0.72,
         );
-        pg.addColorStop(0, "#c8a878");
-        pg.addColorStop(0.5, "#8b6b40");
-        pg.addColorStop(1, "#4a3520");
-        ctx.fillStyle = pg;
-        ctx.globalAlpha = 0.22;
-        ctx.beginPath();
-        ctx.arc(0, 0, moonR, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "rgba(200,170,120,.07)";
-        ctx.lineWidth = moonR * 0.15;
-        ctx.beginPath();
-        ctx.arc(0, 0, moonR * 0.7, -0.3, 0.3);
-        ctx.stroke();
-        const plg = ctx.createRadialGradient(0, 0, moonR, 0, 0, moonR * 3.5);
-        plg.addColorStop(0, "rgba(210,180,120,.10)");
-        plg.addColorStop(0.5, "rgba(180,140,80,.035)");
+        plg.addColorStop(0, "rgba(150,70,190,.16)");
+        plg.addColorStop(0.58, "rgba(150,70,190,.045)");
         plg.addColorStop(1, "transparent");
         ctx.globalAlpha = 1;
         ctx.fillStyle = plg;
         ctx.beginPath();
-        ctx.arc(0, 0, moonR * 3.5, 0, Math.PI * 2);
+        ctx.arc(0, 0, planetSize * 0.72, 0, Math.PI * 2);
         ctx.fill();
-        ctx.globalAlpha = 0.18;
-        ctx.strokeStyle = "#c8a878";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.ellipse(
-          0,
-          0,
-          moonR * 2.4,
-          moonR * 0.5,
-          -0.15,
-          Math.PI * 0.05,
-          Math.PI * 0.95,
-        );
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(200,170,120,.2)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.ellipse(
-          0,
-          0,
-          moonR * 2.8,
-          moonR * 0.6,
-          -0.15,
-          Math.PI * 0.08,
-          Math.PI * 0.92,
-        );
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(200,170,120,.12)";
-        ctx.beginPath();
-        ctx.ellipse(
-          0,
-          0,
-          moonR * 3.1,
-          moonR * 0.65,
-          -0.15,
-          Math.PI * 0.1,
-          Math.PI * 0.9,
-        );
-        ctx.stroke();
-        ctx.globalAlpha = 0.22;
-        ctx.fillStyle = pg;
-        ctx.beginPath();
-        ctx.arc(0, 0, moonR, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 0.18;
-        ctx.strokeStyle = "#d4b888";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.ellipse(
-          0,
-          0,
-          moonR * 2.4,
-          moonR * 0.5,
-          -0.15,
-          Math.PI * 1.05,
-          Math.PI * 1.95,
-        );
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(212,184,136,.25)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.ellipse(
-          0,
-          0,
-          moonR * 2.8,
-          moonR * 0.6,
-          -0.15,
-          Math.PI * 1.08,
-          Math.PI * 1.92,
-        );
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(212,184,136,.15)";
-        ctx.beginPath();
-        ctx.ellipse(
-          0,
-          0,
-          moonR * 3.1,
-          moonR * 0.65,
-          -0.15,
-          Math.PI * 1.1,
-          Math.PI * 1.9,
-        );
-        ctx.stroke();
+        if (planetImage.complete && planetImage.naturalWidth) {
+          ctx.globalAlpha = 0.72;
+          ctx.drawImage(
+            planetImage,
+            -planetSize / 2,
+            -planetSize / 2,
+            planetSize,
+            planetSize,
+          );
+        } else {
+          ctx.globalAlpha = 0.28;
+          ctx.fillStyle = "#7a2aa8";
+          ctx.beginPath();
+          ctx.arc(0, 0, moonR, 0, Math.PI * 2);
+          ctx.fill();
+        }
         ctx.globalAlpha = 1;
         ctx.restore();
       }
@@ -480,7 +508,9 @@
 
       function generateCity() {
         buildings = [];
-        var rand = seededRandom(level * 4099 + Math.round(W) * 17 + Math.round(H));
+        var rand = seededRandom(
+          level * 4099 + Math.round(W) * 17 + Math.round(H),
+        );
         var extraH = Math.min((level - 1) * 0.018, 0.2);
         var minW = W * Math.max(0.034, 0.046 - level * 0.0008);
         var maxW = W * Math.max(0.052, 0.074 - level * 0.0014);
@@ -579,7 +609,11 @@
         var dinoHeight = H * clamp(0.3 + (level - 1) * 0.012, 0.3, 0.52);
         var heightSwing = (rand() - 0.5) * H * 0.22;
         b1.h = clamp(dinoHeight + heightSwing + H * 0.018, H * 0.24, H * 0.64);
-        b2.h = clamp(dinoHeight - heightSwing * 0.78 - H * 0.01, H * 0.24, H * 0.64);
+        b2.h = clamp(
+          dinoHeight - heightSwing * 0.78 - H * 0.01,
+          H * 0.24,
+          H * 0.64,
+        );
         dinos[0] = { x: b1.x + b1.w / 2, y: H - b1.h, bIdx: idx1 };
         dinos[1] = { x: b2.x + b2.w / 2, y: H - b2.h, bIdx: idx2 };
         cpuShotCount = 0;
@@ -626,6 +660,94 @@
       }
 
       // ===== DINOSAURS =====
+      function dinoTargetHeight() {
+        return clamp(H * 0.093, 36, 53);
+      }
+
+      function dinoSpriteRect(index) {
+        const d = dinos[index];
+        const sprite = DINO_SPRITES[index];
+        const h = dinoTargetHeight();
+        const w = h * (sprite.sw / sprite.sh);
+        const footOverlap = h * 0.08;
+        return {
+          x: d.x - w / 2,
+          y: d.y - h + footOverlap,
+          w,
+          h,
+        };
+      }
+
+      function dinoMouth(index) {
+        const rect = dinoSpriteRect(index);
+        const sprite = DINO_SPRITES[index];
+        return {
+          x: rect.x + rect.w * sprite.mouthX,
+          y: rect.y + rect.h * sprite.mouthY,
+        };
+      }
+
+      function dinoAimTarget(index) {
+        const rect = dinoSpriteRect(index);
+        const sprite = DINO_SPRITES[index];
+        return {
+          x: rect.x + rect.w * sprite.headX,
+          y: rect.y + rect.h * 0.4,
+        };
+      }
+
+      function pointInEllipse(px, py, cx, cy, rx, ry) {
+        const dx = (px - cx) / rx;
+        const dy = (py - cy) / ry;
+        return dx * dx + dy * dy <= 1;
+      }
+
+      function drawDinoSprite(index, isActive) {
+        const img = dinoImages[index];
+        const sprite = DINO_SPRITES[index];
+        const rect = dinoSpriteRect(index);
+        ctx.save();
+        ctx.shadowColor =
+          index === 0 ? "rgba(0,204,80,0.18)" : "rgba(59,139,255,0.16)";
+        ctx.shadowBlur = isActive ? 12 : 5;
+        if (img && img.complete && img.naturalWidth) {
+          ctx.drawImage(
+            img,
+            sprite.sx,
+            sprite.sy,
+            sprite.sw,
+            sprite.sh,
+            rect.x,
+            rect.y,
+            rect.w,
+            rect.h,
+          );
+        } else {
+          ctx.fillStyle = index === 0 ? "#00cc50" : "#3b8bff";
+          ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+        }
+        ctx.restore();
+
+        if (isActive) {
+          const target = dinoAimTarget(index);
+          ctx.save();
+          ctx.strokeStyle = index === 0 ? "#00cc50" : "#3b8bff";
+          ctx.lineWidth = 1;
+          ctx.globalAlpha = 0.28 + Math.sin(Date.now() / 300) * 0.16;
+          ctx.setLineDash([3, 4]);
+          ctx.beginPath();
+          ctx.arc(
+            target.x,
+            target.y,
+            dinoTargetHeight() * 0.62,
+            0,
+            Math.PI * 2,
+          );
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
       function drawDino(x, y, facing, color1, color2, isActive) {
         ctx.save();
         ctx.translate(x, y);
@@ -842,6 +964,7 @@
       function drawAimLine() {
         if (state !== "aiming") return;
         const d = dinos[turn];
+        const origin = dinoMouth(turn);
         const ang =
           turn === 0
             ? (-aimAngle * Math.PI) / 180
@@ -852,12 +975,12 @@
         ctx.setLineDash([4, 4]);
         ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.moveTo(d.x, d.y - 14);
+        ctx.moveTo(origin.x, origin.y);
 
         for (let t = 0; t < 40; t++) {
-          const px = d.x + Math.cos(ang) * pow * 0.1 * t;
+          const px = origin.x + Math.cos(ang) * pow * 0.1 * t;
           const py =
-            d.y - 14 + Math.sin(ang) * pow * 0.1 * t + 0.5 * GRAVITY * t * t;
+            origin.y + Math.sin(ang) * pow * 0.1 * t + 0.5 * GRAVITY * t * t;
           if (py > H || px < 0 || px > W) break;
           ctx.lineTo(px, py);
         }
@@ -869,8 +992,8 @@
         ctx.textAlign = turn === 0 ? "left" : "right";
         ctx.fillText(
           Math.round(aimAngle) + "\u00b0 / " + Math.round(aimPower) + "%",
-          d.x + (turn === 0 ? 20 : -20),
-          d.y - 30,
+          origin.x + (turn === 0 ? 14 : -14),
+          origin.y - 18,
         );
       }
 
@@ -891,8 +1014,25 @@
 
       function checkHit(x, y) {
         const target = 1 - turn;
-        const d = dinos[target];
-        return Math.hypot(x - d.x, y - (d.y - 14)) < 22;
+        const rect = dinoSpriteRect(target);
+        const sprite = DINO_SPRITES[target];
+        const headHit = pointInEllipse(
+          x,
+          y,
+          rect.x + rect.w * sprite.headX,
+          rect.y + rect.h * 0.34,
+          rect.w * 0.31,
+          rect.h * 0.25,
+        );
+        const bodyHit = pointInEllipse(
+          x,
+          y,
+          rect.x + rect.w * sprite.bodyX,
+          rect.y + rect.h * 0.62,
+          rect.w * 0.27,
+          rect.h * 0.34,
+        );
+        return headHit || bodyHit;
       }
 
       function checkBuildingCollision(x, y) {
@@ -905,15 +1045,15 @@
 
       // ===== LAUNCH =====
       function launch() {
-        const d = dinos[turn];
+        const origin = dinoMouth(turn);
         const ang =
           turn === 0
             ? (-aimAngle * Math.PI) / 180
             : (-(180 - aimAngle) * Math.PI) / 180;
         const pow = aimPower * 1.2;
         projectile = {
-          x: d.x + (turn === 0 ? 10 : -10),
-          y: d.y - 12,
+          x: origin.x,
+          y: origin.y,
           vx: Math.cos(ang) * pow * 0.1,
           vy: Math.sin(ang) * pow * 0.1,
           spin: 0,
@@ -950,6 +1090,7 @@
 
       // ===== UPDATE =====
       function update() {
+        updateShootingStars(performance.now());
         if (state === "flying" && projectile) {
           const p = projectile;
           p.vy += GRAVITY;
@@ -1039,22 +1180,8 @@
         ctx.clearRect(0, 0, W, H);
         drawSky();
         drawBuildings();
-        drawDino(
-          dinos[0].x,
-          dinos[0].y,
-          1,
-          "#00dd55",
-          "#00cc50",
-          turn === 0 && state === "aiming",
-        );
-        drawDino(
-          dinos[1].x,
-          dinos[1].y,
-          -1,
-          "#4488ee",
-          "#3b8bff",
-          turn === 1 && state === "aiming",
-        );
+        drawDinoSprite(0, turn === 0 && state === "aiming");
+        drawDinoSprite(1, turn === 1 && state === "aiming");
         drawAimLine();
         drawProjectile();
         drawExplosions();
@@ -1079,9 +1206,9 @@
         const rect = canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
-        const d = dinos[turn];
-        const dx = mx - d.x;
-        const dy = my - d.y;
+        const origin = dinoMouth(turn);
+        const dx = mx - origin.x;
+        const dy = my - origin.y;
         let ang = (Math.atan2(-dy, turn === 0 ? dx : -dx) * 180) / Math.PI;
         aimAngle = Math.max(5, Math.min(85, ang));
         aimPower = Math.min(100, Math.hypot(dx, dy) / 2);
@@ -1115,9 +1242,9 @@
           const t = e.touches[0];
           const mx = t.clientX - rect.left;
           const my = t.clientY - rect.top;
-          const d = dinos[turn];
-          const dx = mx - d.x;
-          const dy = my - d.y;
+          const origin = dinoMouth(turn);
+          const dx = mx - origin.x;
+          const dy = my - origin.y;
           let ang = (Math.atan2(-dy, turn === 0 ? dx : -dx) * 180) / Math.PI;
           aimAngle = Math.max(5, Math.min(85, ang));
           aimPower = Math.min(100, Math.hypot(dx, dy) / 2);
@@ -1189,9 +1316,10 @@
 
       // ===== AI (zero-in across shots, level-scaled convergence) =====
       function aiAim() {
-        var target = dinos[0];
-        var sx = dinos[1].x - 10,
-          sy = dinos[1].y - 12;
+        var target = dinoAimTarget(0);
+        var origin = dinoMouth(1);
+        var sx = origin.x,
+          sy = origin.y;
         var best = null,
           bestDist = Infinity;
         for (var a = 18; a <= 82; a += 4) {
@@ -1206,7 +1334,7 @@
               x += vx;
               y += vy;
               if (y > H + 40 || x < -60 || x > W + 60) break;
-              var dd = Math.hypot(x - target.x, y - (target.y - 14));
+              var dd = Math.hypot(x - target.x, y - target.y);
               if (dd < bestDist) {
                 bestDist = dd;
                 best = { a: a, pw: pw };
