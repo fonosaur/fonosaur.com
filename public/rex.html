@@ -229,8 +229,9 @@
       const ctx = canvas.getContext("2d");
 
       // Sizing
-      let W, H;
+      let W, H, DPR;
       function resize() {
+        DPR = Math.max(1, Math.min(window.devicePixelRatio || 1, 2));
         const isMobilePortrait =
           window.innerWidth <= 600 && window.innerHeight > window.innerWidth;
         const horizontalGutter = isMobilePortrait ? 4 : 20;
@@ -247,10 +248,13 @@
         }
         W = Math.max(W, 320);
         H = Math.max(H, 200);
-        canvas.width = W;
-        canvas.height = H;
+        canvas.width = Math.round(W * DPR);
+        canvas.height = Math.round(H * DPR);
         canvas.style.width = W + "px";
         canvas.style.height = H + "px";
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
       }
       resize();
       window.addEventListener("resize", () => {
@@ -476,6 +480,8 @@
         ctx.fill();
         if (planetImage.complete && planetImage.naturalWidth) {
           ctx.globalAlpha = 0.72;
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
           ctx.drawImage(
             planetImage,
             -planetSize / 2,
@@ -721,6 +727,8 @@
           index === 0 ? "rgba(0,204,80,0.18)" : "rgba(59,139,255,0.16)";
         ctx.shadowBlur = isActive ? 12 : 5;
         if (img && img.complete && img.naturalWidth) {
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
           ctx.drawImage(
             img,
             sprite.sx,

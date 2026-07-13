@@ -796,7 +796,7 @@
         flex: 1;
         min-height: 0;
         display: none;
-        grid-template-rows: minmax(0, 1fr) auto;
+        grid-template-rows: minmax(220px, var(--fx-pad-height, 1fr)) auto;
         gap: 7px;
       }
 
@@ -811,6 +811,9 @@
 
       .xy-pad {
         position: relative;
+        width: 100%;
+        height: 100%;
+        min-block-size: 220px;
         min-height: 0;
         border-radius: 18px;
         border: 1px solid rgba(125, 255, 184, 0.15);
@@ -3065,6 +3068,29 @@
         const targetHeight = targetWidth / DEVICE_RATIO;
         deviceEl.style.width = Math.round(targetWidth) + "px";
         deviceEl.style.height = Math.round(targetHeight) + "px";
+
+        const uiStyle = getComputedStyle(deviceUiEl);
+        const uiPadY =
+          parseFloat(uiStyle.paddingTop || 0) +
+          parseFloat(uiStyle.paddingBottom || 0);
+        const uiGap = parseFloat(uiStyle.rowGap || uiStyle.gap || 0);
+        const fxStyle = getComputedStyle(fxPage);
+        const fxGap = parseFloat(fxStyle.rowGap || fxStyle.gap || 0);
+        const stutterMinHeight =
+          parseFloat(getComputedStyle(stutterBtn).minHeight || 0) || 54;
+        const fixedFxHeight =
+          uiPadY +
+          uiGap * 2 +
+          (document.querySelector(".mode-switch")?.getBoundingClientRect()
+            .height || 30) +
+          (lcdEl?.getBoundingClientRect().height || 80) +
+          fxGap +
+          stutterMinHeight;
+        const fxPadHeight = Math.max(220, targetHeight - fixedFxHeight);
+        deviceEl.style.setProperty(
+          "--fx-pad-height",
+          Math.round(fxPadHeight) + "px",
+        );
       }
 
       function setInfoOpen(open) {
