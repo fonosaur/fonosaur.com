@@ -575,9 +575,14 @@
         }
         var b1 = buildings[idx1] || buildings[0];
         var playerX = b1.x + b1.w / 2;
-        var minDistance = W * 0.38;
-        var maxDistance = W * 0.68;
-        var distanceRatio = 0.4 + rand() * 0.26;
+        var lateDistancePressure = Math.min(
+          1,
+          Math.max(0, level - 18) / 22,
+        );
+        var minDistance = W * (0.38 + lateDistancePressure * 0.04);
+        var maxDistance = W * (0.68 + lateDistancePressure * 0.06);
+        var distanceRatio =
+          0.4 + lateDistancePressure * 0.035 + rand() * 0.26;
         var targetX = clamp(
           playerX + W * distanceRatio,
           playerX + minDistance,
@@ -1368,7 +1373,10 @@
         var converge = Math.min(0.58, 0.28 + (level - 1) * 0.035);
         var baseAngleErr = 14;
         var basePowerErr = 18;
-        var shotDecay = Math.pow(1 - converge, cpuShotCount);
+        // Later levels should pressure the player's first miss, not only
+        // punish repeated misses after the CPU has already zeroed in.
+        var firstShotFocus = Math.min(1.45, Math.max(0, level - 8) * 0.055);
+        var shotDecay = Math.pow(1 - converge, cpuShotCount + firstShotFocus);
         // Minimum residual error (never zero — always beatable)
         var minAngle = 1.8;
         var minPower = 2.4;
