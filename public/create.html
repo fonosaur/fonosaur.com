@@ -2015,9 +2015,7 @@
         fmaj: ["F", "G", "A", "C", "D"],
         gmin: ["G", "A#", "C", "D", "F"],
       };
-      const TRIAD_INSTRUMENTS = ["strings"];
-      const TRIAD_LABELS = { strings: "STRINGS" };
-      const SINGLE_INSTRUMENTS = ["pluck", "kalimba", "bell"];
+      const PAIRED_MELODIC_INSTRUMENTS = ["pluck", "kalimba", "bell"];
       const SINGLE_LABELS = {
         pluck: "PLUCK",
         kalimba: "KALIMBA",
@@ -2144,15 +2142,14 @@
         const voxIdx = Math.floor(rnd() * VOX_FILES.length);
         const sirenIdx = Math.floor(rnd() * SIREN_FILES.length);
 
-        // 3. Triad instrument (strings only) + notes
-        const triadInstIdx = Math.floor(rnd() * TRIAD_INSTRUMENTS.length);
-        const triadInst = TRIAD_INSTRUMENTS[triadInstIdx];
-        const triadOther = pickOther(notes, rootNote, rnd);
-
-        // 4. Single instrument + notes
-        const singleInstIdx = Math.floor(rnd() * SINGLE_INSTRUMENTS.length);
-        const singleInst = SINGLE_INSTRUMENTS[singleInstIdx];
-        const singleOther = pickOther(notes, rootNote, rnd);
+        // 3. Bottom-row melodic pairs: two different instruments, two pads each.
+        const melodicChoices = PAIRED_MELODIC_INSTRUMENTS.slice();
+        const firstMelodicIdx = Math.floor(rnd() * melodicChoices.length);
+        const firstMelodic = melodicChoices.splice(firstMelodicIdx, 1)[0];
+        const secondMelodic =
+          melodicChoices[Math.floor(rnd() * melodicChoices.length)];
+        const firstMelodicOther = pickOther(notes, rootNote, rnd);
+        const secondMelodicOther = pickOther(notes, rootNote, rnd);
 
         const hatMachine = HIHAT_MACHINES[hatIdx];
 
@@ -2227,30 +2224,37 @@
             file: "rhodes/rhodes_" + prog + "_4",
             label: "CHORD 4",
           },
-          // Row 4: strings strings single single
+          // Row 4: melodic pair + different melodic pair
           {
-            cat: "triad",
+            cat: "single",
             key: KEYS[12],
-            file: triadInst + "/" + triadInst + "_" + rootNote + "4",
-            label: TRIAD_LABELS[triadInst],
+            file: firstMelodic + "/" + firstMelodic + "_" + rootNote + "4",
+            label: SINGLE_LABELS[firstMelodic],
           },
           {
-            cat: "triad",
+            cat: "single",
             key: KEYS[13],
-            file: triadInst + "/" + triadInst + "_" + triadOther + "4",
-            label: TRIAD_LABELS[triadInst],
+            file:
+              firstMelodic + "/" + firstMelodic + "_" + firstMelodicOther + "4",
+            label: SINGLE_LABELS[firstMelodic],
           },
           {
             cat: "single",
             key: KEYS[14],
-            file: singleInst + "/" + singleInst + "_" + rootNote + "4",
-            label: SINGLE_LABELS[singleInst],
+            file: secondMelodic + "/" + secondMelodic + "_" + rootNote + "4",
+            label: SINGLE_LABELS[secondMelodic],
           },
           {
             cat: "single",
             key: KEYS[15],
-            file: singleInst + "/" + singleInst + "_" + singleOther + "4",
-            label: SINGLE_LABELS[singleInst],
+            file:
+              secondMelodic +
+              "/" +
+              secondMelodic +
+              "_" +
+              secondMelodicOther +
+              "4",
+            label: SINGLE_LABELS[secondMelodic],
           },
         ];
       }
