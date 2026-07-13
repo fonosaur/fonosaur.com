@@ -456,7 +456,8 @@
         // Illustrated planet
         ctx.save();
         ctx.translate(moonX, moonY);
-        const planetSize = moonR * 3.85;
+        const planetSize =
+          moonR * 3.85 * (isMobilePortraitViewport() ? 0.75 : 1);
         const plg = ctx.createRadialGradient(
           0,
           0,
@@ -504,6 +505,12 @@
 
       function clamp(v, min, max) {
         return Math.max(min, Math.min(max, v));
+      }
+
+      function isMobilePortraitViewport() {
+        return (
+          window.innerWidth <= 600 && window.innerHeight > window.innerWidth
+        );
       }
 
       function generateCity() {
@@ -661,7 +668,10 @@
 
       // ===== DINOSAURS =====
       function dinoTargetHeight() {
-        return clamp(H * 0.093, 36, 53);
+        return (
+          clamp(H * 0.093, 36, 53) *
+          (isMobilePortraitViewport() ? 0.75 : 1)
+        );
       }
 
       function dinoSpriteRect(index) {
