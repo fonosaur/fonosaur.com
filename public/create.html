@@ -1929,14 +1929,14 @@
                   aria-expanded="false"
                   aria-controls="xAxisMenu"
                 >
-                  X: DELAY
+                  X: PHASER
                 </button>
                 <div class="axis-menu" id="xAxisMenu" hidden></div>
               </div>
               <span class="xy-range-label y-max" id="yAxisMax">Highpass</span>
               <span class="xy-range-label y-min" id="yAxisMin">Lowpass</span>
-              <span class="xy-range-label x-min" id="xAxisMin">1 bar</span>
-              <span class="xy-range-label x-max" id="xAxisMax">1/32</span>
+              <span class="xy-range-label x-min" id="xAxisMin">Slow</span>
+              <span class="xy-range-label x-max" id="xAxisMax">Fast</span>
               <span class="xy-cursor" id="xyCursor" aria-hidden="true"></span>
             </div>
             <div class="fx-controls">
@@ -2171,7 +2171,7 @@
         stutterPointerId: null,
         fxPitchRate: 1,
         playLastFrameTime: 0,
-        fxAssignments: { x: "delay", y: "filter" },
+        fxAssignments: { x: "phaser", y: "filter" },
       };
 
       // ---------- sample buffer cache ----------
