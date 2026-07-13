@@ -3354,6 +3354,11 @@
         skinEl.style.backgroundImage = 'url("' + skinURI(skin.seed) + '")';
       }
 
+      function randomDefaultSkinIndex() {
+        if (SKINS.length <= 1) return 0;
+        return 1 + Math.floor(Math.random() * (SKINS.length - 1));
+      }
+
       function axisUi(axis) {
         return axis === "x"
           ? { button: xAxisBtn, menu: xAxisMenu, min: xAxisMin, max: xAxisMax }
@@ -4153,6 +4158,7 @@
       } else {
         buildKit((Math.random() * 4294967296) >>> 0);
         loop.length = fixedLoopLength();
+        skinIdx = randomDefaultSkinIndex();
       }
 
       applySkin();
