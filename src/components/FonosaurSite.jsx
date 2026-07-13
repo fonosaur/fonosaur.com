@@ -780,7 +780,7 @@ function PlayZone() {
           maxWidth: "min(100%, 34rem)",
         }}
       >
-        Inspired by an old MS-DOS game I loved playing as a kid.
+        Inspired by an old MS-DOS game.
       </p>
       <div
         style={{
