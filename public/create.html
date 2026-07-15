@@ -600,6 +600,11 @@
         padding: 0;
       }
 
+      .lcd-stepper button:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+
       .lcd-stepper span {
         min-width: 34px;
         text-align: center;
@@ -1807,9 +1812,25 @@
                   <span class="lcd-divider">&middot;</span>
                   <span class="lcd-number">105</span> BPM
                 </div>
-                <div class="lcd-stepper" aria-label="Tempo locked at 105 BPM">
+                <div class="lcd-stepper" aria-label="Tempo control">
+                  <button
+                    id="bpmDown"
+                    type="button"
+                    aria-label="Lower tempo"
+                    title="Lower tempo"
+                  >
+                    -
+                  </button>
                   <span class="lcd-number" id="bpmTxt">105</span>
                   <span>BPM</span>
+                  <button
+                    id="bpmUp"
+                    type="button"
+                    aria-label="Raise tempo"
+                    title="Raise tempo"
+                  >
+                    +
+                  </button>
                 </div>
               </div>
 
@@ -2134,6 +2155,10 @@
       const QUANTIZE_STEPS = LOOP_BARS * 16;
       const QUANTIZE_BLEND = 0.92;
       const FIXED_BPM = 105;
+      const MIN_BPM = 85;
+      const MAX_BPM = 125;
+      const BPM_STEP = 1;
+      const CHORD_RELEASE_BARS = 0.7;
       const LOOP_BOUNDARY_GRACE_MS = 45;
       const MOBILE_LOOP_BOUNDARY_GRACE_MS = 128;
 
@@ -2545,6 +2570,8 @@
       const metroBtn = document.getElementById("metroBtn");
       const quantBtn = document.getElementById("quantBtn");
       const bpmTxt = document.getElementById("bpmTxt");
+      const bpmDownBtn = document.getElementById("bpmDown");
+      const bpmUpBtn = document.getElementById("bpmUp");
       const playBtn = document.getElementById("playBtn");
       const playIcon = document.getElementById("playIcon");
       const playLabel = document.getElementById("playLabel");
@@ -2992,6 +3019,27 @@
         return null;
       }
 
+      function hasTempoScaledRelease(padIndex) {
+        if (padIndex === undefined) return false;
+        const sound = kit[padIndex];
+        return sound?.cat === "rhodes" || sound?.file?.startsWith("bell/");
+      }
+
+      function chordReleaseSeconds(bufferDuration) {
+        const musicalRelease = CHORD_RELEASE_BARS * (240 / bpm);
+        return Math.max(0.35, Math.min(bufferDuration - 0.03, musicalRelease));
+      }
+
+      function applyChordEnvelope(gain, startTime, bufferDuration) {
+        const release = chordReleaseSeconds(bufferDuration);
+        const hold = Math.min(0.12, release * 0.16);
+        gain.cancelScheduledValues(startTime);
+        gain.setValueAtTime(1, startTime);
+        gain.setValueAtTime(1, startTime + hold);
+        gain.exponentialRampToValueAtTime(0.0008, startTime + release);
+        return release;
+      }
+
       function play(file, padIndex) {
         if (!ctx) return;
         const url = soundURL(file);
@@ -3022,7 +3070,13 @@
         connectToFx(g);
         liveSources.add(src);
         src.onended = () => liveSources.delete(src);
+        let chordStopTime = null;
+        if (hasTempoScaledRelease(padIndex)) {
+          const release = applyChordEnvelope(g.gain, t, buf.duration);
+          chordStopTime = t + release + 0.08;
+        }
         src.start(t);
+        if (chordStopTime) src.stop(chordStopTime);
 
         if (group) {
           chokeVoices[group] = { src: src, gain: g.gain };
@@ -3034,8 +3088,16 @@
         return 60000 / bpm;
       }
 
+      function beatMsForBpm(targetBpm) {
+        return 60000 / targetBpm;
+      }
+
       function fixedLoopLength() {
         return LOOP_BARS * 4 * beatMs();
+      }
+
+      function fixedLoopLengthForBpm(targetBpm) {
+        return LOOP_BARS * 4 * beatMsForBpm(targetBpm);
       }
 
       function hasMobileTiming() {
@@ -3315,6 +3377,45 @@
           '</span> BARS <span class="lcd-divider">&middot;</span> <span class="lcd-number">' +
           bpm +
           "</span> BPM";
+        bpmDownBtn.disabled = bpm <= MIN_BPM;
+        bpmUpBtn.disabled = bpm >= MAX_BPM;
+        bpmDownBtn.setAttribute("aria-disabled", String(bpm <= MIN_BPM));
+        bpmUpBtn.setAttribute("aria-disabled", String(bpm >= MAX_BPM));
+      }
+
+      function setTempo(nextBpm) {
+        const clamped = Math.max(MIN_BPM, Math.min(MAX_BPM, nextBpm));
+        if (clamped === bpm) {
+          updateBarsReadout();
+          return;
+        }
+        const wasPlaying = runtime.mode === "playing";
+        const now = performance.now();
+        const oldLength = fixedLoopLength();
+        const previousProgress = wrapLoopTime(
+          runtime.lastProgress || 0,
+          oldLength,
+        );
+        const progressRatio = oldLength > 0 ? previousProgress / oldLength : 0;
+        const nextLength = fixedLoopLengthForBpm(clamped);
+
+        if (runtime.mode === "recording" || runtime.mode === "countin") {
+          stopTransport();
+        }
+
+        retimeLoop(nextLength);
+        bpm = clamped;
+        if (wasPlaying) {
+          runtime.mode = "playing";
+          runtime.lastProgress = wrapLoopTime(
+            progressRatio * nextLength,
+            nextLength,
+          );
+          runtime.playLastFrameTime = now;
+          runtime.playStart = now - runtime.lastProgress;
+          renderStepReadout(runtime.lastProgress, nextLength);
+        }
+        updateDisplay();
       }
 
       function updateMetroButton() {
@@ -4119,7 +4220,10 @@
           const parts = raw.split(".");
           if (parts[0] !== "f4") return false;
           seed = parseInt(parts[1], 36) >>> 0;
-          bpm = FIXED_BPM;
+          bpm = Math.max(
+            MIN_BPM,
+            Math.min(MAX_BPM, parseInt(parts[2], 36) || FIXED_BPM),
+          );
           skinIdx = Math.max(
             0,
             Math.min(SKINS.length - 1, parseInt(parts[3], 36) || 0),
@@ -4183,6 +4287,14 @@
       quantBtn.addEventListener("click", () => {
         quantizeOn = !quantizeOn;
         updateDisplay();
+      });
+
+      bpmDownBtn.addEventListener("click", () => {
+        setTempo(bpm - BPM_STEP);
+      });
+
+      bpmUpBtn.addEventListener("click", () => {
+        setTempo(bpm + BPM_STEP);
       });
 
       playBtn.addEventListener("click", () => {
