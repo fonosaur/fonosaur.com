@@ -279,7 +279,7 @@
 
       .mode-switch {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 5px;
         flex-shrink: 0;
       }
@@ -850,6 +850,14 @@
         gap: 7px;
       }
 
+      .seq-zone {
+        flex: 1;
+        min-height: 0;
+        display: none;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 7px;
+      }
+
       .device-ui[data-mode="fx"] .pad-zone,
       .device-ui[data-mode="fx"] .bottom-row {
         display: none;
@@ -857,6 +865,164 @@
 
       .device-ui[data-mode="fx"] .fx-zone {
         display: grid;
+      }
+
+      .device-ui[data-mode="seq"] .pad-zone,
+      .device-ui[data-mode="seq"] .fx-zone,
+      .device-ui[data-mode="seq"] .bottom-row {
+        display: none;
+      }
+
+      .device-ui[data-mode="seq"] .seq-zone {
+        display: grid;
+      }
+
+      .seq-subtabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .seq-tab-btn {
+        min-height: 34px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(10, 10, 12, 0.84)),
+          rgba(13, 13, 16, 0.84);
+        color: rgba(232, 232, 234, 0.62);
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .seq-tab-btn.is-active {
+        border-color: rgba(125, 255, 184, 0.34);
+        color: var(--lcd-ink);
+        background:
+          radial-gradient(circle at 50% 0, rgba(91, 255, 154, 0.14), transparent 70%),
+          linear-gradient(180deg, rgba(19, 54, 34, 0.82), rgba(10, 18, 13, 0.92));
+      }
+
+      .seq-panel {
+        min-height: 0;
+        display: grid;
+      }
+
+      .seq-bank {
+        display: grid;
+        align-content: start;
+        gap: 8px;
+        padding: 7px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.045);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(0, 0, 0, 0.1)),
+          rgba(9, 9, 11, 0.32);
+      }
+
+      .seq-slot {
+        min-height: 82px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 16px;
+        border: 1px solid rgba(125, 255, 184, 0.18);
+        background:
+          radial-gradient(circle at 10% 0, rgba(125, 255, 184, 0.11), transparent 60%),
+          linear-gradient(180deg, rgba(13, 18, 15, 0.92), rgba(8, 9, 11, 0.96));
+        color: var(--text);
+        text-align: left;
+      }
+
+      .seq-slot.is-active {
+        border-color: rgba(125, 255, 184, 0.45);
+        box-shadow:
+          inset 0 0 0 1px rgba(125, 255, 184, 0.06),
+          0 0 22px rgba(0, 255, 120, 0.08);
+      }
+
+      .seq-slot-title {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--lcd-ink);
+        font-family: var(--lcd-base-font);
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .seq-active-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--green);
+        box-shadow: 0 0 13px rgba(0, 255, 120, 0.42);
+      }
+
+      .seq-slot-meta,
+      .seq-slot-action,
+      .seq-empty {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .seq-slot-meta {
+        margin-top: 7px;
+        color: rgba(232, 232, 234, 0.62);
+      }
+
+      .seq-slot-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 0 11px;
+        border-radius: 999px;
+        border: 1px solid rgba(125, 255, 184, 0.28);
+        color: var(--lcd-ink);
+        background: rgba(5, 18, 12, 0.74);
+      }
+
+      .seq-song-panel {
+        display: grid;
+        place-items: center;
+        min-height: 100%;
+        padding: 16px;
+        border-radius: 18px;
+        border: 1px dashed rgba(125, 255, 184, 0.18);
+        background: rgba(9, 9, 11, 0.24);
+      }
+
+      .seq-empty {
+        max-width: 250px;
+        color: rgba(232, 232, 234, 0.58);
+        line-height: 1.45;
+        text-align: center;
+      }
+
+      .seq-badge {
+        display: inline-flex;
+        align-items: center;
+        min-height: 18px;
+        padding: 0 7px;
+        border-radius: 999px;
+        border: 1px solid rgba(125, 255, 184, 0.28);
+        background: rgba(5, 18, 12, 0.72);
+        color: var(--lcd-ink);
+        font-family: "Space Mono", monospace;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
       }
 
       .xy-pad {
@@ -1729,6 +1895,16 @@
             </button>
             <button
               class="mode-btn"
+              id="seqModeBtn"
+              type="button"
+              role="tab"
+              aria-selected="false"
+              aria-controls="seqPage"
+            >
+              SEQ
+            </button>
+            <button
+              class="mode-btn"
               id="fxModeBtn"
               type="button"
               role="tab"
@@ -1811,6 +1987,8 @@
                   <span class="lcd-number">4</span> BARS
                   <span class="lcd-divider">&middot;</span>
                   <span class="lcd-number">105</span> BPM
+                  <span class="lcd-divider">&middot;</span>
+                  <span class="seq-badge" id="activeSeqBadge">SEQ 1</span>
                 </div>
                 <div class="lcd-stepper" aria-label="Tempo control">
                   <button
@@ -1913,6 +2091,54 @@
             aria-labelledby="padsModeBtn"
           >
             <div class="grid" id="grid"></div>
+          </div>
+
+          <div
+            class="seq-zone"
+            id="seqPage"
+            role="tabpanel"
+            aria-labelledby="seqModeBtn"
+            hidden
+          >
+            <div class="seq-subtabs" role="tablist" aria-label="Sequencer view">
+              <button
+                class="seq-tab-btn is-active"
+                id="sequenceSubtab"
+                type="button"
+                aria-selected="true"
+              >
+                SEQUENCE
+              </button>
+              <button
+                class="seq-tab-btn"
+                id="songSubtab"
+                type="button"
+                aria-selected="false"
+              >
+                SONG
+              </button>
+            </div>
+            <div class="seq-panel" id="sequencePanel">
+              <div class="seq-bank" aria-label="Sequence bank">
+                <button class="seq-slot is-active" id="seqOneSlot" type="button">
+                  <span>
+                    <span class="seq-slot-title">
+                      <span class="seq-active-dot" aria-hidden="true"></span>
+                      SEQ 1
+                    </span>
+                    <span class="seq-slot-meta" id="seqOneMeta">
+                      EMPTY · RECORD IN PADS
+                    </span>
+                  </span>
+                  <span class="seq-slot-action" id="seqOneAction">PLAY</span>
+                </button>
+              </div>
+            </div>
+            <div class="seq-panel seq-song-panel" id="songPanel" hidden>
+              <p class="seq-empty">
+                SONG MODE LANDS NEXT. SEQ 1 IS THE ACTIVE LOOP FOR NOW.
+              </p>
+            </div>
           </div>
 
           <div
@@ -2153,7 +2379,16 @@
       const DISPLAY_STEPS = 16;
       const COUNT_IN_BEATS = 4;
       const QUANTIZE_STEPS = LOOP_BARS * 16;
-      const QUANTIZE_BLEND = 0.92;
+      const PPQ = 96;
+      const TICKS_PER_BAR = PPQ * 4;
+      const SEQUENCE_TICKS = LOOP_BARS * TICKS_PER_BAR;
+      const QUANTIZE_VALUES = [
+        { label: "Q OFF", ticks: 0 },
+        { label: "Q 1/8", ticks: PPQ / 2 },
+        { label: "Q 1/16", ticks: PPQ / 4 },
+        { label: "Q 1/32", ticks: PPQ / 8 },
+        { label: "Q 1/64", ticks: PPQ / 16 },
+      ];
       const FIXED_BPM = 105;
       const MIN_BPM = 85;
       const MAX_BPM = 125;
@@ -2167,10 +2402,19 @@
       let bpm = FIXED_BPM;
       let skinIdx = 0;
       let metronomeOn = true;
-      let quantizeOn = true;
+      let quantizeIndex = 2;
       const mutedPads = new Set();
 
       const loop = { events: [], length: 0, layers: [] };
+      const sequences = [
+        {
+          id: "seq-1",
+          name: "SEQ 1",
+          layers: [],
+          lengthTicks: SEQUENCE_TICKS,
+        },
+      ];
+      let activeSequenceIndex = 0;
       const runtime = {
         mode: "idle",
         muteMode: false,
@@ -2185,6 +2429,7 @@
         loadedFromShare: false,
         loadedStandaloneShare: false,
         viewMode: "pads",
+        seqView: "sequence",
         fxX: 0.5,
         fxY: 0.5,
         fxTouching: false,
@@ -2544,9 +2789,19 @@
       const deviceEl = document.querySelector(".device");
       const deviceUiEl = document.querySelector(".device-ui");
       const padsModeBtn = document.getElementById("padsModeBtn");
+      const seqModeBtn = document.getElementById("seqModeBtn");
       const fxModeBtn = document.getElementById("fxModeBtn");
       const padsPage = document.getElementById("padsPage");
+      const seqPage = document.getElementById("seqPage");
       const fxPage = document.getElementById("fxPage");
+      const sequenceSubtab = document.getElementById("sequenceSubtab");
+      const songSubtab = document.getElementById("songSubtab");
+      const sequencePanel = document.getElementById("sequencePanel");
+      const songPanel = document.getElementById("songPanel");
+      const seqOneSlot = document.getElementById("seqOneSlot");
+      const seqOneMeta = document.getElementById("seqOneMeta");
+      const seqOneAction = document.getElementById("seqOneAction");
+      const activeSeqBadge = document.getElementById("activeSeqBadge");
       const xyPad = document.getElementById("xyPad");
       const xyCursor = document.getElementById("xyCursor");
       const xAxisBtn = document.getElementById("xAxisBtn");
@@ -3132,6 +3387,33 @@
         return wrapped >= targetLength - 0.0001 ? 0 : wrapped;
       }
 
+      function wrapSequenceTick(tick) {
+        const wrapped =
+          ((tick % SEQUENCE_TICKS) + SEQUENCE_TICKS) % SEQUENCE_TICKS;
+        return wrapped >= SEQUENCE_TICKS - 0.0001 ? 0 : wrapped;
+      }
+
+      function activeSequence() {
+        return sequences[activeSequenceIndex] || sequences[0];
+      }
+
+      function sequenceHasContent(sequence = activeSequence()) {
+        return sequence.layers.some((layer) => layer.events.length > 0);
+      }
+
+      function quantizeValue() {
+        return QUANTIZE_VALUES[quantizeIndex] || QUANTIZE_VALUES[0];
+      }
+
+      function ticksToMs(tick, targetLength) {
+        return (wrapSequenceTick(tick) / SEQUENCE_TICKS) * targetLength;
+      }
+
+      function msToTicks(ms, targetLength) {
+        if (!targetLength || targetLength <= 0) return 0;
+        return wrapSequenceTick((wrapLoopTime(ms, targetLength) / targetLength) * SEQUENCE_TICKS);
+      }
+
       function syncLoopEvents() {
         loop.events = [];
         loop.layers.forEach((layer) => {
@@ -3148,43 +3430,72 @@
           .sort((a, b) => a[1] - b[1]);
       }
 
-      function quantizeLayer(events, targetLength) {
+      function normalizeTickLayer(events) {
+        return events
+          .map(([i, tick]) => [i, Math.round(wrapSequenceTick(tick))])
+          .sort((a, b) => a[1] - b[1]);
+      }
+
+      function quantizeToTickLayer(events, targetLength) {
         const normalized = normalizeLayer(events, targetLength);
-        if (!quantizeOn || !normalized.length) return normalized;
-        const step = targetLength / QUANTIZE_STEPS;
-        return normalizeLayer(
+        if (!normalized.length) return [];
+        const gridTicks = quantizeValue().ticks;
+        return normalizeTickLayer(
           normalized.map(([i, t]) => {
+            const rawTick = msToTicks(t, targetLength);
+            if (!gridTicks) return [i, rawTick];
             if (isNearLoopBoundary(t, targetLength)) {
               return [i, 0];
             }
-            const nearestStep = Math.round(t / step);
-            if (nearestStep <= 0 || nearestStep >= QUANTIZE_STEPS) {
+            const nearestGrid = Math.round(rawTick / gridTicks);
+            if (
+              nearestGrid <= 0 ||
+              nearestGrid * gridTicks >= SEQUENCE_TICKS
+            ) {
               return [i, 0];
             }
-            const nearest = nearestStep * step;
-            return [i, t + (nearest - t) * QUANTIZE_BLEND];
+            return [i, nearestGrid * gridTicks];
           }),
-          targetLength,
         );
       }
 
+      function syncLoopFromActiveSequence(targetLength = fixedLoopLength()) {
+        const sequence = activeSequence();
+        loop.length = targetLength;
+        loop.layers = sequence.layers.map((layer) => ({
+          events: normalizeLayer(
+            layer.events.map(([i, tick]) => [i, ticksToMs(tick, targetLength)]),
+            targetLength,
+          ),
+        }));
+        syncLoopEvents();
+      }
+
+      function syncActiveSequenceFromLoop(targetLength = loop.length || fixedLoopLength()) {
+        const sequence = activeSequence();
+        sequence.lengthTicks = SEQUENCE_TICKS;
+        sequence.layers = loop.layers.map((layer) => ({
+          events: normalizeTickLayer(
+            layer.events.map(([i, t]) => [i, msToTicks(t, targetLength)]),
+          ),
+        }));
+      }
+
       function resetLoopData() {
-        loop.layers = [];
-        loop.events = [];
-        loop.length = fixedLoopLength();
+        const sequence = activeSequence();
+        sequence.layers = [];
+        sequence.lengthTicks = SEQUENCE_TICKS;
+        syncLoopFromActiveSequence();
       }
 
       function retimeLoop(nextLength) {
-        if (!loop.layers.length || !loop.length || loop.length === nextLength) {
-          loop.length = nextLength;
+        if (sequenceHasContent()) {
+          syncLoopFromActiveSequence(nextLength);
           return;
         }
-        const scale = nextLength / loop.length;
-        loop.layers = loop.layers.map((layer) => ({
-          events: layer.events.map(([i, t]) => [i, t * scale]),
-        }));
         loop.length = nextLength;
-        syncLoopEvents();
+        loop.layers = [];
+        loop.events = [];
       }
 
       function syncDeviceFrame() {
@@ -3376,7 +3687,7 @@
           LOOP_BARS +
           '</span> BARS <span class="lcd-divider">&middot;</span> <span class="lcd-number">' +
           bpm +
-          "</span> BPM";
+          '</span> BPM <span class="lcd-divider">&middot;</span> <span class="seq-badge">SEQ 1</span>';
         bpmDownBtn.disabled = bpm <= MIN_BPM;
         bpmUpBtn.disabled = bpm >= MAX_BPM;
         bpmDownBtn.setAttribute("aria-disabled", String(bpm <= MIN_BPM));
@@ -3428,15 +3739,19 @@
       }
 
       function updateQuantButton() {
-        quantBtn.classList.toggle("off", !quantizeOn);
-        quantBtn.setAttribute("aria-pressed", String(quantizeOn));
+        const value = quantizeValue();
+        quantBtn.textContent = value.label;
+        quantBtn.classList.toggle("off", !value.ticks);
+        quantBtn.setAttribute("aria-pressed", String(value.ticks > 0));
         quantBtn.setAttribute(
           "aria-label",
-          quantizeOn ? "Turn quantise off" : "Turn quantise on",
+          value.ticks
+            ? "Quantise " + value.label + ", tap to change grid"
+            : "Quantise off, tap to change grid",
         );
         quantBtn.setAttribute(
           "title",
-          quantizeOn ? "Quantise on" : "Quantise off",
+          value.ticks ? "Quantise " + value.label : "Quantise off",
         );
       }
 
@@ -3481,8 +3796,32 @@
       function currentIdleMessage() {
         if (runtime.loadedFromShare && loop.events.length)
           return "SHARED LOOP READY";
-        if (loop.events.length) return "LOOP READY \u00b7 REC TO DUB";
+        if (loop.events.length) return "SEQ 1 READY \u00b7 REC TO DUB";
         return "READY TO RECORD";
+      }
+
+      function updateSeqPanel() {
+        const sequence = activeSequence();
+        const hitCount = sequence.layers.reduce(
+          (sum, layer) => sum + layer.events.length,
+          0,
+        );
+        const layerCount = sequence.layers.length;
+        seqOneSlot.classList.add("is-active");
+        seqOneSlot.setAttribute(
+          "aria-label",
+          "SEQ 1 active sequence, " +
+            (hitCount ? hitCount + " hits" : "empty, record in pads"),
+        );
+        seqOneMeta.textContent = hitCount
+          ? layerCount +
+            " LAYER" +
+            (layerCount === 1 ? "" : "S") +
+            " \u00b7 " +
+            hitCount +
+            " HITS \u00b7 96 PPQ"
+          : "EMPTY \u00b7 RECORD IN PADS";
+        seqOneAction.textContent = runtime.mode === "playing" ? "STOP" : "PLAY";
       }
 
       function updateDisplay() {
@@ -3490,6 +3829,7 @@
         updateMetroButton();
         updateQuantButton();
         updateShareIntro();
+        updateSeqPanel();
         lcdEl.classList.toggle("is-mute-mode", runtime.muteMode);
 
         if (runtime.muteMode) {
@@ -3527,6 +3867,8 @@
       function updateButtons() {
         const live = runtime.mode === "countin" || runtime.mode === "recording";
         const playing = runtime.mode === "playing";
+        const onPads = runtime.viewMode === "pads";
+        const hasSequence = sequenceHasContent();
         playBtn.classList.toggle("is-playing", playing);
         recBtn.classList.toggle("is-live", live);
         playIcon.innerHTML = playing ? "&#9632;" : "&#9654;";
@@ -3534,7 +3876,10 @@
         playBtn.setAttribute("aria-label", playing ? "Stop loop" : "Play loop");
         playBtn.setAttribute("title", playing ? "Stop loop" : "Play loop");
         recDot.classList.toggle("is-live", live);
-        undoBtn.disabled = loop.layers.length === 0 || live;
+        recBtn.disabled = !onPads;
+        clearBtn.disabled = !hasSequence || live;
+        undoBtn.disabled = !hasSequence || live;
+        muteBtn.disabled = !onPads;
         muteBtn.classList.toggle("is-mute", runtime.muteMode);
         muteBtn.setAttribute("aria-pressed", String(runtime.muteMode));
         muteBtn.setAttribute(
@@ -3545,6 +3890,7 @@
           "title",
           runtime.muteMode ? "Exit mute mode" : "Mute pads",
         );
+        updateSeqPanel();
       }
 
       function applySkin() {
@@ -3645,20 +3991,43 @@
         }
       }
 
+      function setSeqSubView(view) {
+        const isSong = view === "song";
+        runtime.seqView = isSong ? "song" : "sequence";
+        sequenceSubtab.classList.toggle("is-active", !isSong);
+        songSubtab.classList.toggle("is-active", isSong);
+        sequenceSubtab.setAttribute("aria-selected", String(!isSong));
+        songSubtab.setAttribute("aria-selected", String(isSong));
+        sequencePanel.hidden = isSong;
+        songPanel.hidden = !isSong;
+      }
+
       function setViewMode(mode) {
+        if (mode !== "fx" && mode !== "seq") mode = "pads";
         runtime.viewMode = mode;
+        const isPads = mode === "pads";
+        const isSeq = mode === "seq";
         const isFx = mode === "fx";
         deviceUiEl.dataset.mode = mode;
-        padsPage.hidden = isFx;
+        padsPage.hidden = !isPads;
+        seqPage.hidden = !isSeq;
         fxPage.hidden = !isFx;
-        padsModeBtn.classList.toggle("is-active", !isFx);
+        padsModeBtn.classList.toggle("is-active", isPads);
+        seqModeBtn.classList.toggle("is-active", isSeq);
         fxModeBtn.classList.toggle("is-active", isFx);
-        padsModeBtn.setAttribute("aria-selected", String(!isFx));
+        padsModeBtn.setAttribute("aria-selected", String(isPads));
+        seqModeBtn.setAttribute("aria-selected", String(isSeq));
         fxModeBtn.setAttribute("aria-selected", String(isFx));
         if (!isFx) {
           stopStutter();
           releaseXyPad();
         }
+        if (!isPads && runtime.muteMode) {
+          runtime.muteMode = false;
+        }
+        updateButtons();
+        updateDisplay();
+        syncDeviceFrame();
       }
 
       function updateXyCursor(x, y, touching) {
@@ -3770,7 +4139,17 @@
       }
 
       padsModeBtn.addEventListener("click", () => setViewMode("pads"));
+      seqModeBtn.addEventListener("click", () => setViewMode("seq"));
       fxModeBtn.addEventListener("click", () => setViewMode("fx"));
+      sequenceSubtab.addEventListener("click", () => setSeqSubView("sequence"));
+      songSubtab.addEventListener("click", () => setSeqSubView("song"));
+      seqOneSlot.addEventListener("click", () => {
+        if (runtime.mode === "playing") {
+          stopTransport();
+        } else {
+          startLoop();
+        }
+      });
       xAxisBtn.addEventListener("click", (event) => {
         event.stopPropagation();
         toggleAxisMenu("x");
@@ -4020,12 +4399,12 @@
         stopTransport();
         runtime.loadedFromShare = false;
         runtime.loadedStandaloneShare = false;
-        runtime.recordType = loop.layers.length ? "overdub" : "base";
+        runtime.recordType = sequenceHasContent() ? "overdub" : "base";
         runtime.recordLayer = { events: [] };
-        if (!loop.layers.length) {
+        if (!sequenceHasContent()) {
           resetLoopData();
         } else if (!loop.length) {
-          loop.length = fixedLoopLength();
+          syncLoopFromActiveSequence();
         }
         runtime.mode = "countin";
         runtime.countInStart = performance.now();
@@ -4049,10 +4428,10 @@
       function finishRecording() {
         loop.length = fixedLoopLength();
         if (runtime.recordLayer && runtime.recordLayer.events.length) {
-          loop.layers.push({
-            events: quantizeLayer(runtime.recordLayer.events, loop.length),
+          activeSequence().layers.push({
+            events: quantizeToTickLayer(runtime.recordLayer.events, loop.length),
           });
-          syncLoopEvents();
+          syncLoopFromActiveSequence(loop.length);
         }
         runtime.recordLayer = null;
         if (loop.events.length) {
@@ -4200,6 +4579,7 @@
       }
 
       function encode() {
+        syncLoopFromActiveSequence(loop.length || fixedLoopLength());
         const layerStr = loop.layers
           .map((layer) => packLayer(layer.events))
           .filter(Boolean)
@@ -4240,6 +4620,8 @@
             : [];
           syncLoopEvents();
           loop.length = targetLength;
+          syncActiveSequenceFromLoop(targetLength);
+          syncLoopFromActiveSequence(targetLength);
           runtime.loadedFromShare = loop.events.length > 0;
           runtime.loadedStandaloneShare = !embedded && runtime.loadedFromShare;
           return true;
@@ -4275,6 +4657,8 @@
           },
         ];
         syncLoopEvents();
+        syncActiveSequenceFromLoop(total);
+        syncLoopFromActiveSequence(total);
         runtime.loadedFromShare = false;
       }
 
@@ -4285,7 +4669,7 @@
       });
 
       quantBtn.addEventListener("click", () => {
-        quantizeOn = !quantizeOn;
+        quantizeIndex = (quantizeIndex + 1) % QUANTIZE_VALUES.length;
         updateDisplay();
       });
 
@@ -4326,14 +4710,14 @@
 
       undoBtn.addEventListener("click", () => {
         if (
-          !loop.layers.length ||
+          !sequenceHasContent() ||
           runtime.mode === "countin" ||
           runtime.mode === "recording"
         )
           return;
         stopTransport();
-        loop.layers.pop();
-        syncLoopEvents();
+        activeSequence().layers.pop();
+        syncLoopFromActiveSequence();
         if (!loop.events.length) loop.length = fixedLoopLength();
         runtime.loadedFromShare = false;
         runtime.loadedStandaloneShare = false;
@@ -4402,7 +4786,7 @@
           demoMode = presetDemo;
       }
       if (params.get("metro") === "off") metronomeOn = false;
-      if (params.get("quant") === "off") quantizeOn = false;
+      if (params.get("quant") === "off") quantizeIndex = 0;
 
       const frameObserver = new ResizeObserver(() => syncDeviceFrame());
       [wrapEl].forEach((el) => {
