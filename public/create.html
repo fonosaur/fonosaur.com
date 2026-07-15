@@ -564,6 +564,9 @@
 
       .lcd-bars {
         min-width: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
         font-size: 13px;
         line-height: 1;
         letter-spacing: 0.08em;
@@ -1986,8 +1989,6 @@
                 <div class="lcd-bars" id="lcdBars">
                   <span class="lcd-number">4</span> BARS
                   <span class="lcd-divider">&middot;</span>
-                  <span class="lcd-number">105</span> BPM
-                  <span class="lcd-divider">&middot;</span>
                   <span class="seq-badge" id="activeSeqBadge">SEQ 1</span>
                 </div>
                 <div class="lcd-stepper" aria-label="Tempo control">
@@ -2383,11 +2384,11 @@
       const TICKS_PER_BAR = PPQ * 4;
       const SEQUENCE_TICKS = LOOP_BARS * TICKS_PER_BAR;
       const QUANTIZE_VALUES = [
-        { label: "Q OFF", ticks: 0 },
-        { label: "Q 1/8", ticks: PPQ / 2 },
-        { label: "Q 1/16", ticks: PPQ / 4 },
-        { label: "Q 1/32", ticks: PPQ / 8 },
-        { label: "Q 1/64", ticks: PPQ / 16 },
+        { label: "QOFF", ticks: 0 },
+        { label: "Q1/8", ticks: PPQ / 2 },
+        { label: "Q1/16", ticks: PPQ / 4 },
+        { label: "Q1/32", ticks: PPQ / 8 },
+        { label: "Q1/64", ticks: PPQ / 16 },
       ];
       const FIXED_BPM = 105;
       const MIN_BPM = 85;
@@ -3685,9 +3686,7 @@
         lcdBars.innerHTML =
           '<span class="lcd-number">' +
           LOOP_BARS +
-          '</span> BARS <span class="lcd-divider">&middot;</span> <span class="lcd-number">' +
-          bpm +
-          '</span> BPM <span class="lcd-divider">&middot;</span> <span class="seq-badge">SEQ 1</span>';
+          '</span> BARS <span class="lcd-divider">&middot;</span> <span class="seq-badge">SEQ 1</span>';
         bpmDownBtn.disabled = bpm <= MIN_BPM;
         bpmUpBtn.disabled = bpm >= MAX_BPM;
         bpmDownBtn.setAttribute("aria-disabled", String(bpm <= MIN_BPM));
