@@ -1292,12 +1292,144 @@
 
       .seq-song-panel {
         display: grid;
-        place-items: center;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: 6px;
         min-height: 100%;
         padding: 16px;
         border-radius: 18px;
-        border: 1px dashed rgba(125, 255, 184, 0.18);
-        background: rgba(9, 9, 11, 0.24);
+        border: 1px solid rgba(255, 255, 255, 0.045);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(0, 0, 0, 0.1)),
+          rgba(9, 9, 11, 0.3);
+      }
+
+      .song-chip-row,
+      .song-timeline,
+      .song-actions {
+        font-family: "Space Mono", monospace;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .song-chip-row {
+        display: flex;
+        gap: 5px;
+        overflow-x: auto;
+        padding: 2px 1px 5px;
+      }
+
+      .song-chip,
+      .song-block,
+      .song-action-btn {
+        border-radius: 11px;
+        border: 1px solid rgba(125, 255, 184, 0.18);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(10, 10, 12, 0.84)),
+          rgba(13, 13, 16, 0.84);
+        color: rgba(232, 232, 234, 0.68);
+      }
+
+      .song-chip {
+        flex: 0 0 auto;
+        min-height: 29px;
+        padding: 0 10px;
+      }
+
+      .song-chip:not(:disabled):active,
+      .song-chip.is-selected,
+      .song-block.is-selected,
+      .song-action-btn:not(:disabled):active {
+        border-color: rgba(125, 255, 184, 0.36);
+        color: var(--lcd-ink);
+        background:
+          radial-gradient(circle at 50% 0, rgba(91, 255, 154, 0.14), transparent 70%),
+          linear-gradient(180deg, rgba(19, 54, 34, 0.82), rgba(10, 18, 13, 0.92));
+      }
+
+      .song-timeline {
+        --song-playhead-x: 0%;
+        min-height: 0;
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(54px, 1fr));
+        align-content: start;
+        align-items: start;
+        gap: 4px;
+        overflow: auto;
+        padding: 6px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.045);
+        background: rgba(8, 8, 10, 0.4);
+      }
+
+      .song-block {
+        --block-progress: 0%;
+        position: relative;
+        display: grid;
+        align-content: center;
+        min-height: 31px;
+        gap: 2px;
+        padding: 5px 4px;
+        text-align: center;
+        cursor: grab;
+        overflow: hidden;
+      }
+
+      .song-block::before {
+        content: "";
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: var(--block-progress);
+        background: linear-gradient(90deg, rgba(255, 209, 122, 0.22), transparent);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .song-block.is-playing {
+        border-color: rgba(255, 209, 122, 0.74);
+        color: #ffe5ad;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 209, 122, 0.14),
+          0 0 16px rgba(255, 205, 94, 0.16);
+      }
+
+      .song-block.is-playing::before {
+        opacity: 1;
+      }
+
+      .song-block-name,
+      .song-block-index {
+        position: relative;
+        z-index: 1;
+      }
+
+      .song-block-index {
+        color: rgba(232, 232, 234, 0.45);
+        font-size: 7px;
+      }
+
+      .song-actions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px;
+        align-items: center;
+      }
+
+      .song-action-btn {
+        min-height: 28px;
+        padding: 0 8px;
+      }
+
+      .song-action-btn:disabled {
+        opacity: 0.42;
+        cursor: default;
+      }
+
+      .song-length {
+        color: rgba(232, 232, 234, 0.58);
+        text-align: right;
       }
 
       .seq-empty {
@@ -1895,6 +2027,9 @@
         .seq-edit-btn,
         .seq-sound-select,
         .seq-edit-cell,
+        .song-chip-row,
+        .song-timeline,
+        .song-actions,
         .seq-empty {
           font-size: 9px;
         }
@@ -1919,6 +2054,21 @@
         }
 
         .seq-hit-offset {
+          font-size: 6px;
+        }
+
+        .song-timeline {
+          grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+          gap: 3px;
+          padding: 5px;
+        }
+
+        .song-block {
+          min-height: 28px;
+          padding: 4px 3px;
+        }
+
+        .song-block-index {
           font-size: 6px;
         }
 
@@ -2561,9 +2711,25 @@
               </div>
             </div>
             <div class="seq-panel seq-song-panel" id="songPanel" hidden>
-              <p class="seq-empty">
-                SONG MODE LANDS NEXT. SEQ 1 IS THE ACTIVE LOOP FOR NOW.
-              </p>
+              <div
+                class="song-chip-row"
+                id="songSequenceChips"
+                aria-label="Sequences to add to song"
+              ></div>
+              <div
+                class="song-timeline"
+                id="songTimeline"
+                aria-label="Song timeline"
+              ></div>
+              <div class="song-actions">
+                <button class="song-action-btn" id="songDeleteBtn" type="button">
+                  DEL
+                </button>
+                <button class="song-action-btn" id="songShareBtn" type="button">
+                  SHARE
+                </button>
+                <span class="song-length" id="songLength">0 BARS</span>
+              </div>
             </div>
           </div>
 
@@ -2836,6 +3002,7 @@
       const sequences = Array.from({ length: MAX_SEQUENCES }, (_, index) =>
         index === 0 ? createSequence(index) : null,
       );
+      const songTimeline = [];
       let activeSequenceIndex = 0;
       const runtime = {
         mode: "idle",
@@ -2855,6 +3022,11 @@
         pendingDeleteIndex: -1,
         pendingDeleteTimer: 0,
         queuedSequenceIndex: -1,
+        selectedSongBlockIndex: -1,
+        selectedSongSequenceIndex: -1,
+        songDragIndex: -1,
+        songBlockIndex: -1,
+        songAuditionSequenceIndex: -1,
         editSoundIndex: 0,
         selectedEditHit: null,
         editSelectAll: false,
@@ -3232,6 +3404,11 @@
       const songSubtab = document.getElementById("songSubtab");
       const sequencePanel = document.getElementById("sequencePanel");
       const songPanel = document.getElementById("songPanel");
+      const songSequenceChips = document.getElementById("songSequenceChips");
+      const songTimelineEl = document.getElementById("songTimeline");
+      const songDeleteBtn = document.getElementById("songDeleteBtn");
+      const songShareBtn = document.getElementById("songShareBtn");
+      const songLengthEl = document.getElementById("songLength");
       const seqBank = document.getElementById("seqBank");
       const seqManageName = document.getElementById("seqManageName");
       const seqManageMeta = document.getElementById("seqManageMeta");
@@ -3886,6 +4063,7 @@
         const sequence = activeSequence();
         if (!sequence) return;
         runtime.undoStack.push({
+          type: "sequence",
           reason,
           sequenceIndex: activeSequenceIndex,
           snapshot: cloneSequenceState(sequence),
@@ -3893,7 +4071,20 @@
         if (runtime.undoStack.length > 12) runtime.undoStack.shift();
       }
 
+      function pushSongUndoSnapshot(reason) {
+        runtime.undoStack.push({
+          type: "song",
+          reason,
+          timeline: songTimeline.slice(),
+          selectedSongBlockIndex: runtime.selectedSongBlockIndex,
+        });
+        if (runtime.undoStack.length > 12) runtime.undoStack.shift();
+      }
+
       function canUndoSequenceAction() {
+        if (runtime.viewMode === "seq" && runtime.seqView === "song") {
+          return runtime.undoStack.length > 0;
+        }
         return runtime.undoStack.length > 0 || sequenceHasContent();
       }
 
@@ -3950,6 +4141,81 @@
         return sequence.label && sequence.label !== "seq"
           ? sequence.label.toUpperCase()
           : "SEQ " + sequence.number;
+      }
+
+      function sequenceColor(index) {
+        const hues = [142, 206, 31, 12, 268, 186, 48, 326];
+        return "hsl(" + hues[index % hues.length] + " 82% 62%)";
+      }
+
+      function validSongTimeline() {
+        return songTimeline.filter((index) => sequences[index]);
+      }
+
+      function songHasContent() {
+        return validSongTimeline().length > 0;
+      }
+
+      function songLengthMs() {
+        return songTimeline.length * fixedLoopLength();
+      }
+
+      function songLengthText() {
+        const bars = songTimeline.length * LOOP_BARS;
+        const seconds = (bars * 4 * beatMs()) / 1000;
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.round(seconds % 60);
+        const time = mins ? mins + ":" + String(secs).padStart(2, "0") : secs + "S";
+        return bars + " BARS \u00b7 " + time;
+      }
+
+      function appendSongBlock(sequenceIndex) {
+        if (!sequences[sequenceIndex]) return;
+        pushSongUndoSnapshot("append-song-block");
+        songTimeline.push(sequenceIndex);
+        runtime.selectedSongBlockIndex = songTimeline.length - 1;
+        runtime.selectedSongSequenceIndex = sequenceIndex;
+        renderSongPanel();
+        updateDisplay();
+      }
+
+      function moveSongBlock(fromIndex, toIndex) {
+        if (
+          fromIndex < 0 ||
+          toIndex < 0 ||
+          fromIndex >= songTimeline.length ||
+          toIndex >= songTimeline.length ||
+          fromIndex === toIndex
+        ) {
+          return;
+        }
+        pushSongUndoSnapshot("move-song-block");
+        const [item] = songTimeline.splice(fromIndex, 1);
+        songTimeline.splice(toIndex, 0, item);
+        runtime.selectedSongBlockIndex = toIndex;
+        renderSongPanel();
+      }
+
+      function deleteSelectedSongBlock() {
+        const index = runtime.selectedSongBlockIndex;
+        if (index < 0 || index >= songTimeline.length) return;
+        pushSongUndoSnapshot("delete-song-block");
+        songTimeline.splice(index, 1);
+        runtime.selectedSongBlockIndex = Math.min(index, songTimeline.length - 1);
+        if (!songTimeline.length) runtime.selectedSongSequenceIndex = -1;
+        renderSongPanel();
+        updateDisplay();
+      }
+
+      function clearSongTimeline() {
+        if (!songTimeline.length) return false;
+        pushSongUndoSnapshot("clear-song");
+        songTimeline.length = 0;
+        runtime.selectedSongBlockIndex = -1;
+        runtime.selectedSongSequenceIndex = -1;
+        runtime.songBlockIndex = -1;
+        renderSongPanel();
+        return true;
       }
 
       function activeMutedPads() {
@@ -4234,7 +4500,13 @@
       function clearCurrentContext() {
         const isEdit =
           runtime.viewMode === "seq" && runtime.seqView === "edit";
-        const didClear = isEdit ? clearVisibleEditTrack() : clearCurrentSequence();
+        const isSong =
+          runtime.viewMode === "seq" && runtime.seqView === "song";
+        const didClear = isSong
+          ? clearSongTimeline()
+          : isEdit
+            ? clearVisibleEditTrack()
+            : clearCurrentSequence();
         if (!didClear) return;
         runtime.loadedFromShare = false;
         runtime.loadedStandaloneShare = false;
@@ -4247,6 +4519,15 @@
         stopTransport();
         const action = runtime.undoStack.pop();
         if (action) {
+          if (action.type === "song") {
+            songTimeline.length = 0;
+            songTimeline.push(...action.timeline);
+            runtime.selectedSongBlockIndex = action.selectedSongBlockIndex;
+            renderSongPanel();
+            updateButtons();
+            updateDisplay();
+            return;
+          }
           if (!sequences[action.sequenceIndex]) {
             sequences[action.sequenceIndex] = createSequence(action.sequenceIndex);
           }
@@ -4272,6 +4553,9 @@
 
       function canClearCurrentContext() {
         if (runtime.mode === "countin" || runtime.mode === "recording") return false;
+        if (runtime.viewMode === "seq" && runtime.seqView === "song") {
+          return songTimeline.length > 0;
+        }
         return runtime.viewMode === "seq" && runtime.seqView === "edit"
           ? sequenceHasPadContent()
           : sequenceHasContent();
@@ -4387,7 +4671,9 @@
 
       function updateShareIntro() {
         if (!shareIntroEl) return;
-        const show = runtime.loadedStandaloneShare && loop.events.length > 0;
+        const show =
+          runtime.loadedStandaloneShare &&
+          (loop.events.length > 0 || songHasContent());
         shareIntroEl.hidden = !show;
       }
 
@@ -4702,6 +4988,120 @@
         renderEditCurrentCell(runtime.lastProgress || 0, loop.length || fixedLoopLength());
       }
 
+      function renderSongPanel() {
+        if (!songPanel || runtime.seqView !== "song") return;
+        const targetLength = fixedLoopLength();
+        const activeBlockProgress =
+          runtime.mode === "playing" && targetLength > 0
+            ? Math.max(
+                0,
+                Math.min(
+                  1,
+                  (runtime.lastProgress - runtime.songBlockIndex * targetLength) /
+                    targetLength,
+                ),
+              )
+            : 0;
+        songSequenceChips.innerHTML = "";
+        sequences.forEach((sequence, index) => {
+          if (!sequence || !sequenceHasContent(sequence)) return;
+          const chip = document.createElement("button");
+          chip.type = "button";
+          chip.className = "song-chip";
+          chip.classList.toggle(
+            "is-selected",
+            index === runtime.selectedSongSequenceIndex,
+          );
+          chip.textContent = sequenceDisplayName(sequence);
+          chip.style.borderColor = sequenceColor(index);
+          chip.setAttribute(
+            "aria-label",
+            "Add " +
+              sequenceDisplayName(sequence) +
+              " to song and select for preview",
+          );
+          chip.addEventListener("click", () => appendSongBlock(index));
+          songSequenceChips.appendChild(chip);
+        });
+
+        songTimelineEl.innerHTML = "";
+        if (!songTimeline.length) {
+          const empty = document.createElement("p");
+          empty.className = "seq-empty";
+          empty.textContent = "TAP SEQUENCES ABOVE TO BUILD A SONG";
+          songTimelineEl.appendChild(empty);
+        } else {
+          songTimeline.forEach((sequenceIndex, blockIndex) => {
+            const sequence = sequences[sequenceIndex];
+            if (!sequence) return;
+            const block = document.createElement("button");
+            block.type = "button";
+            block.className = "song-block";
+            block.draggable = true;
+            block.dataset.index = String(blockIndex);
+            block.classList.toggle(
+              "is-selected",
+              blockIndex === runtime.selectedSongBlockIndex,
+            );
+            block.classList.toggle(
+              "is-playing",
+              runtime.mode === "playing" &&
+                runtime.seqView === "song" &&
+                blockIndex === runtime.songBlockIndex,
+            );
+            block.style.borderColor =
+              blockIndex === runtime.songBlockIndex
+                ? "rgba(255, 209, 122, 0.74)"
+                : sequenceColor(sequenceIndex);
+            block.style.setProperty(
+              "--block-progress",
+              blockIndex === runtime.songBlockIndex
+                ? (activeBlockProgress * 100).toFixed(2) + "%"
+                : "0%",
+            );
+            block.innerHTML =
+              '<span class="song-block-name">' +
+              sequenceDisplayName(sequence) +
+              "</span>" +
+              '<span class="song-block-index">BLOCK ' +
+              (blockIndex + 1) +
+              "</span>";
+            block.addEventListener("click", () => {
+              runtime.selectedSongBlockIndex = blockIndex;
+              runtime.selectedSongSequenceIndex = -1;
+              renderSongPanel();
+              updateDisplay();
+            });
+            block.addEventListener("dragstart", (event) => {
+              runtime.songDragIndex = blockIndex;
+              event.dataTransfer?.setData("text/plain", String(blockIndex));
+              event.dataTransfer?.setDragImage?.(block, 16, 16);
+            });
+            block.addEventListener("dragover", (event) => {
+              event.preventDefault();
+            });
+            block.addEventListener("drop", (event) => {
+              event.preventDefault();
+              const from = Number(
+                event.dataTransfer?.getData("text/plain") || runtime.songDragIndex,
+              );
+              moveSongBlock(from, blockIndex);
+              runtime.songDragIndex = -1;
+            });
+            block.addEventListener("dragend", () => {
+              runtime.songDragIndex = -1;
+            });
+            songTimelineEl.appendChild(block);
+          });
+        }
+
+        songDeleteBtn.disabled =
+          runtime.selectedSongBlockIndex < 0 ||
+          runtime.selectedSongBlockIndex >= songTimeline.length;
+        songShareBtn.disabled = !songHasContent();
+        songLengthEl.textContent = songTimeline.length ? songLengthText() : "0 BARS";
+      }
+
       function updateSeqPanel() {
         const sequence = activeSequence();
         seqBank.innerHTML = "";
@@ -4783,6 +5183,7 @@
         seqDeleteBtn.textContent = confirming ? "CONFIRM" : "DELETE";
         seqDeleteBtn.classList.toggle("is-confirming", confirming);
         renderSeqEditPanel();
+        renderSongPanel();
       }
 
       function updateDisplay() {
@@ -4796,6 +5197,39 @@
         if (runtime.muteMode) {
           lcdStatus.textContent = "MUTE";
           lcdMessage.textContent = "MUTE MODE \u00b7 TAP PADS TO MUTE";
+          return;
+        }
+
+        if (
+          runtime.viewMode === "seq" &&
+          runtime.seqView === "song" &&
+          runtime.mode !== "countin" &&
+          runtime.mode !== "recording"
+        ) {
+          const auditionSequence = sequences[runtime.songAuditionSequenceIndex];
+          const blockIndex = Math.max(0, runtime.songBlockIndex);
+          const sequenceIndex = songTimeline[blockIndex];
+          const sequence = sequences[sequenceIndex];
+          lcdStatus.textContent = runtime.mode === "playing" ? "SONG" : "SONG";
+          if (runtime.mode === "playing" && auditionSequence) {
+            lcdMessage.textContent =
+              "AUDITION " + sequenceDisplayName(auditionSequence);
+          } else if (runtime.mode === "playing" && sequence) {
+            lcdMessage.textContent =
+              "PLAYING " +
+              sequenceDisplayName(sequence) +
+              " \u00b7 BLOCK " +
+              (blockIndex + 1);
+          } else if (runtime.selectedSongSequenceIndex >= 0) {
+            const selected = sequences[runtime.selectedSongSequenceIndex];
+            lcdMessage.textContent = selected
+              ? "READY TO PREVIEW \u00b7 " + sequenceDisplayName(selected)
+              : "SONG READY \u00b7 " + songLengthText();
+          } else {
+            lcdMessage.textContent = songTimeline.length
+              ? "SONG READY \u00b7 " + songLengthText()
+              : "SONG EMPTY \u00b7 TAP SEQUENCES";
+          }
           return;
         }
 
@@ -5079,6 +5513,13 @@
         clearQueuedSequence();
         resetEditSelection();
         if (runtime.mode !== "idle") stopTransport();
+        for (let i = songTimeline.length - 1; i >= 0; i--) {
+          if (songTimeline[i] === activeSequenceIndex) songTimeline.splice(i, 1);
+        }
+        runtime.selectedSongBlockIndex = Math.min(
+          runtime.selectedSongBlockIndex,
+          songTimeline.length - 1,
+        );
         sequences[activeSequenceIndex] = null;
         const nextIndex = firstFilledSequenceIndex();
         activeSequenceIndex =
@@ -5207,6 +5648,9 @@
       function setSeqSubView(view) {
         const isSong = view === "song";
         const isEdit = view === "edit";
+        if (runtime.mode === "playing" && runtime.seqView === "song" && !isSong) {
+          stopTransport();
+        }
         runtime.seqView = isSong ? "song" : isEdit ? "edit" : "sequence";
         sequenceSubtab.classList.toggle("is-active", !isSong);
         songSubtab.classList.toggle("is-active", isSong);
@@ -5216,6 +5660,7 @@
         seqEditPanel.hidden = !isEdit;
         songPanel.hidden = !isSong;
         if (isEdit) renderSeqEditPanel();
+        if (isSong) renderSongPanel();
         updateDisplay();
       }
 
@@ -5412,6 +5857,13 @@
         runtime.seqSolo = !runtime.seqSolo;
         renderSeqEditPanel();
         updateDisplay();
+      });
+      songDeleteBtn.addEventListener("click", deleteSelectedSongBlock);
+      songShareBtn.addEventListener("click", () => {
+        const encodedSong = encodeSong();
+        const url = standaloneShareUrl(encodedSong);
+        shareCurrentLink(url);
+        location.hash = encodedSong;
       });
       xAxisBtn.addEventListener("click", (event) => {
         event.stopPropagation();
@@ -5681,6 +6133,8 @@
         stopStutter();
         clearQueuedSequence();
         runtime.mode = "idle";
+        runtime.songBlockIndex = -1;
+        runtime.songAuditionSequenceIndex = -1;
         runtime.lastBeat = -1;
         runtime.lastProgress = 0;
         runtime.playLastFrameTime = 0;
@@ -5770,6 +6224,122 @@
         runtime.playLastFrameTime = performance.now();
         renderStepReadout(startProgress, total);
         renderEditCurrentCell(startProgress, total);
+        updateButtons();
+        updateDisplay();
+        runtime.rafId = requestAnimationFrame(runTransportFrame);
+      }
+
+      function triggerSongPad(i, sequence, loopTime) {
+        if (!sequence || sequence.mutedPads?.has(i)) return;
+        const k = kit[i];
+        if (!k) return;
+        play(k.file, i);
+        flash(i);
+      }
+
+      function fireSequenceWindow(sequence, start, end, targetLength) {
+        if (!sequence || targetLength <= 0) return;
+        const lower = start === 0 ? -0.0001 : start;
+        sequence.layers.forEach((layer) => {
+          layer.events.forEach(([i, tick]) => {
+            const t = ticksToMs(tick, targetLength);
+            if (t > lower && t <= end) triggerSongPad(i, sequence, t);
+          });
+        });
+      }
+
+      function fireSongWindow(start, end, targetLength) {
+        if (!songTimeline.length || targetLength <= 0) return;
+        const firstBlock = Math.max(0, Math.floor(start / targetLength));
+        const lastBlock = Math.min(
+          songTimeline.length - 1,
+          Math.floor(Math.max(start, end - 0.0001) / targetLength),
+        );
+        for (let blockIndex = firstBlock; blockIndex <= lastBlock; blockIndex++) {
+          const sequence = sequences[songTimeline[blockIndex]];
+          if (!sequence) continue;
+          const blockStart = blockIndex * targetLength;
+          const localStart = Math.max(0, start - blockStart);
+          const localEnd = Math.min(targetLength, end - blockStart);
+          fireSequenceWindow(sequence, localStart, localEnd, targetLength);
+        }
+      }
+
+      function renderSongPlayhead(progress) {
+        const targetLength = fixedLoopLength();
+        const nextBlockIndex =
+          runtime.mode === "playing" &&
+          runtime.viewMode === "seq" &&
+          runtime.seqView === "song" &&
+          runtime.songAuditionSequenceIndex < 0 &&
+          songTimeline.length
+            ? Math.min(songTimeline.length - 1, Math.floor(progress / targetLength))
+            : -1;
+        const blockChanged = nextBlockIndex !== runtime.songBlockIndex;
+        runtime.songBlockIndex = nextBlockIndex;
+        if (blockChanged) {
+          renderSongPanel();
+          updateDisplay();
+          return;
+        }
+        const block = songTimelineEl?.children?.[runtime.songBlockIndex];
+        if (block && targetLength > 0) {
+          const blockProgress =
+            ((progress - runtime.songBlockIndex * targetLength) / targetLength) *
+            100;
+          block.style.setProperty(
+            "--block-progress",
+            Math.max(0, Math.min(100, blockProgress)).toFixed(2) + "%",
+          );
+        }
+      }
+
+      function startSong() {
+        if (!songHasContent()) {
+          stopTransport();
+          lcdMessage.textContent = "ADD SEQUENCES TO SONG";
+          return;
+        }
+        const targetLength = fixedLoopLength();
+        const startBlock =
+          runtime.selectedSongBlockIndex >= 0 &&
+          runtime.selectedSongBlockIndex < songTimeline.length
+            ? runtime.selectedSongBlockIndex
+            : 0;
+        const startProgress = startBlock * targetLength;
+        resumeAudio();
+        clearFrame();
+        hideCountdown();
+        runtime.mode = "playing";
+        runtime.songAuditionSequenceIndex = -1;
+        runtime.lastProgress = startProgress;
+        runtime.playStart = performance.now();
+        runtime.playLastFrameTime = runtime.playStart;
+        runtime.songBlockIndex = startBlock;
+        renderStepReadout(startProgress % targetLength, targetLength);
+        renderSongPanel();
+        updateButtons();
+        updateDisplay();
+        runtime.rafId = requestAnimationFrame(runTransportFrame);
+      }
+
+      function startSongSequenceAudition(index = runtime.selectedSongSequenceIndex) {
+        const sequence = sequences[index];
+        if (!sequence) {
+          lcdMessage.textContent = "SELECT A SEQUENCE TO PREVIEW";
+          return;
+        }
+        resumeAudio();
+        clearFrame();
+        hideCountdown();
+        runtime.mode = "playing";
+        runtime.songAuditionSequenceIndex = index;
+        runtime.songBlockIndex = -1;
+        runtime.lastProgress = 0;
+        runtime.playStart = performance.now();
+        runtime.playLastFrameTime = runtime.playStart;
+        renderStepReadout(0, fixedLoopLength());
+        renderSongPanel();
         updateButtons();
         updateDisplay();
         runtime.rafId = requestAnimationFrame(runTransportFrame);
@@ -5867,13 +6437,74 @@
         renderEditCurrentCell(pos, targetLength);
       }
 
+      function runSongPlaybackFrame(now) {
+        const targetLength = fixedLoopLength();
+        const total = songLengthMs();
+        if (!total || !songTimeline.length) {
+          stopTransport();
+          return;
+        }
+        const previous = runtime.lastProgress || 0;
+        const lastFrame = runtime.playLastFrameTime || now;
+        const delta = Math.max(0, now - lastFrame);
+        const rate = runtime.fxPitchRate || 1;
+        const pos = Math.min(total, previous + delta * rate);
+        runtime.playLastFrameTime = now;
+        fireSongWindow(previous, pos, targetLength);
+        runtime.lastProgress = pos;
+        renderStepReadout(pos % targetLength, targetLength);
+        renderSongPlayhead(pos >= total ? total - 0.0001 : pos);
+        if (pos >= total) {
+          stopTransport();
+          lcdMessage.textContent = "SONG COMPLETE";
+        }
+      }
+
+      function runSongAuditionFrame(now) {
+        const sequence = sequences[runtime.songAuditionSequenceIndex];
+        const targetLength = fixedLoopLength();
+        if (!sequence || targetLength <= 0) {
+          stopTransport();
+          return;
+        }
+        const previous = runtime.lastProgress || 0;
+        const lastFrame = runtime.playLastFrameTime || now;
+        const delta = Math.max(0, now - lastFrame);
+        const rate = runtime.fxPitchRate || 1;
+        let pos = previous + delta * rate;
+        runtime.playLastFrameTime = now;
+
+        if (pos >= targetLength) {
+          fireSequenceWindow(sequence, previous, targetLength, targetLength);
+          const wraps = Math.floor(pos / targetLength);
+          pos = wrapLoopTime(pos, targetLength);
+          for (let i = 1; i < wraps; i++) {
+            fireSequenceWindow(sequence, 0, targetLength, targetLength);
+          }
+          fireSequenceWindow(sequence, 0, pos, targetLength);
+        } else {
+          fireSequenceWindow(sequence, previous, pos, targetLength);
+        }
+
+        runtime.lastProgress = pos;
+        renderStepReadout(pos, targetLength);
+      }
+
       function runTransportFrame(now) {
         if (runtime.mode === "countin") {
           runCountInFrame(now);
         } else if (runtime.mode === "recording") {
           runRecordingFrame(now);
         } else if (runtime.mode === "playing") {
-          runPlaybackFrame(now);
+          if (runtime.viewMode === "seq" && runtime.seqView === "song") {
+            if (runtime.songAuditionSequenceIndex >= 0) {
+              runSongAuditionFrame(now);
+            } else {
+              runSongPlaybackFrame(now);
+            }
+          } else {
+            runPlaybackFrame(now);
+          }
         }
 
         if (runtime.mode !== "idle") {
@@ -5909,6 +6540,123 @@
           });
       }
 
+      function base64UrlEncode(value) {
+        const bytes = new TextEncoder().encode(value);
+        let binary = "";
+        bytes.forEach((byte) => {
+          binary += String.fromCharCode(byte);
+        });
+        return btoa(binary)
+          .replace(/\+/g, "-")
+          .replace(/\//g, "_")
+          .replace(/=+$/g, "");
+      }
+
+      function base64UrlDecode(value) {
+        const padded = value + "=".repeat((4 - (value.length % 4)) % 4);
+        const binary = atob(padded.replace(/-/g, "+").replace(/_/g, "/"));
+        const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+        return new TextDecoder().decode(bytes);
+      }
+
+      const URL_COMPRESS_ALPHABET =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+
+      function encodeVarints(values) {
+        return values
+          .map((value) => {
+            let number = Math.max(0, Math.floor(value));
+            let encoded = "";
+            do {
+              let chunk = number & 31;
+              number = Math.floor(number / 32);
+              if (number) chunk |= 32;
+              encoded += URL_COMPRESS_ALPHABET.charAt(chunk);
+            } while (number);
+            return encoded;
+          })
+          .join("");
+      }
+
+      function decodeVarints(value) {
+        const values = [];
+        let number = 0;
+        let shift = 0;
+        for (const char of value) {
+          const chunk = URL_COMPRESS_ALPHABET.indexOf(char);
+          if (chunk < 0) throw new Error("Invalid compressed song character");
+          number += (chunk & 31) * Math.pow(32, shift);
+          if (chunk & 32) {
+            shift += 1;
+          } else {
+            values.push(number);
+            number = 0;
+            shift = 0;
+          }
+        }
+        if (shift) throw new Error("Truncated compressed song data");
+        return values;
+      }
+
+      function lzwCompress(value) {
+        if (!value) return [];
+        const dictionary = new Map();
+        for (let i = 0; i < 256; i++) {
+          dictionary.set(String.fromCharCode(i), i);
+        }
+        let phrase = value.charAt(0);
+        const output = [];
+        let code = 256;
+        for (let i = 1; i < value.length; i++) {
+          const char = value.charAt(i);
+          const joined = phrase + char;
+          if (dictionary.has(joined)) {
+            phrase = joined;
+          } else {
+            output.push(dictionary.get(phrase));
+            dictionary.set(joined, code);
+            code += 1;
+            phrase = char;
+          }
+        }
+        output.push(dictionary.get(phrase));
+        return output;
+      }
+
+      function lzwDecompress(values) {
+        if (!values.length) return "";
+        const dictionary = [];
+        for (let i = 0; i < 256; i++) {
+          dictionary[i] = String.fromCharCode(i);
+        }
+        let old = dictionary[values[0]];
+        let result = old;
+        let char = old.charAt(0);
+        let code = 256;
+        for (let i = 1; i < values.length; i++) {
+          const value = values[i];
+          let entry = dictionary[value];
+          if (!entry) {
+            if (value !== code) throw new Error("Invalid compressed song code");
+            entry = old + char;
+          }
+          result += entry;
+          char = entry.charAt(0);
+          dictionary[code] = old + char;
+          code += 1;
+          old = entry;
+        }
+        return result;
+      }
+
+      function compressForUrl(value) {
+        return encodeVarints(lzwCompress(value));
+      }
+
+      function decompressFromUrl(value) {
+        return lzwDecompress(decodeVarints(value));
+      }
+
       function encode() {
         syncLoopFromActiveSequence(loop.length || fixedLoopLength());
         const layerStr = loop.layers
@@ -5924,10 +6672,233 @@
         return layerStr ? head.concat(layerStr).join(".") : head.join(".");
       }
 
+      function encodeSong() {
+        const refsBySequenceIndex = new Map();
+        const uniqueSequenceIndices = [];
+        const songRefs = [];
+        songTimeline.forEach((sequenceIndex) => {
+          if (!sequences[sequenceIndex]) return;
+          if (!refsBySequenceIndex.has(sequenceIndex)) {
+            refsBySequenceIndex.set(sequenceIndex, uniqueSequenceIndices.length);
+            uniqueSequenceIndices.push(sequenceIndex);
+          }
+          songRefs.push(refsBySequenceIndex.get(sequenceIndex));
+        });
+        const header = [
+          (seed >>> 0).toString(36),
+          bpm.toString(36),
+          skinIdx.toString(36),
+          activeSequenceIndex.toString(36),
+        ].join(",");
+        const sequencePayload = uniqueSequenceIndices
+          .map((index) => {
+            const sequence = sequences[index];
+            return [
+              index.toString(36),
+              Math.max(0, SEQUENCE_LABELS.indexOf(sequence.label)).toString(36),
+              packMuteSet(sequence.mutedPads),
+              sequence.layers.map((layer) => packTickLayerString(layer.events)).join("/"),
+            ].join(",");
+          })
+          .join("~");
+        const timelinePayload = songRefs.map((ref) => ref.toString(36)).join("");
+        return (
+          "fs1." +
+          compressForUrl("4|" + header + "|" + sequencePayload + "|" + timelinePayload)
+        );
+      }
+
+      function packTickLayer(events) {
+        let prev = 0;
+        return normalizeTickLayer(events)
+          .map(([i, tick], index) => {
+            const delta = index === 0 ? tick : tick - prev;
+            prev = tick;
+            return [i, delta];
+          })
+          .flat();
+      }
+
+      function unpackTickLayer(values) {
+        const events = [];
+        let prev = 0;
+        for (let i = 0; i < values.length; i += 2) {
+          const padIndex = Number(values[i]) || 0;
+          const delta = Number(values[i + 1]) || 0;
+          const tick = i === 0 ? delta : prev + delta;
+          prev = tick;
+          events.push([padIndex, tick]);
+        }
+        return normalizeTickLayer(events);
+      }
+
+      function packTickLayerString(events) {
+        let prev = 0;
+        return normalizeTickLayer(events)
+          .map(([i, tick], index) => {
+            const delta = index === 0 ? tick : tick - prev;
+            prev = tick;
+            return i.toString(36) + Math.max(0, delta).toString(36);
+          })
+          .join(".");
+      }
+
+      function unpackTickLayerString(value) {
+        if (!value) return [];
+        let prev = 0;
+        return normalizeTickLayer(
+          value
+            .split(".")
+            .filter(Boolean)
+            .map((token, index) => {
+              const padIndex = parseInt(token.charAt(0), 36) || 0;
+              const delta = parseInt(token.slice(1) || "0", 36) || 0;
+              const tick = index === 0 ? delta : prev + delta;
+              prev = tick;
+              return [padIndex, tick];
+            }),
+        );
+      }
+
+      function packMuteSet(mutedPads) {
+        const values = Array.from(mutedPads || []);
+        return values.length ? values.map((i) => i.toString(36)).join("") : "-";
+      }
+
+      function unpackMuteSet(value) {
+        if (!value || value === "-") return [];
+        return value.split("").map((token) => parseInt(token, 36) || 0);
+      }
+
+      function expandCompactSongPayload(payload) {
+        return {
+          seed: payload[0],
+          bpm: payload[1],
+          skinIdx: payload[2],
+          activeSequenceIndex: payload[3],
+          sequences: (payload[4] || []).map((entry) => ({
+            index: entry[0],
+            label: SEQUENCE_LABELS[entry[1]] || "seq",
+            layers: (entry[2] || []).map(unpackTickLayer),
+            mutedPads: entry[3] || [],
+          })),
+          song: payload[5] || [],
+        };
+      }
+
+      function expandDedupedSongPayload(payload) {
+        const entries = payload[4] || [];
+        return {
+          seed: payload[0],
+          bpm: payload[1],
+          skinIdx: payload[2],
+          activeSequenceIndex: payload[3],
+          sequences: entries.map((entry) => ({
+            index: entry[0],
+            label: SEQUENCE_LABELS[entry[1]] || "seq",
+            layers: (entry[2] || []).map(unpackTickLayer),
+            mutedPads: entry[3] || [],
+          })),
+          song: (payload[5] || [])
+            .map((ref) => entries[ref]?.[0])
+            .filter((index) => Number.isInteger(index)),
+        };
+      }
+
+      function expandLeanSongPayload(value) {
+        const [, header = "", sequencePayload = "", timelinePayload = ""] =
+          value.split("|");
+        const [seedValue, bpmValue, skinValue, activeValue] = header.split(",");
+        const entries = sequencePayload
+          ? sequencePayload.split("~").filter(Boolean)
+          : [];
+        const parsedEntries = entries.map((entry) => {
+          const [indexValue, labelValue, muteValue = "-", layersValue = ""] =
+            entry.split(",");
+          return {
+            index: parseInt(indexValue, 36) || 0,
+            label: SEQUENCE_LABELS[parseInt(labelValue, 36) || 0] || "seq",
+            layers: layersValue
+              ? layersValue.split("/").map(unpackTickLayerString)
+              : [],
+            mutedPads: unpackMuteSet(muteValue),
+          };
+        });
+        return {
+          seed: parseInt(seedValue, 36) || 0,
+          bpm: parseInt(bpmValue, 36) || FIXED_BPM,
+          skinIdx: parseInt(skinValue, 36) || 0,
+          activeSequenceIndex: parseInt(activeValue, 36) || 0,
+          sequences: parsedEntries,
+          song: timelinePayload
+            .split("")
+            .map((ref) => parsedEntries[parseInt(ref, 36)]?.index)
+            .filter((index) => Number.isInteger(index)),
+        };
+      }
+
+      function decodeSongPayload(value) {
+        try {
+          const decoded = decompressFromUrl(value);
+          if (decoded.startsWith("4|")) {
+            return expandLeanSongPayload(decoded);
+          }
+          if (decoded.charAt(0) === "3") {
+            return expandDedupedSongPayload(JSON.parse(decoded.slice(1)));
+          }
+          if (decoded.charAt(0) === "2") {
+            return expandCompactSongPayload(JSON.parse(decoded.slice(1)));
+          }
+        } catch (error) {
+          // Older fs1 links used base64url JSON; keep them readable.
+        }
+        return JSON.parse(base64UrlDecode(value));
+      }
+
+      function loadSongHash(raw) {
+        const payload = decodeSongPayload(raw.slice(4));
+        seed = (payload.seed || 0) >>> 0;
+        bpm = Math.max(MIN_BPM, Math.min(MAX_BPM, payload.bpm || FIXED_BPM));
+        skinIdx = Math.max(
+          0,
+          Math.min(SKINS.length - 1, payload.skinIdx || 0),
+        );
+        sequences.fill(null);
+        (payload.sequences || []).forEach((entry) => {
+          const index = Math.max(0, Math.min(MAX_SEQUENCES - 1, entry.index || 0));
+          sequences[index] = createSequence(index);
+          sequences[index].label = SEQUENCE_LABELS.includes(entry.label)
+            ? entry.label
+            : "seq";
+          sequences[index].layers = (entry.layers || []).map((events) => ({
+            events: normalizeTickLayer(events || []),
+          }));
+          sequences[index].mutedPads = new Set(entry.mutedPads || []);
+        });
+        songTimeline.length = 0;
+        (payload.song || []).forEach((index) => {
+          if (sequences[index]) songTimeline.push(index);
+        });
+        const fallbackActive = firstFilledSequenceIndex();
+        activeSequenceIndex = sequences[payload.activeSequenceIndex]
+          ? payload.activeSequenceIndex
+          : fallbackActive >= 0
+            ? fallbackActive
+            : 0;
+        if (!sequences[activeSequenceIndex]) {
+          sequences[activeSequenceIndex] = createSequence(activeSequenceIndex);
+        }
+        syncLoopFromActiveSequence(fixedLoopLength());
+        runtime.loadedFromShare = songHasContent() || loop.events.length > 0;
+        runtime.loadedStandaloneShare = !embedded && runtime.loadedFromShare;
+        return true;
+      }
+
       function loadHash() {
         if (location.hash.length < 3) return false;
         try {
           const raw = location.hash.slice(1);
+          if (raw.startsWith("fs1.")) return loadSongHash(raw);
           const parts = raw.split(".");
           if (parts[0] !== "f4") return false;
           seed = parseInt(parts[1], 36) >>> 0;
@@ -6023,6 +6994,15 @@
           stopTransport();
         } else if (runtime.mode === "countin" || runtime.mode === "recording") {
           stopTransport();
+        } else if (runtime.viewMode === "seq" && runtime.seqView === "song") {
+          if (
+            runtime.selectedSongSequenceIndex >= 0 &&
+            sequences[runtime.selectedSongSequenceIndex]
+          ) {
+            startSongSequenceAudition();
+          } else {
+            startSong();
+          }
         } else {
           startLoop();
         }
@@ -6052,7 +7032,10 @@
       });
 
       shareBtn.addEventListener("click", () => {
-        const encodedLoop = encode();
+        const encodedLoop =
+          runtime.viewMode === "seq" && runtime.seqView === "song" && songHasContent()
+            ? encodeSong()
+            : encode();
         const url = standaloneShareUrl(encodedLoop);
         shareCurrentLink(url);
         location.hash = encodedLoop;
@@ -6127,7 +7110,12 @@
       applySkin();
       updateAxisLabels();
       updateXyCursor(0.5, 0.5, false);
-      setViewMode("pads");
+      if (songHasContent()) {
+        setViewMode("seq");
+        setSeqSubView("song");
+      } else {
+        setViewMode("pads");
+      }
       renderPads();
       loadKit();
       updateButtons();
