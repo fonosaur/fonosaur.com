@@ -992,6 +992,10 @@
       .seq-manage-btn,
       .seq-label-toggle,
       .seq-label-option,
+      .seq-edit,
+      .seq-edit-btn,
+      .seq-sound-select,
+      .seq-edit-cell,
       .seq-empty {
         font-family: "Space Mono", monospace;
         font-size: 10px;
@@ -1008,7 +1012,11 @@
       .seq-manage {
         --seq-manage-inline-inset: 10px;
         display: grid;
-        grid-template-columns: minmax(76px, auto) minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-columns:
+          minmax(70px, auto)
+          minmax(0, 0.9fr)
+          minmax(0, 0.9fr)
+          minmax(0, 1fr);
         align-items: center;
         gap: 5px;
         padding: 5px 6px;
@@ -1032,7 +1040,7 @@
       }
 
       #seqManageMeta {
-        grid-column: 2 / 4;
+        grid-column: 2 / 5;
         padding-right: var(--seq-manage-inline-inset);
         text-align: right;
       }
@@ -1117,6 +1125,169 @@
         background:
           radial-gradient(circle at 50% 0, rgba(255, 164, 91, 0.18), transparent 70%),
           linear-gradient(180deg, rgba(58, 32, 12, 0.88), rgba(18, 10, 6, 0.94));
+      }
+
+      .seq-edit-panel {
+        min-height: 0;
+        height: 100%;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+        gap: 6px;
+      }
+
+      .seq-edit-panel[hidden] {
+        display: none;
+      }
+
+      .seq-edit-top,
+      .seq-edit-controls {
+        display: grid;
+        gap: 5px;
+      }
+
+      .seq-edit-top {
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+      }
+
+      .seq-edit-title {
+        color: rgba(232, 232, 234, 0.66);
+        text-align: center;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .seq-sound-select {
+        min-height: 30px;
+        border-radius: 11px;
+        border: 1px solid rgba(125, 255, 184, 0.18);
+        background: rgba(8, 12, 10, 0.92);
+        color: var(--lcd-ink);
+        padding: 0 9px;
+        outline: none;
+      }
+
+      .seq-edit-grid {
+        position: relative;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: repeat(16, minmax(0, 1fr));
+        grid-template-rows: repeat(4, minmax(0, 1fr));
+        gap: 3px;
+        padding: 7px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.045);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(0, 0, 0, 0.1)),
+          rgba(9, 9, 11, 0.32);
+        overflow: hidden;
+      }
+
+      .seq-edit-cell {
+        position: relative;
+        min-width: 0;
+        border-radius: 7px;
+        border: 1px solid rgba(255, 255, 255, 0.055);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(0, 0, 0, 0.14)),
+          rgba(8, 8, 10, 0.52);
+        color: rgba(232, 232, 234, 0.38);
+        overflow: hidden;
+      }
+
+      .seq-edit-cell.is-beat {
+        border-color: rgba(125, 255, 184, 0.12);
+        background:
+          radial-gradient(circle at 50% 0, rgba(125, 255, 184, 0.045), transparent 72%),
+          rgba(8, 8, 10, 0.56);
+      }
+
+      .seq-edit-cell.is-hit {
+        border-color: rgba(125, 255, 184, 0.42);
+        color: var(--lcd-ink);
+        background:
+          radial-gradient(circle at 50% 0, rgba(125, 255, 184, 0.18), transparent 72%),
+          linear-gradient(180deg, rgba(15, 48, 29, 0.9), rgba(7, 16, 11, 0.96));
+      }
+
+      .seq-edit-cell.is-selected {
+        border-color: rgba(255, 209, 122, 0.78);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 209, 122, 0.18),
+          0 0 12px rgba(255, 178, 92, 0.18);
+      }
+
+      .seq-edit-cell.is-current {
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 236, 170, 0.46),
+          0 0 9px rgba(255, 205, 94, 0.11);
+      }
+
+      .seq-edit-cell.is-selected.is-current {
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 236, 170, 0.54),
+          0 0 12px rgba(255, 178, 92, 0.2);
+      }
+
+      .seq-edit-cell.is-firing {
+        border-color: rgba(255, 236, 170, 0.88);
+        color: #fff4c7;
+        background:
+          radial-gradient(circle at 50% 0, rgba(255, 224, 128, 0.28), transparent 76%),
+          linear-gradient(180deg, rgba(72, 55, 18, 0.94), rgba(20, 14, 7, 0.96));
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 231, 157, 0.2),
+          0 0 14px rgba(255, 205, 94, 0.24);
+      }
+
+      .seq-hit-dot {
+        position: absolute;
+        left: calc(50% + var(--tick-shift, 0px));
+        top: 50%;
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: currentColor;
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 10px rgba(125, 255, 184, 0.24);
+      }
+
+      .seq-hit-offset {
+        position: absolute;
+        right: 2px;
+        bottom: 1px;
+        color: rgba(255, 209, 122, 0.84);
+        font-size: 7px;
+        letter-spacing: 0;
+      }
+
+      .seq-edit-controls {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+      }
+
+      .seq-edit-btn {
+        min-height: 29px;
+        border-radius: 11px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(10, 10, 12, 0.84)),
+          rgba(13, 13, 16, 0.84);
+        color: rgba(232, 232, 234, 0.66);
+      }
+
+      .seq-edit-btn.is-active,
+      .seq-edit-btn:not(:disabled):active {
+        border-color: rgba(125, 255, 184, 0.34);
+        color: var(--lcd-ink);
+        background:
+          radial-gradient(circle at 50% 0, rgba(91, 255, 154, 0.14), transparent 70%),
+          linear-gradient(180deg, rgba(19, 54, 34, 0.82), rgba(10, 18, 13, 0.92));
+      }
+
+      .seq-edit-btn:disabled {
+        opacity: 0.42;
+        cursor: default;
       }
 
       .seq-song-panel {
@@ -1720,6 +1891,10 @@
         .seq-manage-btn,
         .seq-label-toggle,
         .seq-label-option,
+        .seq-edit,
+        .seq-edit-btn,
+        .seq-sound-select,
+        .seq-edit-cell,
         .seq-empty {
           font-size: 9px;
         }
@@ -1727,6 +1902,24 @@
         .seq-manage {
           padding: 6px;
           gap: 5px;
+        }
+
+        .seq-edit-grid {
+          gap: 2px;
+          padding: 6px;
+        }
+
+        .seq-edit-cell {
+          border-radius: 6px;
+        }
+
+        .seq-hit-dot {
+          width: 6px;
+          height: 6px;
+        }
+
+        .seq-hit-offset {
+          font-size: 6px;
         }
 
         .grid {
@@ -2302,6 +2495,9 @@
                   </div>
                 </div>
                 <div class="seq-actions">
+                  <button class="seq-manage-btn" id="seqEditBtn" type="button">
+                    EDIT
+                  </button>
                   <button class="seq-manage-btn" id="seqDupBtn" type="button">
                     DUP
                   </button>
@@ -2313,6 +2509,55 @@
                     DELETE
                   </button>
                 </div>
+              </div>
+            </div>
+            <div class="seq-edit-panel" id="seqEditPanel" hidden>
+              <div class="seq-edit-top">
+                <button class="seq-edit-btn" id="seqEditBackBtn" type="button">
+                  BANK
+                </button>
+                <select
+                  class="seq-sound-select"
+                  id="seqSoundSelect"
+                  aria-label="Sound to edit"
+                ></select>
+                <span class="seq-edit-title" id="seqEditTitle">SEQ 1</span>
+              </div>
+              <div
+                class="seq-edit-grid"
+                id="seqEditGrid"
+                aria-label="Sequence edit grid"
+              ></div>
+              <div class="seq-edit-controls">
+                <button
+                  class="seq-edit-btn"
+                  id="seqSelectAllBtn"
+                  type="button"
+                  aria-pressed="false"
+                  title="Select all hits for this sound"
+                >
+                  ALL
+                </button>
+                <button class="seq-edit-btn" id="seqNudgeLeftBtn" type="button">
+                  &#9664;
+                </button>
+                <button class="seq-edit-btn" id="seqNudgeRightBtn" type="button">
+                  &#9654;
+                </button>
+                <button class="seq-edit-btn" id="seqQuantZeroBtn" type="button">
+                  Q &#8594;0
+                </button>
+                <button class="seq-edit-btn" id="seqDeleteHitsBtn" type="button">
+                  DEL
+                </button>
+                <button
+                  class="seq-edit-btn"
+                  id="seqSoloBtn"
+                  type="button"
+                  aria-pressed="false"
+                >
+                  SOLO
+                </button>
               </div>
             </div>
             <div class="seq-panel seq-song-panel" id="songPanel" hidden>
@@ -2610,6 +2855,15 @@
         pendingDeleteIndex: -1,
         pendingDeleteTimer: 0,
         queuedSequenceIndex: -1,
+        editSoundIndex: 0,
+        selectedEditHit: null,
+        editSelectAll: false,
+        editStartTick: 0,
+        seqSolo: false,
+        undoStack: [],
+        nudgeTimer: 0,
+        nudgeInterval: 0,
+        suppressNudgeClick: false,
         fxX: 0.5,
         fxY: 0.5,
         fxTouching: false,
@@ -2986,8 +3240,20 @@
       const seqLabelOptions = Array.from(
         document.querySelectorAll(".seq-label-option"),
       );
+      const seqEditBtn = document.getElementById("seqEditBtn");
       const seqDupBtn = document.getElementById("seqDupBtn");
       const seqDeleteBtn = document.getElementById("seqDeleteBtn");
+      const seqEditPanel = document.getElementById("seqEditPanel");
+      const seqEditBackBtn = document.getElementById("seqEditBackBtn");
+      const seqSoundSelect = document.getElementById("seqSoundSelect");
+      const seqEditTitle = document.getElementById("seqEditTitle");
+      const seqEditGrid = document.getElementById("seqEditGrid");
+      const seqSelectAllBtn = document.getElementById("seqSelectAllBtn");
+      const seqNudgeLeftBtn = document.getElementById("seqNudgeLeftBtn");
+      const seqNudgeRightBtn = document.getElementById("seqNudgeRightBtn");
+      const seqQuantZeroBtn = document.getElementById("seqQuantZeroBtn");
+      const seqDeleteHitsBtn = document.getElementById("seqDeleteHitsBtn");
+      const seqSoloBtn = document.getElementById("seqSoloBtn");
       const xyPad = document.getElementById("xyPad");
       const xyCursor = document.getElementById("xyCursor");
       const xAxisBtn = document.getElementById("xAxisBtn");
@@ -3594,6 +3860,43 @@
         };
       }
 
+      function cloneSequenceState(sequence) {
+        if (!sequence) return null;
+        return {
+          label: sequence.label,
+          layers: sequence.layers.map((layer) => ({
+            events: layer.events.map(([i, tick]) => [i, tick]),
+          })),
+          mutedPads: new Set(Array.from(sequence.mutedPads || [])),
+          lengthTicks: sequence.lengthTicks || SEQUENCE_TICKS,
+        };
+      }
+
+      function restoreSequenceState(sequence, snapshot) {
+        if (!sequence || !snapshot) return;
+        sequence.label = snapshot.label || "seq";
+        sequence.layers = snapshot.layers.map((layer) => ({
+          events: layer.events.map(([i, tick]) => [i, tick]),
+        }));
+        sequence.mutedPads = new Set(Array.from(snapshot.mutedPads || []));
+        sequence.lengthTicks = snapshot.lengthTicks || SEQUENCE_TICKS;
+      }
+
+      function pushUndoSnapshot(reason) {
+        const sequence = activeSequence();
+        if (!sequence) return;
+        runtime.undoStack.push({
+          reason,
+          sequenceIndex: activeSequenceIndex,
+          snapshot: cloneSequenceState(sequence),
+        });
+        if (runtime.undoStack.length > 12) runtime.undoStack.shift();
+      }
+
+      function canUndoSequenceAction() {
+        return runtime.undoStack.length > 0 || sequenceHasContent();
+      }
+
       function firstFilledSequenceIndex() {
         return sequences.findIndex(Boolean);
       }
@@ -3622,6 +3925,18 @@
         );
       }
 
+      function sequenceHasPadContent(
+        padIndex = runtime.editSoundIndex,
+        sequence = activeSequence(),
+      ) {
+        return Boolean(
+          sequence &&
+            sequence.layers.some((layer) =>
+              layer.events.some(([i]) => i === padIndex),
+            ),
+        );
+      }
+
       function sequenceHitCount(sequence = activeSequence()) {
         if (!sequence) return 0;
         return sequence.layers.reduce(
@@ -3644,6 +3959,152 @@
           sequence.mutedPads = new Set(sequence.mutedPads || []);
         }
         return sequence.mutedPads;
+      }
+
+      function editStepTicks() {
+        return PPQ / 4;
+      }
+
+      function signedTickOffset(tick, gridTick) {
+        let offset = Math.round(wrapSequenceTick(tick) - wrapSequenceTick(gridTick));
+        if (offset > SEQUENCE_TICKS / 2) offset -= SEQUENCE_TICKS;
+        if (offset < -SEQUENCE_TICKS / 2) offset += SEQUENCE_TICKS;
+        return offset;
+      }
+
+      function editStepInfo(tick) {
+        const stepTicks = editStepTicks();
+        let step = Math.round(wrapSequenceTick(tick) / stepTicks);
+        if (step >= QUANTIZE_STEPS) step = 0;
+        const gridTick = step * stepTicks;
+        return {
+          step,
+          gridTick,
+          offset: signedTickOffset(tick, gridTick),
+        };
+      }
+
+      function selectedEditEvent() {
+        const selected = runtime.selectedEditHit;
+        const sequence = activeSequence();
+        if (!selected || !sequence) return null;
+        const layer = sequence.layers[selected.layerIndex];
+        const event = layer?.events[selected.eventIndex];
+        if (!event || event[0] !== selected.padIndex) return null;
+        return {
+          layerIndex: selected.layerIndex,
+          eventIndex: selected.eventIndex,
+          padIndex: event[0],
+          tick: event[1],
+        };
+      }
+
+      function resetEditSelection() {
+        runtime.selectedEditHit = null;
+        runtime.editSelectAll = false;
+      }
+
+      function selectedEditHits() {
+        if (runtime.editSelectAll) return collectEditHits(runtime.editSoundIndex);
+        const selected = selectedEditEvent();
+        return selected ? [selected] : [];
+      }
+
+      function hasEditSelection() {
+        return selectedEditHits().length > 0;
+      }
+
+      function ensureEditLayer(sequence) {
+        if (!sequence.layers.length) sequence.layers.push({ events: [] });
+        return 0;
+      }
+
+      function collectEditHits(padIndex = runtime.editSoundIndex) {
+        const sequence = activeSequence();
+        if (!sequence) return [];
+        const hits = [];
+        sequence.layers.forEach((layer, layerIndex) => {
+          layer.events.forEach(([i, tick], eventIndex) => {
+            if (i !== padIndex) return;
+            const info = editStepInfo(tick);
+            hits.push({
+              layerIndex,
+              eventIndex,
+              padIndex: i,
+              tick,
+              step: info.step,
+              offset: info.offset,
+            });
+          });
+        });
+        return hits.sort((a, b) => a.step - b.step || a.offset - b.offset);
+      }
+
+      function findEditHitAtStep(step, padIndex = runtime.editSoundIndex) {
+        return collectEditHits(padIndex).find((hitData) => hitData.step === step);
+      }
+
+      function sameEditHit(a, b) {
+        return Boolean(
+          a &&
+            b &&
+            a.layerIndex === b.layerIndex &&
+            a.eventIndex === b.eventIndex &&
+            a.padIndex === b.padIndex,
+        );
+      }
+
+      function selectedEditStepInfo() {
+        const selected = selectedEditEvent();
+        if (!selected) return null;
+        return {
+          ...selected,
+          ...editStepInfo(selected.tick),
+        };
+      }
+
+      function formatTickOffset(offset) {
+        if (!offset) return "0";
+        return (offset > 0 ? "+" : "") + offset;
+      }
+
+      function editLcdMessage() {
+        const sound = kit[runtime.editSoundIndex];
+        if (runtime.editSelectAll) {
+          const count = collectEditHits(runtime.editSoundIndex).length;
+          return sound
+            ? sound.label + " \u00b7 ALL SELECTED" + (count ? " \u00b7 " + count : "")
+            : "ALL SELECTED";
+        }
+        const selected = selectedEditStepInfo();
+        if (!sound) return "EDIT SEQUENCE";
+        if (!selected) return sound.label + " \u00b7 TAP HIT TO EDIT";
+        const bar = Math.floor(selected.step / 16) + 1;
+        const step = (selected.step % 16) + 1;
+        return (
+          sound.label +
+          " \u00b7 BAR " +
+          bar +
+          " \u00b7 STEP " +
+          step +
+          " \u00b7 " +
+          formatTickOffset(selected.offset)
+        );
+      }
+
+      function commitSequenceEdit() {
+        const sequence = activeSequence();
+        if (!sequence) return;
+        sequence.layers.forEach((layer) => {
+          layer.events = layer.events.map(([i, tick]) => [
+            i,
+            Math.round(wrapSequenceTick(tick)),
+          ]);
+        });
+        syncLoopFromActiveSequence(loop.length || fixedLoopLength());
+        renderSeqEditPanel();
+        updateButtons();
+        updateDisplay();
       }
 
       function quantizeValue() {
@@ -3747,6 +4208,73 @@
         sequence.layers = [];
         sequence.lengthTicks = SEQUENCE_TICKS;
         syncLoopFromActiveSequence();
+      }
+
+      function clearVisibleEditTrack() {
+        const sequence = activeSequence();
+        if (!sequence || !sequenceHasPadContent(runtime.editSoundIndex, sequence))
+          return false;
+        pushUndoSnapshot("clear-track");
+        sequence.layers.forEach((layer) => {
+          layer.events = layer.events.filter(([i]) => i !== runtime.editSoundIndex);
+        });
+        resetEditSelection();
+        commitSequenceEdit();
+        return true;
+      }
+
+      function clearCurrentSequence() {
+        if (!sequenceHasContent()) return false;
+        pushUndoSnapshot("clear-sequence");
+        resetLoopData();
+        resetEditSelection();
+        return true;
+      }
+
+      function clearCurrentContext() {
+        const isEdit =
+          runtime.viewMode === "seq" && runtime.seqView === "edit";
+        const didClear = isEdit ? clearVisibleEditTrack() : clearCurrentSequence();
+        if (!didClear) return;
+        runtime.loadedFromShare = false;
+        runtime.loadedStandaloneShare = false;
+        updateButtons();
+        updateDisplay();
+      }
+
+      function undoSequenceAction() {
+        if (runtime.mode === "countin" || runtime.mode === "recording") return;
+        stopTransport();
+        const action = runtime.undoStack.pop();
+        if (action) {
+          if (!sequences[action.sequenceIndex]) {
+            sequences[action.sequenceIndex] = createSequence(action.sequenceIndex);
+          }
+          activeSequenceIndex = action.sequenceIndex;
+          restoreSequenceState(sequences[action.sequenceIndex], action.snapshot);
+          syncLoopFromActiveSequence();
+          resetEditSelection();
+          updatePadMuteStates();
+          updateButtons();
+          updateDisplay();
+          return;
+        }
+        if (!sequenceHasContent()) return;
+        activeSequence().layers.pop();
+        syncLoopFromActiveSequence();
+        if (!loop.events.length) loop.length = fixedLoopLength();
+        runtime.loadedFromShare = false;
+        runtime.loadedStandaloneShare = false;
+        resetEditSelection();
+        updateButtons();
+        updateDisplay();
+      }
+
+      function canClearCurrentContext() {
+        if (runtime.mode === "countin" || runtime.mode === "recording") return false;
+        return runtime.viewMode === "seq" && runtime.seqView === "edit"
+          ? sequenceHasPadContent()
+          : sequenceHasContent();
       }
 
       function retimeLoop(nextLength) {
@@ -4054,12 +4582,124 @@
         });
       }
 
+      function clearEditCurrentCell() {
+        if (!seqEditGrid) return;
+        Array.from(seqEditGrid.children).forEach((cell) => {
+          cell.classList.remove("is-current");
+        });
+      }
+
+      function renderEditCurrentCell(progress, total) {
+        if (!seqEditGrid || runtime.viewMode !== "seq" || runtime.seqView !== "edit") {
+          return;
+        }
+        const playing = runtime.mode === "playing" && total > 0;
+        const ratio = playing
+          ? Math.max(0, Math.min(wrapLoopTime(progress, total) / total, 0.9999))
+          : -1;
+        const activeStep = playing
+          ? Math.min(QUANTIZE_STEPS - 1, Math.floor(ratio * QUANTIZE_STEPS))
+          : -1;
+        Array.from(seqEditGrid.children).forEach((cell, index) => {
+          cell.classList.toggle("is-current", index === activeStep);
+        });
+      }
+
       function currentIdleMessage() {
         if (runtime.loadedFromShare && loop.events.length)
           return "SHARED LOOP READY";
         if (loop.events.length)
           return sequenceDisplayName() + " READY \u00b7 REC TO DUB";
         return "READY TO RECORD";
+      }
+
+      function renderSeqSoundSelect() {
+        if (!seqSoundSelect) return;
+        seqSoundSelect.innerHTML = "";
+        kit.forEach((sound, index) => {
+          const option = document.createElement("option");
+          option.value = String(index);
+          option.textContent =
+            String(index + 1).padStart(2, "0") + " \u00b7 " + sound.label;
+          seqSoundSelect.appendChild(option);
+        });
+        if (runtime.editSoundIndex >= kit.length) runtime.editSoundIndex = 0;
+        seqSoundSelect.value = String(runtime.editSoundIndex);
+      }
+
+      function setEditStartStep(step) {
+        runtime.editStartTick = wrapSequenceTick(step * editStepTicks());
+      }
+
+      function editStartMs(targetLength) {
+        return ticksToMs(runtime.editStartTick || 0, targetLength);
+      }
+
+      function renderSeqEditPanel() {
+        if (!seqEditPanel || runtime.seqView !== "edit") return;
+        const sequence = activeSequence();
+        renderSeqSoundSelect();
+        const sound = kit[runtime.editSoundIndex];
+        seqEditTitle.textContent = sequenceDisplayName(sequence);
+        seqSoundSelect.disabled = !sequence || !kit.length;
+        seqEditGrid.innerHTML = "";
+        const hits = collectEditHits(runtime.editSoundIndex);
+        const hitsByStep = new Map();
+        hits.forEach((hitData) => {
+          if (!hitsByStep.has(hitData.step)) hitsByStep.set(hitData.step, hitData);
+        });
+        for (let step = 0; step < QUANTIZE_STEPS; step++) {
+          const hitData = hitsByStep.get(step);
+          const cell = document.createElement("button");
+          cell.type = "button";
+          cell.className = "seq-edit-cell";
+          cell.classList.toggle("is-beat", step % 4 === 0);
+          cell.classList.toggle("is-hit", Boolean(hitData));
+          cell.classList.toggle(
+            "is-selected",
+            Boolean(
+              hitData &&
+                (runtime.editSelectAll ||
+                  sameEditHit(runtime.selectedEditHit, hitData)),
+            ),
+          );
+          const bar = Math.floor(step / 16) + 1;
+          const stepInBar = (step % 16) + 1;
+          cell.setAttribute(
+            "aria-label",
+            (sound ? sound.label : "Sound") +
+              " bar " +
+              bar +
+              " step " +
+              stepInBar +
+              (hitData ? " hit " + formatTickOffset(hitData.offset) : " empty"),
+          );
+          if (hitData) {
+            const shift = Math.max(-8, Math.min(8, hitData.offset * 0.7));
+            cell.innerHTML =
+              '<span class="seq-hit-dot" style="--tick-shift:' +
+              shift.toFixed(1) +
+              'px"></span>' +
+              (hitData.offset
+                ? '<span class="seq-hit-offset">' +
+                  formatTickOffset(hitData.offset) +
+                  "</span>"
+                : "");
+          }
+          cell.addEventListener("click", () => toggleEditCell(step, hitData));
+          seqEditGrid.appendChild(cell);
+        }
+        const hasSelection = hasEditSelection();
+        seqSelectAllBtn.disabled = !hits.length;
+        seqSelectAllBtn.classList.toggle("is-active", runtime.editSelectAll);
+        seqSelectAllBtn.setAttribute("aria-pressed", String(runtime.editSelectAll));
+        seqNudgeLeftBtn.disabled = !hasSelection;
+        seqNudgeRightBtn.disabled = !hasSelection;
+        seqQuantZeroBtn.disabled = !hasSelection;
+        seqDeleteHitsBtn.disabled = !hasSelection;
+        seqSoloBtn.classList.toggle("is-active", runtime.seqSolo);
+        seqSoloBtn.setAttribute("aria-pressed", String(runtime.seqSolo));
+        renderEditCurrentCell(runtime.lastProgress || 0, loop.length || fixedLoopLength());
       }
 
       function updateSeqPanel() {
@@ -4115,10 +4755,12 @@
             button.classList.remove("is-active");
             button.setAttribute("aria-pressed", "false");
           });
+          seqEditBtn.disabled = true;
           seqDupBtn.disabled = true;
           seqDeleteBtn.disabled = true;
           seqDeleteBtn.textContent = "DELETE";
           seqDeleteBtn.classList.remove("is-confirming");
+          renderSeqEditPanel();
           return;
         }
 
@@ -4134,11 +4776,13 @@
           button.classList.toggle("is-active", sequence.label === label);
           button.setAttribute("aria-pressed", String(sequence.label === label));
         });
+        seqEditBtn.disabled = false;
         seqDupBtn.disabled = firstEmptySequenceIndex() < 0;
         seqDeleteBtn.disabled = false;
         const confirming = runtime.pendingDeleteIndex === activeSequenceIndex;
         seqDeleteBtn.textContent = confirming ? "CONFIRM" : "DELETE";
         seqDeleteBtn.classList.toggle("is-confirming", confirming);
+        renderSeqEditPanel();
       }
 
       function updateDisplay() {
@@ -4152,6 +4796,18 @@
         if (runtime.muteMode) {
           lcdStatus.textContent = "MUTE";
           lcdMessage.textContent = "MUTE MODE \u00b7 TAP PADS TO MUTE";
+          return;
+        }
+
+        if (
+          runtime.viewMode === "seq" &&
+          runtime.seqView === "edit" &&
+          runtime.mode !== "countin" &&
+          runtime.mode !== "recording"
+        ) {
+          lcdStatus.textContent =
+            runtime.mode === "playing" ? (runtime.seqSolo ? "SOLO" : "PLAY") : "EDIT";
+          lcdMessage.textContent = editLcdMessage();
           return;
         }
 
@@ -4185,7 +4841,8 @@
         const live = runtime.mode === "countin" || runtime.mode === "recording";
         const playing = runtime.mode === "playing";
         const onPads = runtime.viewMode === "pads";
-        const hasSequence = sequenceHasContent();
+        const canClear = canClearCurrentContext();
+        const canUndo = canUndoSequenceAction();
         playBtn.classList.toggle("is-playing", playing);
         recBtn.classList.toggle("is-live", live);
         playIcon.innerHTML = playing ? "&#9632;" : "&#9654;";
@@ -4194,8 +4851,8 @@
         playBtn.setAttribute("title", playing ? "Stop loop" : "Play loop");
         recDot.classList.toggle("is-live", live);
         recBtn.disabled = !onPads;
-        clearBtn.disabled = !hasSequence || live;
-        undoBtn.disabled = !hasSequence || live;
+        clearBtn.disabled = !canClear || live;
+        undoBtn.disabled = !canUndo || live;
         muteBtn.disabled = !onPads;
         muteBtn.classList.toggle("is-mute", runtime.muteMode);
         muteBtn.setAttribute("aria-pressed", String(runtime.muteMode));
@@ -4350,6 +5007,7 @@
         }
         if (runtime.mode !== "idle") stopTransport();
         clearQueuedSequence();
+        resetEditSelection();
         activeSequenceIndex = index;
         syncLoopFromActiveSequence();
         updatePadMuteStates();
@@ -4364,6 +5022,7 @@
         }
         clearDeleteConfirm();
         clearQueuedSequence();
+        resetEditSelection();
         if (runtime.mode !== "idle") stopTransport();
         sequences[index] = createSequence(index);
         activeSequenceIndex = index;
@@ -4392,6 +5051,7 @@
         if (!source) return;
         clearDeleteConfirm();
         clearQueuedSequence();
+        resetEditSelection();
         if (runtime.mode !== "idle") stopTransport();
         sequences[emptyIndex] = createSequence(emptyIndex, source);
         activeSequenceIndex = emptyIndex;
@@ -4417,6 +5077,7 @@
         }
         clearDeleteConfirm();
         clearQueuedSequence();
+        resetEditSelection();
         if (runtime.mode !== "idle") stopTransport();
         sequences[activeSequenceIndex] = null;
         const nextIndex = firstFilledSequenceIndex();
@@ -4425,15 +5086,137 @@
         refreshSequenceState();
       }
 
+      function toggleEditCell(step, hitData) {
+        const sequence = activeSequence();
+        if (!sequence) return;
+        setEditStartStep(step);
+        if (hitData) {
+          if (sameEditHit(runtime.selectedEditHit, hitData)) {
+            const layer = sequence.layers[hitData.layerIndex];
+            if (layer?.events[hitData.eventIndex]) {
+              pushUndoSnapshot("delete-hit");
+              layer.events.splice(hitData.eventIndex, 1);
+            }
+            resetEditSelection();
+            commitSequenceEdit();
+            return;
+          }
+          runtime.editSelectAll = false;
+          runtime.selectedEditHit = {
+            layerIndex: hitData.layerIndex,
+            eventIndex: hitData.eventIndex,
+            padIndex: hitData.padIndex,
+          };
+          renderSeqEditPanel();
+          updateDisplay();
+          return;
+        }
+
+        const layerIndex = ensureEditLayer(sequence);
+        const layer = sequence.layers[layerIndex];
+        layer.events.push([runtime.editSoundIndex, step * editStepTicks()]);
+        runtime.editSelectAll = false;
+        runtime.selectedEditHit = {
+          layerIndex,
+          eventIndex: layer.events.length - 1,
+          padIndex: runtime.editSoundIndex,
+        };
+        commitSequenceEdit();
+      }
+
+      function nudgeSelectedHit(delta) {
+        const sequence = activeSequence();
+        const selectedHits = selectedEditHits();
+        if (!sequence || !selectedHits.length) return;
+        selectedHits.forEach((hitData) => {
+          const event = sequence.layers[hitData.layerIndex]?.events[hitData.eventIndex];
+          if (!event || event[0] !== hitData.padIndex) return;
+          event[1] = wrapSequenceTick(event[1] + delta);
+        });
+        commitSequenceEdit();
+      }
+
+      function quantizeSelectedHitToZero() {
+        const sequence = activeSequence();
+        const selectedHits = selectedEditHits();
+        if (!sequence || !selectedHits.length) return;
+        selectedHits.forEach((hitData) => {
+          const event = sequence.layers[hitData.layerIndex]?.events[hitData.eventIndex];
+          if (!event || event[0] !== hitData.padIndex) return;
+          event[1] = editStepInfo(event[1]).gridTick;
+        });
+        commitSequenceEdit();
+      }
+
+      function deleteSelectedEditHits() {
+        const sequence = activeSequence();
+        const selectedHits = selectedEditHits();
+        if (!sequence || !selectedHits.length) return;
+        pushUndoSnapshot(runtime.editSelectAll ? "delete-all-hits" : "delete-hit");
+        if (runtime.editSelectAll) {
+          sequence.layers.forEach((layer) => {
+            layer.events = layer.events.filter(([i]) => i !== runtime.editSoundIndex);
+          });
+        } else {
+          const selected = selectedHits[0];
+          const layer = sequence.layers[selected.layerIndex];
+          if (layer?.events[selected.eventIndex]) {
+            layer.events.splice(selected.eventIndex, 1);
+          }
+        }
+        resetEditSelection();
+        commitSequenceEdit();
+      }
+
+      function toggleSelectAllEditHits() {
+        if (runtime.editSelectAll) {
+          resetEditSelection();
+        } else if (collectEditHits(runtime.editSoundIndex).length) {
+          runtime.editSelectAll = true;
+          runtime.selectedEditHit = null;
+        }
+        renderSeqEditPanel();
+        updateDisplay();
+      }
+
+      function stopNudgeRepeat() {
+        window.clearTimeout(runtime.nudgeTimer);
+        window.clearInterval(runtime.nudgeInterval);
+        runtime.nudgeTimer = 0;
+        runtime.nudgeInterval = 0;
+      }
+
+      function startNudgeRepeat(delta) {
+        if (!hasEditSelection()) return;
+        nudgeSelectedHit(delta);
+        stopNudgeRepeat();
+        runtime.nudgeTimer = window.setTimeout(() => {
+          runtime.nudgeInterval = window.setInterval(() => {
+            nudgeSelectedHit(delta);
+          }, 70);
+        }, 280);
+      }
+
+      function openSeqEdit() {
+        if (!activeSequence()) return;
+        resetEditSelection();
+        setSeqSubView("edit");
+        updateDisplay();
+      }
+
       function setSeqSubView(view) {
         const isSong = view === "song";
-        runtime.seqView = isSong ? "song" : "sequence";
+        const isEdit = view === "edit";
+        runtime.seqView = isSong ? "song" : isEdit ? "edit" : "sequence";
         sequenceSubtab.classList.toggle("is-active", !isSong);
         songSubtab.classList.toggle("is-active", isSong);
         sequenceSubtab.setAttribute("aria-selected", String(!isSong));
         songSubtab.setAttribute("aria-selected", String(isSong));
-        sequencePanel.hidden = isSong;
+        sequencePanel.hidden = isSong || isEdit;
+        seqEditPanel.hidden = !isEdit;
         songPanel.hidden = !isSong;
+        if (isEdit) renderSeqEditPanel();
+        updateDisplay();
       }
 
       function setViewMode(mode) {
@@ -4529,7 +5312,7 @@
         loop.events.forEach(([i, t]) => {
           const scaled = loop.length > 0 ? (t / loop.length) * targetLength : t;
           const offset = wrapLoopTime(scaled - start, targetLength);
-          if (offset <= length + 0.0001) hit(i, true);
+          if (offset <= length + 0.0001) hit(i, true, undefined, scaled);
         });
       }
 
@@ -4593,6 +5376,43 @@
       });
       seqDupBtn.addEventListener("click", duplicateActiveSequence);
       seqDeleteBtn.addEventListener("click", deleteActiveSequence);
+      seqEditBtn.addEventListener("click", openSeqEdit);
+      seqEditBackBtn.addEventListener("click", () => setSeqSubView("sequence"));
+      seqSoundSelect.addEventListener("change", () => {
+        runtime.editSoundIndex = Number(seqSoundSelect.value) || 0;
+        resetEditSelection();
+        renderSeqEditPanel();
+        updateDisplay();
+      });
+      seqSelectAllBtn.addEventListener("click", toggleSelectAllEditHits);
+      [
+        [seqNudgeLeftBtn, -1],
+        [seqNudgeRightBtn, 1],
+      ].forEach(([button, delta]) => {
+        button.addEventListener("pointerdown", (event) => {
+          event.preventDefault();
+          button.setPointerCapture?.(event.pointerId);
+          runtime.suppressNudgeClick = true;
+          startNudgeRepeat(delta);
+        });
+        ["pointerup", "pointercancel", "pointerleave"].forEach((type) => {
+          button.addEventListener(type, stopNudgeRepeat);
+        });
+        button.addEventListener("click", () => {
+          if (runtime.suppressNudgeClick) {
+            runtime.suppressNudgeClick = false;
+            return;
+          }
+          nudgeSelectedHit(delta);
+        });
+      });
+      seqQuantZeroBtn.addEventListener("click", quantizeSelectedHitToZero);
+      seqDeleteHitsBtn.addEventListener("click", deleteSelectedEditHits);
+      seqSoloBtn.addEventListener("click", () => {
+        runtime.seqSolo = !runtime.seqSolo;
+        renderSeqEditPanel();
+        updateDisplay();
+      });
       xAxisBtn.addEventListener("click", (event) => {
         event.stopPropagation();
         toggleAxisMenu("x");
@@ -4650,6 +5470,7 @@
 
       function renderPads() {
         grid.innerHTML = "";
+        renderSeqSoundSelect();
         const mutedPads = activeMutedPads();
         kit.forEach((k, i) => {
           const col = CAT_COLOR[k.cat];
@@ -4763,6 +5584,23 @@
         setTimeout(() => el.classList.remove("hit"), 24);
       }
 
+      function flashEditHit(i, loopTime) {
+        if (
+          runtime.viewMode !== "seq" ||
+          runtime.seqView !== "edit" ||
+          i !== runtime.editSoundIndex ||
+          !seqEditGrid
+        ) {
+          return;
+        }
+        const targetLength = loop.length || fixedLoopLength();
+        const step = editStepInfo(msToTicks(loopTime || 0, targetLength)).step;
+        const cell = seqEditGrid.children[step];
+        if (!cell || !cell.classList.contains("is-hit")) return;
+        cell.classList.add("is-firing");
+        window.setTimeout(() => cell.classList.remove("is-firing"), 130);
+      }
+
       function inputTimestamp(event) {
         if (!event || typeof event.timeStamp !== "number")
           return performance.now();
@@ -4776,8 +5614,17 @@
         return now;
       }
 
-      function hit(i, fromLoop, inputTime) {
+      function hit(i, fromLoop, inputTime, loopTime) {
         resumeAudio();
+        if (
+          fromLoop &&
+          runtime.viewMode === "seq" &&
+          runtime.seqView === "edit" &&
+          runtime.seqSolo &&
+          i !== runtime.editSoundIndex
+        ) {
+          return;
+        }
         if (!fromLoop && runtime.muteMode) {
           togglePadMute(i);
           return;
@@ -4790,6 +5637,7 @@
         const k = kit[i];
         play(k.file, i);
         flash(i);
+        if (fromLoop) flashEditHit(i, loopTime);
         if (!fromLoop && runtime.recordLayer) {
           const total = fixedLoopLength();
           let eventTime = null;
@@ -4840,6 +5688,7 @@
         runtime.recordType = "base";
         hideCountdown();
         clearStepReadout();
+        clearEditCurrentCell();
         updateButtons();
         updateDisplay();
       }
@@ -4910,10 +5759,17 @@
         resumeAudio();
         clearFrame();
         hideCountdown();
+        const total = fixedLoopLength();
+        const startProgress =
+          runtime.viewMode === "seq" && runtime.seqView === "edit"
+            ? editStartMs(total)
+            : 0;
         runtime.mode = "playing";
-        runtime.playStart = performance.now();
-        runtime.lastProgress = 0;
-        runtime.playLastFrameTime = runtime.playStart;
+        runtime.playStart = performance.now() - startProgress;
+        runtime.lastProgress = startProgress;
+        runtime.playLastFrameTime = performance.now();
+        renderStepReadout(startProgress, total);
+        renderEditCurrentCell(startProgress, total);
         updateButtons();
         updateDisplay();
         runtime.rafId = requestAnimationFrame(runTransportFrame);
@@ -4924,7 +5780,7 @@
         const lower = start === 0 ? -0.0001 : start;
         loop.events.forEach(([i, t]) => {
           const scaled = loop.length > 0 ? (t / loop.length) * targetLength : t;
-          if (scaled > lower && scaled <= end) hit(i, true);
+          if (scaled > lower && scaled <= end) hit(i, true, undefined, scaled);
         });
       }
 
@@ -4933,6 +5789,7 @@
         if (queuedIndex < 0 || !sequences[queuedIndex]) return false;
         activeSequenceIndex = queuedIndex;
         clearQueuedSequence();
+        resetEditSelection();
         syncLoopFromActiveSequence(targetLength);
         updatePadMuteStates();
         updateButtons();
@@ -5007,6 +5864,7 @@
         if (pos >= targetLength) pos = wrapLoopTime(pos, targetLength);
         runtime.lastProgress = pos;
         renderStepReadout(pos, targetLength);
+        renderEditCurrentCell(pos, targetLength);
       }
 
       function runTransportFrame(now) {
@@ -5180,28 +6038,11 @@
 
       clearBtn.addEventListener("click", () => {
         stopTransport();
-        resetLoopData();
-        runtime.loadedFromShare = false;
-        runtime.loadedStandaloneShare = false;
-        updateButtons();
-        updateDisplay();
+        clearCurrentContext();
       });
 
       undoBtn.addEventListener("click", () => {
-        if (
-          !sequenceHasContent() ||
-          runtime.mode === "countin" ||
-          runtime.mode === "recording"
-        )
-          return;
-        stopTransport();
-        activeSequence().layers.pop();
-        syncLoopFromActiveSequence();
-        if (!loop.events.length) loop.length = fixedLoopLength();
-        runtime.loadedFromShare = false;
-        runtime.loadedStandaloneShare = false;
-        updateButtons();
-        updateDisplay();
+        undoSequenceAction();
       });
 
       muteBtn.addEventListener("click", () => {
