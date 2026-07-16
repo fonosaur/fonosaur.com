@@ -859,6 +859,7 @@
         display: none;
         grid-template-rows: auto minmax(0, 1fr);
         gap: 7px;
+        height: 100%;
       }
 
       .device-ui[data-mode="fx"] .pad-zone,
@@ -911,35 +912,48 @@
 
       .seq-panel {
         min-height: 0;
+        height: 100%;
         display: grid;
+        grid-template-rows: minmax(0, 1fr) auto;
+        gap: 5px;
+      }
+
+      .seq-panel[hidden] {
+        display: none;
       }
 
       .seq-bank {
+        min-height: 0;
+        height: 100%;
         display: grid;
-        align-content: start;
-        gap: 8px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-rows: repeat(4, minmax(0, 1fr));
+        align-content: stretch;
+        align-items: stretch;
+        gap: 6px;
         padding: 7px;
         border-radius: 18px;
         border: 1px solid rgba(255, 255, 255, 0.045);
         background:
           linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(0, 0, 0, 0.1)),
           rgba(9, 9, 11, 0.32);
+        overflow: auto;
       }
 
       .seq-slot {
-        min-height: 82px;
+        min-height: 0;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        align-items: center;
-        gap: 10px;
-        padding: 12px;
-        border-radius: 16px;
+        align-content: center;
+        gap: 5px;
+        padding: 8px 6px;
+        border-radius: 14px;
         border: 1px solid rgba(125, 255, 184, 0.18);
         background:
           radial-gradient(circle at 10% 0, rgba(125, 255, 184, 0.11), transparent 60%),
           linear-gradient(180deg, rgba(13, 18, 15, 0.92), rgba(8, 9, 11, 0.96));
         color: var(--text);
-        text-align: left;
+        text-align: center;
+        font-family: "Space Mono", monospace;
       }
 
       .seq-slot.is-active {
@@ -949,28 +963,35 @@
           0 0 22px rgba(0, 255, 120, 0.08);
       }
 
+      .seq-slot.is-queued {
+        border-color: rgba(255, 209, 122, 0.54);
+        color: #ffe0a3;
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 209, 122, 0.08),
+          0 0 18px rgba(255, 178, 92, 0.1);
+      }
+
+      .seq-slot.is-empty {
+        border-color: rgba(255, 255, 255, 0.07);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(0, 0, 0, 0.16)),
+          rgba(8, 8, 10, 0.44);
+        color: rgba(232, 232, 234, 0.5);
+      }
+
       .seq-slot-title {
-        display: flex;
-        align-items: center;
-        gap: 7px;
         color: var(--lcd-ink);
-        font-family: var(--lcd-base-font);
-        font-size: 18px;
+        font-size: 13px;
         font-weight: 800;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
       }
 
-      .seq-active-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: var(--green);
-        box-shadow: 0 0 13px rgba(0, 255, 120, 0.42);
-      }
-
       .seq-slot-meta,
-      .seq-slot-action,
+      .seq-manage,
+      .seq-manage-btn,
+      .seq-label-toggle,
+      .seq-label-option,
       .seq-empty {
         font-family: "Space Mono", monospace;
         font-size: 10px;
@@ -980,20 +1001,122 @@
       }
 
       .seq-slot-meta {
-        margin-top: 7px;
+        color: rgba(232, 232, 234, 0.62);
+        line-height: 1.25;
+      }
+
+      .seq-manage {
+        --seq-manage-inline-inset: 10px;
+        display: grid;
+        grid-template-columns: minmax(76px, auto) minmax(0, 1fr) minmax(0, 1fr);
+        align-items: center;
+        gap: 5px;
+        padding: 5px 6px;
+        border-radius: 14px;
+        border: 1px solid rgba(125, 255, 184, 0.12);
+        background:
+          linear-gradient(180deg, rgba(8, 24, 17, 0.76), rgba(5, 10, 8, 0.88)),
+          rgba(9, 9, 11, 0.5);
+      }
+
+      .seq-manage-head {
+        display: contents;
         color: rgba(232, 232, 234, 0.62);
       }
 
-      .seq-slot-action {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 34px;
-        padding: 0 11px;
-        border-radius: 999px;
-        border: 1px solid rgba(125, 255, 184, 0.28);
+      .seq-manage-name {
+        grid-column: 1;
         color: var(--lcd-ink);
-        background: rgba(5, 18, 12, 0.74);
+        padding-left: var(--seq-manage-inline-inset);
+        text-align: left;
+      }
+
+      #seqManageMeta {
+        grid-column: 2 / 4;
+        padding-right: var(--seq-manage-inline-inset);
+        text-align: right;
+      }
+
+      .seq-actions {
+        display: contents;
+      }
+
+      .seq-label-wrap {
+        grid-column: 1;
+        position: relative;
+        justify-self: start;
+      }
+
+      .seq-label-toggle,
+      .seq-label-option,
+      .seq-manage-btn {
+        min-height: 26px;
+        border-radius: 11px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(10, 10, 12, 0.84)),
+          rgba(13, 13, 16, 0.84);
+        color: rgba(232, 232, 234, 0.64);
+      }
+
+      .seq-label-toggle {
+        min-height: 22px;
+        padding: 0 9px;
+        font-size: 9px;
+        opacity: 0.78;
+      }
+
+      .seq-label-menu {
+        position: absolute;
+        left: 0;
+        bottom: calc(100% + 5px);
+        z-index: 6;
+        width: 116px;
+        display: grid;
+        gap: 4px;
+        padding: 5px;
+        border-radius: 12px;
+        border: 1px solid rgba(125, 255, 184, 0.18);
+        background:
+          linear-gradient(180deg, rgba(8, 24, 17, 0.98), rgba(5, 10, 8, 0.98)),
+          rgba(9, 9, 11, 0.98);
+        box-shadow: 0 14px 28px rgba(0, 0, 0, 0.34);
+      }
+
+      .seq-label-menu[hidden] {
+        display: none;
+      }
+
+      .seq-label-option {
+        min-height: 26px;
+        font-size: 9px;
+      }
+
+      .seq-label-option.is-active,
+      .seq-manage-btn:not(:disabled):active {
+        border-color: rgba(125, 255, 184, 0.34);
+        color: var(--lcd-ink);
+        background:
+          radial-gradient(circle at 50% 0, rgba(91, 255, 154, 0.14), transparent 70%),
+          linear-gradient(180deg, rgba(19, 54, 34, 0.82), rgba(10, 18, 13, 0.92));
+      }
+
+      .seq-manage-btn:disabled {
+        opacity: 0.42;
+        cursor: default;
+      }
+
+      .seq-manage-btn.is-danger {
+        margin-right: var(--seq-manage-inline-inset);
+        border-color: rgba(255, 122, 92, 0.22);
+      }
+
+      .seq-manage-btn.is-confirming {
+        border-color: rgba(255, 178, 92, 0.52);
+        color: #ffd19a;
+        background:
+          radial-gradient(circle at 50% 0, rgba(255, 164, 91, 0.18), transparent 70%),
+          linear-gradient(180deg, rgba(58, 32, 12, 0.88), rgba(18, 10, 6, 0.94));
       }
 
       .seq-song-panel {
@@ -1579,6 +1702,33 @@
           padding: 5px;
         }
 
+        .seq-bank {
+          gap: 5px;
+          padding: 6px;
+        }
+
+        .seq-slot {
+          padding: 7px 4px;
+        }
+
+        .seq-slot-title {
+          font-size: 11px;
+        }
+
+        .seq-slot-meta,
+        .seq-manage,
+        .seq-manage-btn,
+        .seq-label-toggle,
+        .seq-label-option,
+        .seq-empty {
+          font-size: 9px;
+        }
+
+        .seq-manage {
+          padding: 6px;
+          gap: 5px;
+        }
+
         .grid {
           gap: 5px;
         }
@@ -2120,19 +2270,49 @@
               </button>
             </div>
             <div class="seq-panel" id="sequencePanel">
-              <div class="seq-bank" aria-label="Sequence bank">
-                <button class="seq-slot is-active" id="seqOneSlot" type="button">
-                  <span>
-                    <span class="seq-slot-title">
-                      <span class="seq-active-dot" aria-hidden="true"></span>
-                      SEQ 1
-                    </span>
-                    <span class="seq-slot-meta" id="seqOneMeta">
-                      EMPTY · RECORD IN PADS
-                    </span>
-                  </span>
-                  <span class="seq-slot-action" id="seqOneAction">PLAY</span>
-                </button>
+              <div class="seq-bank" id="seqBank" aria-label="Sequence bank"></div>
+              <div class="seq-manage" aria-label="Selected sequence actions">
+                <div class="seq-manage-head">
+                  <span class="seq-manage-name" id="seqManageName">SEQ 1</span>
+                  <span id="seqManageMeta">EMPTY</span>
+                </div>
+                <div class="seq-label-wrap">
+                  <button
+                    class="seq-label-toggle"
+                    id="seqLabelToggle"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="seqLabelMenu"
+                  >
+                    LABEL &#9662;
+                  </button>
+                  <div class="seq-label-menu" id="seqLabelMenu" hidden>
+                    <button class="seq-label-option" type="button" data-label="seq">
+                      SEQ
+                    </button>
+                    <button class="seq-label-option" type="button" data-label="intro">
+                      INTRO
+                    </button>
+                    <button class="seq-label-option" type="button" data-label="break">
+                      BREAK
+                    </button>
+                    <button class="seq-label-option" type="button" data-label="outro">
+                      OUTRO
+                    </button>
+                  </div>
+                </div>
+                <div class="seq-actions">
+                  <button class="seq-manage-btn" id="seqDupBtn" type="button">
+                    DUP
+                  </button>
+                  <button
+                    class="seq-manage-btn is-danger"
+                    id="seqDeleteBtn"
+                    type="button"
+                  >
+                    DELETE
+                  </button>
+                </div>
               </div>
             </div>
             <div class="seq-panel seq-song-panel" id="songPanel" hidden>
@@ -2383,6 +2563,8 @@
       const PPQ = 96;
       const TICKS_PER_BAR = PPQ * 4;
       const SEQUENCE_TICKS = LOOP_BARS * TICKS_PER_BAR;
+      const MAX_SEQUENCES = 16;
+      const SEQUENCE_LABELS = ["seq", "intro", "break", "outro"];
       const QUANTIZE_VALUES = [
         { label: "QOFF", ticks: 0 },
         { label: "Q1/8", ticks: PPQ / 2 },
@@ -2404,17 +2586,11 @@
       let skinIdx = 0;
       let metronomeOn = true;
       let quantizeIndex = 2;
-      const mutedPads = new Set();
 
       const loop = { events: [], length: 0, layers: [] };
-      const sequences = [
-        {
-          id: "seq-1",
-          name: "SEQ 1",
-          layers: [],
-          lengthTicks: SEQUENCE_TICKS,
-        },
-      ];
+      const sequences = Array.from({ length: MAX_SEQUENCES }, (_, index) =>
+        index === 0 ? createSequence(index) : null,
+      );
       let activeSequenceIndex = 0;
       const runtime = {
         mode: "idle",
@@ -2431,6 +2607,9 @@
         loadedStandaloneShare: false,
         viewMode: "pads",
         seqView: "sequence",
+        pendingDeleteIndex: -1,
+        pendingDeleteTimer: 0,
+        queuedSequenceIndex: -1,
         fxX: 0.5,
         fxY: 0.5,
         fxTouching: false,
@@ -2799,10 +2978,16 @@
       const songSubtab = document.getElementById("songSubtab");
       const sequencePanel = document.getElementById("sequencePanel");
       const songPanel = document.getElementById("songPanel");
-      const seqOneSlot = document.getElementById("seqOneSlot");
-      const seqOneMeta = document.getElementById("seqOneMeta");
-      const seqOneAction = document.getElementById("seqOneAction");
-      const activeSeqBadge = document.getElementById("activeSeqBadge");
+      const seqBank = document.getElementById("seqBank");
+      const seqManageName = document.getElementById("seqManageName");
+      const seqManageMeta = document.getElementById("seqManageMeta");
+      const seqLabelToggle = document.getElementById("seqLabelToggle");
+      const seqLabelMenu = document.getElementById("seqLabelMenu");
+      const seqLabelOptions = Array.from(
+        document.querySelectorAll(".seq-label-option"),
+      );
+      const seqDupBtn = document.getElementById("seqDupBtn");
+      const seqDeleteBtn = document.getElementById("seqDeleteBtn");
       const xyPad = document.getElementById("xyPad");
       const xyCursor = document.getElementById("xyCursor");
       const xAxisBtn = document.getElementById("xAxisBtn");
@@ -3394,12 +3579,71 @@
         return wrapped >= SEQUENCE_TICKS - 0.0001 ? 0 : wrapped;
       }
 
+      function createSequence(index, source) {
+        return {
+          id: "seq-" + (index + 1),
+          number: index + 1,
+          label: source?.label || "seq",
+          layers: source
+            ? source.layers.map((layer) => ({
+                events: layer.events.map(([i, tick]) => [i, tick]),
+              }))
+            : [],
+          mutedPads: new Set(source?.mutedPads ? Array.from(source.mutedPads) : []),
+          lengthTicks: SEQUENCE_TICKS,
+        };
+      }
+
+      function firstFilledSequenceIndex() {
+        return sequences.findIndex(Boolean);
+      }
+
+      function firstEmptySequenceIndex() {
+        return sequences.findIndex((sequence) => !sequence);
+      }
+
+      function filledSequenceCount() {
+        return sequences.filter(Boolean).length;
+      }
+
       function activeSequence() {
-        return sequences[activeSequenceIndex] || sequences[0];
+        if (!sequences[activeSequenceIndex]) {
+          const firstFilled = firstFilledSequenceIndex();
+          if (firstFilled >= 0) {
+            activeSequenceIndex = firstFilled;
+          }
+        }
+        return sequences[activeSequenceIndex] || null;
       }
 
       function sequenceHasContent(sequence = activeSequence()) {
-        return sequence.layers.some((layer) => layer.events.length > 0);
+        return Boolean(
+          sequence && sequence.layers.some((layer) => layer.events.length > 0),
+        );
+      }
+
+      function sequenceHitCount(sequence = activeSequence()) {
+        if (!sequence) return 0;
+        return sequence.layers.reduce(
+          (sum, layer) => sum + layer.events.length,
+          0,
+        );
+      }
+
+      function sequenceDisplayName(sequence = activeSequence()) {
+        if (!sequence) return "NO SEQ";
+        return sequence.label && sequence.label !== "seq"
+          ? sequence.label.toUpperCase()
+          : "SEQ " + sequence.number;
+      }
+
+      function activeMutedPads() {
+        const sequence = activeSequence();
+        if (!sequence) return new Set();
+        if (!(sequence.mutedPads instanceof Set)) {
+          sequence.mutedPads = new Set(sequence.mutedPads || []);
+        }
+        return sequence.mutedPads;
       }
 
       function quantizeValue() {
@@ -3463,6 +3707,11 @@
       function syncLoopFromActiveSequence(targetLength = fixedLoopLength()) {
         const sequence = activeSequence();
         loop.length = targetLength;
+        if (!sequence) {
+          loop.layers = [];
+          loop.events = [];
+          return;
+        }
         loop.layers = sequence.layers.map((layer) => ({
           events: normalizeLayer(
             layer.events.map(([i, tick]) => [i, ticksToMs(tick, targetLength)]),
@@ -3474,16 +3723,27 @@
 
       function syncActiveSequenceFromLoop(targetLength = loop.length || fixedLoopLength()) {
         const sequence = activeSequence();
+        if (!sequence) return;
         sequence.lengthTicks = SEQUENCE_TICKS;
         sequence.layers = loop.layers.map((layer) => ({
           events: normalizeTickLayer(
             layer.events.map(([i, t]) => [i, msToTicks(t, targetLength)]),
           ),
         }));
+        if (!(sequence.mutedPads instanceof Set)) {
+          sequence.mutedPads = new Set(sequence.mutedPads || []);
+        }
       }
 
       function resetLoopData() {
-        const sequence = activeSequence();
+        let sequence = activeSequence();
+        if (!sequence) {
+          const index = firstEmptySequenceIndex();
+          const nextIndex = index >= 0 ? index : 0;
+          sequences[nextIndex] = createSequence(nextIndex);
+          activeSequenceIndex = nextIndex;
+          sequence = activeSequence();
+        }
         sequence.layers = [];
         sequence.lengthTicks = SEQUENCE_TICKS;
         syncLoopFromActiveSequence();
@@ -3686,7 +3946,9 @@
         lcdBars.innerHTML =
           '<span class="lcd-number">' +
           LOOP_BARS +
-          '</span> BARS <span class="lcd-divider">&middot;</span> <span class="seq-badge">SEQ 1</span>';
+          '</span> BARS <span class="lcd-divider">&middot;</span> <span class="seq-badge">' +
+          sequenceDisplayName() +
+          "</span>";
         bpmDownBtn.disabled = bpm <= MIN_BPM;
         bpmUpBtn.disabled = bpm >= MAX_BPM;
         bpmDownBtn.setAttribute("aria-disabled", String(bpm <= MIN_BPM));
@@ -3795,32 +4057,88 @@
       function currentIdleMessage() {
         if (runtime.loadedFromShare && loop.events.length)
           return "SHARED LOOP READY";
-        if (loop.events.length) return "SEQ 1 READY \u00b7 REC TO DUB";
+        if (loop.events.length)
+          return sequenceDisplayName() + " READY \u00b7 REC TO DUB";
         return "READY TO RECORD";
       }
 
       function updateSeqPanel() {
         const sequence = activeSequence();
-        const hitCount = sequence.layers.reduce(
-          (sum, layer) => sum + layer.events.length,
-          0,
-        );
-        const layerCount = sequence.layers.length;
-        seqOneSlot.classList.add("is-active");
-        seqOneSlot.setAttribute(
-          "aria-label",
-          "SEQ 1 active sequence, " +
-            (hitCount ? hitCount + " hits" : "empty, record in pads"),
-        );
-        seqOneMeta.textContent = hitCount
-          ? layerCount +
-            " LAYER" +
-            (layerCount === 1 ? "" : "S") +
-            " \u00b7 " +
-            hitCount +
-            " HITS \u00b7 96 PPQ"
-          : "EMPTY \u00b7 RECORD IN PADS";
-        seqOneAction.textContent = runtime.mode === "playing" ? "STOP" : "PLAY";
+        seqBank.innerHTML = "";
+        sequences.forEach((slot, index) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "seq-slot";
+          button.dataset.index = String(index);
+          if (slot) {
+            const isActive = index === activeSequenceIndex;
+            const isQueued = index === runtime.queuedSequenceIndex;
+            const hitCount = sequenceHitCount(slot);
+            button.classList.toggle("is-active", isActive);
+            button.classList.toggle("is-queued", isQueued);
+            button.setAttribute(
+              "aria-label",
+              sequenceDisplayName(slot) +
+                (isActive ? ", active" : "") +
+                (isQueued ? ", queued next" : "") +
+                ", " +
+                (hitCount ? "filled" : "empty"),
+            );
+            button.innerHTML =
+              '<span class="seq-slot-title">' +
+              sequenceDisplayName(slot) +
+              "</span>" +
+              '<span class="seq-slot-meta">' +
+              (isQueued ? "NEXT" : hitCount ? "FILLED" : "EMPTY") +
+              "</span>";
+            button.addEventListener("click", () => activateSequence(index));
+          } else {
+            button.classList.add("is-empty");
+            button.setAttribute(
+              "aria-label",
+              "Create new sequence in slot " + (index + 1),
+            );
+            button.innerHTML =
+              '<span class="seq-slot-title">+ NEW</span>' +
+              '<span class="seq-slot-meta">SLOT ' +
+              (index + 1) +
+              "</span>";
+            button.addEventListener("click", () => createNewSequence(index));
+          }
+          seqBank.appendChild(button);
+        });
+
+        if (!sequence) {
+          seqManageName.textContent = "NO SEQ";
+          seqManageMeta.textContent = "+ NEW TO RECORD";
+          seqLabelOptions.forEach((button) => {
+            button.classList.remove("is-active");
+            button.setAttribute("aria-pressed", "false");
+          });
+          seqDupBtn.disabled = true;
+          seqDeleteBtn.disabled = true;
+          seqDeleteBtn.textContent = "DELETE";
+          seqDeleteBtn.classList.remove("is-confirming");
+          return;
+        }
+
+        const hitCount = sequenceHitCount(sequence);
+        seqManageName.textContent = sequenceDisplayName(sequence);
+        seqManageMeta.textContent =
+          "SEQ " +
+          sequence.number +
+          " \u00b7 " +
+          (hitCount ? hitCount + " HITS" : "EMPTY");
+        seqLabelOptions.forEach((button) => {
+          const label = button.dataset.label;
+          button.classList.toggle("is-active", sequence.label === label);
+          button.setAttribute("aria-pressed", String(sequence.label === label));
+        });
+        seqDupBtn.disabled = firstEmptySequenceIndex() < 0;
+        seqDeleteBtn.disabled = false;
+        const confirming = runtime.pendingDeleteIndex === activeSequenceIndex;
+        seqDeleteBtn.textContent = confirming ? "CONFIRM" : "DELETE";
+        seqDeleteBtn.classList.toggle("is-confirming", confirming);
       }
 
       function updateDisplay() {
@@ -3933,6 +4251,21 @@
         });
       }
 
+      function closeSeqLabelMenu() {
+        seqLabelMenu.hidden = true;
+        seqLabelToggle.setAttribute("aria-expanded", "false");
+      }
+
+      function clearDeleteConfirm() {
+        runtime.pendingDeleteIndex = -1;
+        window.clearTimeout(runtime.pendingDeleteTimer);
+        runtime.pendingDeleteTimer = 0;
+      }
+
+      function clearQueuedSequence() {
+        runtime.queuedSequenceIndex = -1;
+      }
+
       function renderAxisMenu(axis) {
         const ui = axisUi(axis);
         ui.menu.innerHTML = "";
@@ -3988,6 +4321,108 @@
           ui.menu.hidden = false;
           ui.button.setAttribute("aria-expanded", "true");
         }
+      }
+
+      function refreshSequenceState() {
+        syncLoopFromActiveSequence();
+        runtime.loadedFromShare = false;
+        runtime.loadedStandaloneShare = false;
+        updatePadMuteStates();
+        updateButtons();
+        updateDisplay();
+      }
+
+      function activateSequence(index) {
+        if (!sequences[index]) return;
+        clearDeleteConfirm();
+        if (index === activeSequenceIndex) {
+          clearQueuedSequence();
+          updateButtons();
+          updateDisplay();
+          return;
+        }
+        if (runtime.mode === "playing") {
+          runtime.queuedSequenceIndex = index;
+          updateButtons();
+          updateDisplay();
+          lcdMessage.textContent = "NEXT: " + sequenceDisplayName(sequences[index]);
+          return;
+        }
+        if (runtime.mode !== "idle") stopTransport();
+        clearQueuedSequence();
+        activeSequenceIndex = index;
+        syncLoopFromActiveSequence();
+        updatePadMuteStates();
+        updateButtons();
+        updateDisplay();
+      }
+
+      function createNewSequence(index = firstEmptySequenceIndex()) {
+        if (index < 0 || index >= MAX_SEQUENCES || sequences[index]) {
+          showToast("SEQUENCE BANK FULL");
+          return;
+        }
+        clearDeleteConfirm();
+        clearQueuedSequence();
+        if (runtime.mode !== "idle") stopTransport();
+        sequences[index] = createSequence(index);
+        activeSequenceIndex = index;
+        refreshSequenceState();
+        setViewMode("pads");
+        lcdMessage.textContent =
+          sequenceDisplayName() + " READY \u00b7 TAP REC";
+      }
+
+      function setSequenceLabel(label) {
+        if (!SEQUENCE_LABELS.includes(label)) return;
+        const sequence = activeSequence();
+        if (!sequence) return;
+        sequence.label = sequence.label === label && label !== "seq" ? "seq" : label;
+        updateButtons();
+        updateDisplay();
+      }
+
+      function duplicateActiveSequence() {
+        const emptyIndex = firstEmptySequenceIndex();
+        if (emptyIndex < 0) {
+          showToast("SEQUENCE BANK FULL");
+          return;
+        }
+        const source = activeSequence();
+        if (!source) return;
+        clearDeleteConfirm();
+        clearQueuedSequence();
+        if (runtime.mode !== "idle") stopTransport();
+        sequences[emptyIndex] = createSequence(emptyIndex, source);
+        activeSequenceIndex = emptyIndex;
+        refreshSequenceState();
+      }
+
+      function deleteActiveSequence() {
+        const sequence = activeSequence();
+        if (!sequence) return;
+        if (runtime.pendingDeleteIndex !== activeSequenceIndex) {
+          runtime.pendingDeleteIndex = activeSequenceIndex;
+          window.clearTimeout(runtime.pendingDeleteTimer);
+          runtime.pendingDeleteTimer = window.setTimeout(() => {
+            clearDeleteConfirm();
+            updateButtons();
+            updateDisplay();
+          }, 4500);
+          updateButtons();
+          updateDisplay();
+          lcdMessage.textContent =
+            "TAP CONFIRM TO DELETE " + sequenceDisplayName(sequence);
+          return;
+        }
+        clearDeleteConfirm();
+        clearQueuedSequence();
+        if (runtime.mode !== "idle") stopTransport();
+        sequences[activeSequenceIndex] = null;
+        const nextIndex = firstFilledSequenceIndex();
+        activeSequenceIndex =
+          nextIndex >= 0 ? nextIndex : Math.max(0, firstEmptySequenceIndex());
+        refreshSequenceState();
       }
 
       function setSeqSubView(view) {
@@ -4142,13 +4577,22 @@
       fxModeBtn.addEventListener("click", () => setViewMode("fx"));
       sequenceSubtab.addEventListener("click", () => setSeqSubView("sequence"));
       songSubtab.addEventListener("click", () => setSeqSubView("song"));
-      seqOneSlot.addEventListener("click", () => {
-        if (runtime.mode === "playing") {
-          stopTransport();
-        } else {
-          startLoop();
-        }
+      seqLabelToggle.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const open = seqLabelMenu.hidden;
+        seqLabelMenu.hidden = !open;
+        seqLabelToggle.setAttribute("aria-expanded", String(open));
       });
+      seqLabelMenu.addEventListener("click", (event) => event.stopPropagation());
+      seqLabelOptions.forEach((button) => {
+        button.addEventListener("click", () => {
+          setSequenceLabel(button.dataset.label);
+          seqLabelMenu.hidden = true;
+          seqLabelToggle.setAttribute("aria-expanded", "false");
+        });
+      });
+      seqDupBtn.addEventListener("click", duplicateActiveSequence);
+      seqDeleteBtn.addEventListener("click", deleteActiveSequence);
       xAxisBtn.addEventListener("click", (event) => {
         event.stopPropagation();
         toggleAxisMenu("x");
@@ -4160,7 +4604,10 @@
       [xAxisMenu, yAxisMenu].forEach((menu) => {
         menu.addEventListener("click", (event) => event.stopPropagation());
       });
-      document.addEventListener("click", closeAxisMenus);
+      document.addEventListener("click", () => {
+        closeAxisMenus();
+        closeSeqLabelMenu();
+      });
 
       xyPad.addEventListener("pointerdown", (event) => {
         if (event.target.closest(".axis-picker")) return;
@@ -4203,6 +4650,7 @@
 
       function renderPads() {
         grid.innerHTML = "";
+        const mutedPads = activeMutedPads();
         kit.forEach((k, i) => {
           const col = CAT_COLOR[k.cat];
           const d = document.createElement("button");
@@ -4243,6 +4691,7 @@
       }
 
       function updatePadMuteStates() {
+        const mutedPads = activeMutedPads();
         Array.from(grid.children).forEach((pad, index) => {
           const isMuted = mutedPads.has(index);
           pad.classList.toggle("is-muted", isMuted);
@@ -4257,6 +4706,7 @@
       }
 
       function togglePadMute(i) {
+        const mutedPads = activeMutedPads();
         if (mutedPads.has(i)) {
           mutedPads.delete(i);
         } else {
@@ -4332,7 +4782,7 @@
           togglePadMute(i);
           return;
         }
-        if (mutedPads.has(i)) return;
+        if (activeMutedPads().has(i)) return;
         const now =
           !fromLoop && Number.isFinite(inputTime)
             ? inputTime
@@ -4381,6 +4831,7 @@
       function stopTransport() {
         clearFrame();
         stopStutter();
+        clearQueuedSequence();
         runtime.mode = "idle";
         runtime.lastBeat = -1;
         runtime.lastProgress = 0;
@@ -4396,6 +4847,16 @@
       function startRecordSequence() {
         resumeAudio();
         stopTransport();
+        if (!activeSequence()) {
+          const index = firstEmptySequenceIndex();
+          if (index < 0) {
+            showToast("SEQUENCE BANK FULL");
+            return;
+          }
+          sequences[index] = createSequence(index);
+          activeSequenceIndex = index;
+          syncLoopFromActiveSequence();
+        }
         runtime.loadedFromShare = false;
         runtime.loadedStandaloneShare = false;
         runtime.recordType = sequenceHasContent() ? "overdub" : "base";
@@ -4467,6 +4928,18 @@
         });
       }
 
+      function applyQueuedSequenceAtBoundary(targetLength) {
+        const queuedIndex = runtime.queuedSequenceIndex;
+        if (queuedIndex < 0 || !sequences[queuedIndex]) return false;
+        activeSequenceIndex = queuedIndex;
+        clearQueuedSequence();
+        syncLoopFromActiveSequence(targetLength);
+        updatePadMuteStates();
+        updateButtons();
+        updateDisplay();
+        return true;
+      }
+
       function runCountInFrame(now) {
         const elapsed = now - runtime.countInStart;
         const currentBeat = Math.min(
@@ -4523,6 +4996,7 @@
           fireLoopWindow(previous, targetLength, targetLength);
           const wraps = Math.floor(pos / targetLength);
           pos = wrapLoopTime(pos, targetLength);
+          applyQueuedSequenceAtBoundary(targetLength);
           for (let i = 1; i < wraps; i++) {
             fireLoopWindow(0, targetLength, targetLength);
           }
@@ -4619,6 +5093,9 @@
             : [];
           syncLoopEvents();
           loop.length = targetLength;
+          sequences.fill(null);
+          sequences[0] = createSequence(0);
+          activeSequenceIndex = 0;
           syncActiveSequenceFromLoop(targetLength);
           syncLoopFromActiveSequence(targetLength);
           runtime.loadedFromShare = loop.events.length > 0;
@@ -4656,6 +5133,9 @@
           },
         ];
         syncLoopEvents();
+        if (!sequences[activeSequenceIndex]) {
+          sequences[activeSequenceIndex] = createSequence(activeSequenceIndex);
+        }
         syncActiveSequenceFromLoop(total);
         syncLoopFromActiveSequence(total);
         runtime.loadedFromShare = false;
@@ -4766,6 +5246,8 @@
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
           setInfoOpen(false);
+          closeSeqLabelMenu();
+          closeAxisMenus();
           toastEl.classList.remove("is-visible");
           window.clearTimeout(shareTimer);
           resetShareFeedback();
