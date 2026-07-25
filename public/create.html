@@ -856,16 +856,11 @@
 
       .melodic-controls {
         display: grid;
-        grid-template-columns:
-          minmax(0, 0.88fr)
-          minmax(0, 1.08fr)
-          minmax(0, 1.16fr)
-          minmax(0, 0.68fr);
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 0.7fr);
         gap: 5px;
         min-height: 34px;
       }
 
-      .melodic-toggle,
       .melodic-field {
         min-width: 0;
         min-height: 34px;
@@ -876,29 +871,6 @@
           rgba(13, 13, 16, 0.86);
         color: rgba(232, 232, 234, 0.64);
         font-family: "Space Mono", monospace;
-      }
-
-      .melodic-toggle {
-        padding: 0 7px;
-        font-size: 9px;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        transition:
-          border-color 0.16s ease,
-          color 0.16s ease,
-          background 0.16s ease,
-          box-shadow 0.16s ease;
-      }
-
-      .melodic-toggle.is-active {
-        border-color: rgba(255, 190, 80, 0.5);
-        color: #ffe6ae;
-        background:
-          radial-gradient(circle at top, rgba(255, 190, 80, 0.18), transparent 80%),
-          linear-gradient(180deg, rgba(67, 45, 14, 0.92), rgba(20, 15, 9, 0.98));
-        box-shadow:
-          inset 0 1px 0 rgba(255, 242, 209, 0.06),
-          0 0 16px rgba(255, 171, 42, 0.1);
       }
 
       .melodic-field {
@@ -955,10 +927,6 @@
       .melodic-field select:disabled {
         opacity: 0.32;
         cursor: default;
-      }
-
-      .melodic-controls:not(.is-active) .melodic-field {
-        opacity: 0.46;
       }
 
       .fx-zone {
@@ -1282,6 +1250,13 @@
         color: var(--lcd-ink);
         padding: 0 9px;
         outline: none;
+        color-scheme: dark;
+      }
+
+      .seq-sound-select option,
+      .seq-sound-select optgroup {
+        background: #08100c;
+        color: var(--lcd-ink);
       }
 
       .seq-edit-grid {
@@ -1376,6 +1351,18 @@
         color: rgba(255, 209, 122, 0.84);
         font-size: 7px;
         letter-spacing: 0;
+      }
+
+      .seq-hit-note {
+        position: absolute;
+        left: 50%;
+        top: 2px;
+        transform: translateX(-50%);
+        color: rgba(255, 228, 164, 0.92);
+        font-size: 6px;
+        line-height: 1;
+        letter-spacing: 0;
+        white-space: nowrap;
       }
 
       .seq-edit-controls {
@@ -2170,15 +2157,8 @@
           min-height: 32px;
         }
 
-        .melodic-toggle,
         .melodic-field {
           min-height: 32px;
-        }
-
-        .melodic-toggle {
-          padding-inline: 4px;
-          font-size: 7.5px;
-          letter-spacing: 0.04em;
         }
 
         .melodic-field > span {
@@ -2241,6 +2221,11 @@
 
         .seq-hit-offset {
           font-size: 6px;
+        }
+
+        .seq-hit-note {
+          top: 1px;
+          font-size: 5px;
         }
 
         .song-timeline {
@@ -2351,23 +2336,14 @@
         }
 
         .melodic-controls {
-          grid-template-columns:
-            minmax(0, 0.86fr)
-            minmax(0, 1.06fr)
-            minmax(0, 1.08fr)
-            minmax(0, 0.62fr);
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 0.7fr);
           gap: 3px;
           min-height: 30px;
         }
 
-        .melodic-toggle,
         .melodic-field {
           min-height: 30px;
           border-radius: 8px;
-        }
-
-        .melodic-toggle {
-          font-size: 7px;
         }
 
         .melodic-field > span {
@@ -2813,25 +2789,10 @@
           >
             <div class="pad-zone-inner">
               <div class="melodic-controls" id="melodicControls">
-                <button
-                  class="melodic-toggle"
-                  id="melodicToggle"
-                  type="button"
-                  aria-pressed="false"
-                  aria-label="Turn melodic kalimba mode on"
-                >
-                  MELODIC
-                </button>
                 <label class="melodic-field">
-                  <span>INSTR</span>
-                  <select
-                    id="melodicInstrument"
-                    aria-label="Melodic instrument"
-                    disabled
-                  >
-                    <option value="kalimba" selected>KALIMBA</option>
-                    <option value="bell">BELLS</option>
-                    <option value="pluck">PLUCKS</option>
+                  <span>BANK</span>
+                  <select id="padBankSelect" aria-label="Pad sound bank">
+                    <option value="kit" selected>KIT</option>
                   </select>
                 </label>
                 <label class="melodic-field">
@@ -3277,6 +3238,20 @@
       const MELODIC_SAMPLE_FILES = Object.values(MELODIC_INSTRUMENTS).flatMap(
         (instrument) => instrument.files,
       );
+      const MELODIC_INSTRUMENT_IDS = Object.keys(MELODIC_INSTRUMENTS);
+      const KIT_SOUND_COUNT = 16;
+      const MELODIC_TRACKS = MELODIC_INSTRUMENT_IDS.map((id, offset) => ({
+        ...MELODIC_INSTRUMENTS[id],
+        id,
+        index: KIT_SOUND_COUNT + offset,
+        cat: "melodic",
+      }));
+      const MELODIC_TRACK_BY_ID = new Map(
+        MELODIC_TRACKS.map((track) => [track.id, track]),
+      );
+      const MELODIC_TRACK_BY_INDEX = new Map(
+        MELODIC_TRACKS.map((track) => [track.index, track]),
+      );
       const PERC_LABELS = [
         "SHAKER",
         "TAMB",
@@ -3332,6 +3307,8 @@
       let metronomeOn = true;
       let quantizeIndex = 2;
 
+      // Hit tuples are [soundIndex, tickOrMs, lockedMidiNote?]. Melodic
+      // tracks follow the 16 kit sounds and keep their pitch in the tuple.
       const loop = { events: [], length: 0, layers: [] };
       const sequences = Array.from({ length: MAX_SEQUENCES }, (_, index) =>
         index === 0 ? createSequence(index) : null,
@@ -3382,8 +3359,7 @@
         fxPitchRate: 1,
         playLastFrameTime: 0,
         fxAssignments: { x: "phaser", y: "filter" },
-        melodicMode: false,
-        melodicInstrument: "kalimba",
+        padBank: "kit",
         melodicScale: "minorPentatonic",
         melodicRoot: 9,
       };
@@ -3742,8 +3718,7 @@
       const fxModeBtn = document.getElementById("fxModeBtn");
       const padsPage = document.getElementById("padsPage");
       const melodicControls = document.getElementById("melodicControls");
-      const melodicToggle = document.getElementById("melodicToggle");
-      const melodicInstrument = document.getElementById("melodicInstrument");
+      const padBankSelect = document.getElementById("padBankSelect");
       const melodicScale = document.getElementById("melodicScale");
       const melodicRoot = document.getElementById("melodicRoot");
       const seqPage = document.getElementById("seqPage");
@@ -4383,7 +4358,7 @@
           label: source?.label || "seq",
           layers: source
             ? source.layers.map((layer) => ({
-                events: layer.events.map(([i, tick]) => [i, tick]),
+                events: layer.events.map((event) => event.slice()),
               }))
             : [],
           mutedPads: new Set(source?.mutedPads ? Array.from(source.mutedPads) : []),
@@ -4396,7 +4371,7 @@
         return {
           label: sequence.label,
           layers: sequence.layers.map((layer) => ({
-            events: layer.events.map(([i, tick]) => [i, tick]),
+            events: layer.events.map((event) => event.slice()),
           })),
           mutedPads: new Set(Array.from(sequence.mutedPads || [])),
           lengthTicks: sequence.lengthTicks || SEQUENCE_TICKS,
@@ -4407,7 +4382,7 @@
         if (!sequence || !snapshot) return;
         sequence.label = snapshot.label || "seq";
         sequence.layers = snapshot.layers.map((layer) => ({
-          events: layer.events.map(([i, tick]) => [i, tick]),
+          events: layer.events.map((event) => event.slice()),
         }));
         sequence.mutedPads = new Set(Array.from(snapshot.mutedPads || []));
         sequence.lengthTicks = snapshot.lengthTicks || SEQUENCE_TICKS;
@@ -4480,6 +4455,41 @@
               layer.events.some(([i]) => i === padIndex),
             ),
         );
+      }
+
+      function eventNoteMidi(event) {
+        const note = Number(event?.[2]);
+        return Number.isInteger(note) && note >= 0 && note <= 127 ? note : null;
+      }
+
+      function midiNoteLabel(note) {
+        if (!Number.isInteger(note)) return "";
+        const pitchClass = ((note % 12) + 12) % 12;
+        return NOTE_NAMES[pitchClass] + (Math.floor(note / 12) - 1);
+      }
+
+      function sequenceHasMelodicHits(sequence = activeSequence()) {
+        return Boolean(
+          sequence?.layers.some((layer) =>
+            layer.events.some(
+              (event) =>
+                MELODIC_TRACK_BY_INDEX.has(event[0]) &&
+                eventNoteMidi(event) !== null,
+            ),
+          ),
+        );
+      }
+
+      function soundAt(index) {
+        return kit[index] || MELODIC_TRACK_BY_INDEX.get(index) || null;
+      }
+
+      function activeMelodicTrack() {
+        return MELODIC_TRACK_BY_ID.get(runtime.padBank) || null;
+      }
+
+      function melodicBankActive() {
+        return Boolean(activeMelodicTrack());
       }
 
       function sequenceHitCount(sequence = activeSequence()) {
@@ -4616,6 +4626,7 @@
           eventIndex: selected.eventIndex,
           padIndex: event[0],
           tick: event[1],
+          note: eventNoteMidi(event),
         };
       }
 
@@ -4644,7 +4655,8 @@
         if (!sequence) return [];
         const hits = [];
         sequence.layers.forEach((layer, layerIndex) => {
-          layer.events.forEach(([i, tick], eventIndex) => {
+          layer.events.forEach((event, eventIndex) => {
+            const [i, tick] = event;
             if (i !== padIndex) return;
             const info = editStepInfo(tick);
             hits.push({
@@ -4652,6 +4664,7 @@
               eventIndex,
               padIndex: i,
               tick,
+              note: eventNoteMidi(event),
               step: info.step,
               offset: info.offset,
             });
@@ -4689,7 +4702,7 @@
       }
 
       function editLcdMessage() {
-        const sound = kit[runtime.editSoundIndex];
+        const sound = soundAt(runtime.editSoundIndex);
         if (runtime.editSelectAll) {
           const count = collectEditHits(runtime.editSoundIndex).length;
           return sound
@@ -4701,8 +4714,11 @@
         if (!selected) return sound.label + " \u00b7 TAP HIT TO EDIT";
         const bar = Math.floor(selected.step / 16) + 1;
         const step = (selected.step % 16) + 1;
+        const eventLabel = selected.note !== null
+          ? midiNoteLabel(selected.note)
+          : sound.label;
         return (
-          sound.label +
+          eventLabel +
           " \u00b7 BAR " +
           bar +
           " \u00b7 STEP " +
@@ -4716,10 +4732,11 @@
         const sequence = activeSequence();
         if (!sequence) return;
         sequence.layers.forEach((layer) => {
-          layer.events = layer.events.map(([i, tick]) => [
-            i,
-            Math.round(wrapSequenceTick(tick)),
-          ]);
+          layer.events = layer.events.map((event) => {
+            const normalized = event.slice();
+            normalized[1] = Math.round(wrapSequenceTick(event[1]));
+            return normalized;
+          });
         });
         syncLoopFromActiveSequence(loop.length || fixedLoopLength());
         renderSeqEditPanel();
@@ -4743,8 +4760,8 @@
       function syncLoopEvents() {
         loop.events = [];
         loop.layers.forEach((layer) => {
-          layer.events.forEach(([i, t]) => {
-            loop.events.push([i, t]);
+          layer.events.forEach((event) => {
+            loop.events.push(event.slice());
           });
         });
         loop.events.sort((a, b) => a[1] - b[1]);
@@ -4752,13 +4769,21 @@
 
       function normalizeLayer(events, targetLength) {
         return events
-          .map(([i, t]) => [i, wrapLoopTime(t, targetLength)])
+          .map((event) => {
+            const normalized = event.slice();
+            normalized[1] = wrapLoopTime(event[1], targetLength);
+            return normalized;
+          })
           .sort((a, b) => a[1] - b[1]);
       }
 
       function normalizeTickLayer(events) {
         return events
-          .map(([i, tick]) => [i, Math.round(wrapSequenceTick(tick))])
+          .map((event) => {
+            const normalized = event.slice();
+            normalized[1] = Math.round(wrapSequenceTick(event[1]));
+            return normalized;
+          })
           .sort((a, b) => a[1] - b[1]);
       }
 
@@ -4767,20 +4792,27 @@
         if (!normalized.length) return [];
         const gridTicks = quantizeValue().ticks;
         return normalizeTickLayer(
-          normalized.map(([i, t]) => {
+          normalized.map((event) => {
+            const [i, t] = event;
+            const withTick = (tick) => {
+              const quantized = event.slice();
+              quantized[0] = i;
+              quantized[1] = tick;
+              return quantized;
+            };
             const rawTick = msToTicks(t, targetLength);
-            if (!gridTicks) return [i, rawTick];
+            if (!gridTicks) return withTick(rawTick);
             if (isNearLoopBoundary(t, targetLength)) {
-              return [i, 0];
+              return withTick(0);
             }
             const nearestGrid = Math.round(rawTick / gridTicks);
             if (
               nearestGrid <= 0 ||
               nearestGrid * gridTicks >= SEQUENCE_TICKS
             ) {
-              return [i, 0];
+              return withTick(0);
             }
-            return [i, nearestGrid * gridTicks];
+            return withTick(nearestGrid * gridTicks);
           }),
         );
       }
@@ -4795,7 +4827,11 @@
         }
         loop.layers = sequence.layers.map((layer) => ({
           events: normalizeLayer(
-            layer.events.map(([i, tick]) => [i, ticksToMs(tick, targetLength)]),
+            layer.events.map((event) => {
+              const loopEvent = event.slice();
+              loopEvent[1] = ticksToMs(event[1], targetLength);
+              return loopEvent;
+            }),
             targetLength,
           ),
         }));
@@ -4808,7 +4844,11 @@
         sequence.lengthTicks = SEQUENCE_TICKS;
         sequence.layers = loop.layers.map((layer) => ({
           events: normalizeTickLayer(
-            layer.events.map(([i, t]) => [i, msToTicks(t, targetLength)]),
+            layer.events.map((event) => {
+              const tickEvent = event.slice();
+              tickEvent[1] = msToTicks(event[1], targetLength);
+              return tickEvent;
+            }),
           ),
         }));
         if (!(sequence.mutedPads instanceof Set)) {
@@ -5246,9 +5286,9 @@
       }
 
       function currentIdleMessage() {
-        if (runtime.viewMode === "pads" && runtime.melodicMode) {
+        if (runtime.viewMode === "pads" && melodicBankActive()) {
           return (
-            activeMelodicInstrument().label +
+            activeMelodicTrack().label +
             " \u00b7 " +
             NOTE_NAMES[runtime.melodicRoot] +
             " " +
@@ -5265,14 +5305,26 @@
       function renderSeqSoundSelect() {
         if (!seqSoundSelect) return;
         seqSoundSelect.innerHTML = "";
+        const kitGroup = document.createElement("optgroup");
+        kitGroup.label = "KIT";
         kit.forEach((sound, index) => {
           const option = document.createElement("option");
           option.value = String(index);
           option.textContent =
             String(index + 1).padStart(2, "0") + " \u00b7 " + sound.label;
-          seqSoundSelect.appendChild(option);
+          kitGroup.appendChild(option);
         });
-        if (runtime.editSoundIndex >= kit.length) runtime.editSoundIndex = 0;
+        seqSoundSelect.appendChild(kitGroup);
+        const melodicGroup = document.createElement("optgroup");
+        melodicGroup.label = "MELODIC";
+        MELODIC_TRACKS.forEach((track) => {
+          const option = document.createElement("option");
+          option.value = String(track.index);
+          option.textContent = track.label;
+          melodicGroup.appendChild(option);
+        });
+        seqSoundSelect.appendChild(melodicGroup);
+        if (!soundAt(runtime.editSoundIndex)) runtime.editSoundIndex = 0;
         seqSoundSelect.value = String(runtime.editSoundIndex);
       }
 
@@ -5288,9 +5340,9 @@
         if (!seqEditPanel || runtime.seqView !== "edit") return;
         const sequence = activeSequence();
         renderSeqSoundSelect();
-        const sound = kit[runtime.editSoundIndex];
+        const sound = soundAt(runtime.editSoundIndex);
         seqEditTitle.textContent = sequenceDisplayName(sequence);
-        seqSoundSelect.disabled = !sequence || !kit.length;
+        seqSoundSelect.disabled = !sequence;
         seqEditGrid.innerHTML = "";
         const hits = collectEditHits(runtime.editSoundIndex);
         const hitsByStep = new Map();
@@ -5321,11 +5373,22 @@
               bar +
               " step " +
               stepInBar +
-              (hitData ? " hit " + formatTickOffset(hitData.offset) : " empty"),
+              (hitData
+                ? " hit " +
+                  (hitData.note !== null
+                    ? midiNoteLabel(hitData.note) + " "
+                    : "") +
+                  formatTickOffset(hitData.offset)
+                : " empty"),
           );
           if (hitData) {
             const shift = Math.max(-8, Math.min(8, hitData.offset * 0.7));
             cell.innerHTML =
+              (hitData.note !== null
+                ? '<span class="seq-hit-note">' +
+                  midiNoteLabel(hitData.note) +
+                  "</span>"
+                : "") +
               '<span class="seq-hit-dot" style="--tick-shift:' +
               shift.toFixed(1) +
               'px"></span>' +
@@ -5563,7 +5626,7 @@
           return;
         }
 
-        if (runtime.viewMode === "pads" && runtime.melodicMode) {
+        if (runtime.viewMode === "pads" && melodicBankActive()) {
           lcdStatus.textContent = runtime.mode === "playing" ? "PLAY + MEL" : "MELODIC";
           lcdMessage.textContent = currentIdleMessage();
           return;
@@ -5644,7 +5707,7 @@
         const live = runtime.mode === "countin" || runtime.mode === "recording";
         const playing = runtime.mode === "playing";
         const onPads = runtime.viewMode === "pads";
-        const kitPadsActive = onPads && !runtime.melodicMode;
+        const kitPadsActive = onPads && !melodicBankActive();
         const canClear = canClearCurrentContext();
         const canUndo = canUndoSequenceAction();
         playBtn.classList.toggle("is-playing", playing);
@@ -5654,7 +5717,7 @@
         playBtn.setAttribute("aria-label", playing ? "Stop loop" : "Play loop");
         playBtn.setAttribute("title", playing ? "Stop loop" : "Play loop");
         recDot.classList.toggle("is-live", live);
-        recBtn.disabled = !kitPadsActive;
+        recBtn.disabled = !onPads;
         clearBtn.disabled = !canClear || live;
         undoBtn.disabled = !canUndo || live;
         muteBtn.disabled = !kitPadsActive;
@@ -5925,7 +5988,14 @@
 
         const layerIndex = ensureEditLayer(sequence);
         const layer = sequence.layers[layerIndex];
-        layer.events.push([runtime.editSoundIndex, step * editStepTicks()]);
+        const melodicNote = MELODIC_TRACK_BY_INDEX.has(runtime.editSoundIndex)
+          ? melodicNoteAt(0, MELODIC_TRACK_BY_INDEX.get(runtime.editSoundIndex)).midi
+          : null;
+        layer.events.push(
+          melodicNote === null || melodicNote === undefined
+            ? [runtime.editSoundIndex, step * editStepTicks()]
+            : [runtime.editSoundIndex, step * editStepTicks(), melodicNote],
+        );
         runtime.editSelectAll = false;
         runtime.selectedEditHit = {
           layerIndex,
@@ -6124,10 +6194,13 @@
 
       function fireLoopSlice(start, length, targetLength) {
         if (!loop.events.length || targetLength <= 0) return;
-        loop.events.forEach(([i, t]) => {
+        loop.events.forEach((event) => {
+          const [i, t] = event;
           const scaled = loop.length > 0 ? (t / loop.length) * targetLength : t;
           const offset = wrapLoopTime(scaled - start, targetLength);
-          if (offset <= length + 0.0001) hit(i, true, undefined, scaled);
+          if (offset <= length + 0.0001) {
+            hit(i, true, undefined, scaled, event, activeSequence());
+          }
         });
       }
 
@@ -6195,6 +6268,8 @@
       seqEditBackBtn.addEventListener("click", () => setSeqSubView("sequence"));
       seqSoundSelect.addEventListener("change", () => {
         runtime.editSoundIndex = Number(seqSoundSelect.value) || 0;
+        const melodicTrack = MELODIC_TRACK_BY_INDEX.get(runtime.editSoundIndex);
+        setPadBank(melodicTrack ? melodicTrack.id : "kit", false);
         resetEditSelection();
         renderSeqEditPanel();
         updateDisplay();
@@ -6294,30 +6369,30 @@
         grid.innerHTML = "";
         renderSeqSoundSelect();
         const mutedPads = activeMutedPads();
-        const displayPads = runtime.melodicMode ? melodicPadLayout() : kit;
+        const melodicTrack = activeMelodicTrack();
+        const isMelodic = Boolean(melodicTrack);
+        const displayPads = isMelodic ? melodicPadLayout(melodicTrack) : kit;
         displayPads.forEach((k, i) => {
-          const col = runtime.melodicMode
-            ? activeMelodicInstrument().color
-            : CAT_COLOR[k.cat];
+          const col = isMelodic ? melodicTrack.color : CAT_COLOR[k.cat];
           const d = document.createElement("button");
           d.type = "button";
           d.className = "pad";
           d.dataset.i = i;
-          d.classList.toggle("is-melodic", runtime.melodicMode);
+          d.classList.toggle("is-melodic", isMelodic);
           d.classList.toggle("is-root", Boolean(k.isRoot));
           d.classList.toggle(
             "is-muted",
-            !runtime.melodicMode && mutedPads.has(i),
+            !isMelodic && mutedPads.has(i),
           );
           d.setAttribute(
             "aria-label",
-            runtime.melodicMode
+            isMelodic
               ? k.label + (k.isRoot ? " root note" : "") + ", key " + k.key
               : k.label + " pad, key " + k.key,
           );
           d.setAttribute(
             "aria-pressed",
-            String(!runtime.melodicMode && mutedPads.has(i)),
+            String(!isMelodic && mutedPads.has(i)),
           );
           d.setAttribute("aria-keyshortcuts", k.key);
           d.innerHTML =
@@ -6349,11 +6424,11 @@
         });
       }
 
-      function melodicNoteAt(position) {
+      function melodicNoteAt(position, instrument = activeMelodicTrack()) {
         const scale =
           MELODIC_SCALES[runtime.melodicScale] ||
           MELODIC_SCALES.minorPentatonic;
-        const instrument = activeMelodicInstrument();
+        instrument = instrument || MELODIC_TRACKS[0];
         const scaleLength = scale.intervals.length;
         const interval =
           scale.intervals[position % scaleLength] +
@@ -6364,6 +6439,7 @@
         const sourceMidi = 60 + pitchClass;
         return {
           key: "",
+          midi,
           label: NOTE_NAMES[pitchClass] + octave,
           file: instrument.files[pitchClass],
           playbackRate: Math.pow(2, (midi - sourceMidi) / 12),
@@ -6371,62 +6447,80 @@
         };
       }
 
-      function activeMelodicInstrument() {
-        return (
-          MELODIC_INSTRUMENTS[runtime.melodicInstrument] ||
-          MELODIC_INSTRUMENTS.kalimba
-        );
-      }
-
-      function melodicPadLayout() {
+      function melodicPadLayout(instrument = activeMelodicTrack()) {
         return KEYS.map((key, index) => {
           const row = Math.floor(index / 4);
           const column = index % 4;
           const ascendingPosition = (3 - row) * 4 + column;
-          return Object.assign(melodicNoteAt(ascendingPosition), { key });
+          return Object.assign(melodicNoteAt(ascendingPosition, instrument), { key });
         });
       }
 
       function updateMelodicControls() {
-        melodicControls.classList.toggle("is-active", runtime.melodicMode);
-        melodicToggle.classList.toggle("is-active", runtime.melodicMode);
-        melodicToggle.setAttribute("aria-pressed", String(runtime.melodicMode));
-        melodicToggle.setAttribute(
-          "aria-label",
-          runtime.melodicMode
-            ? "Turn melodic mode off"
-            : "Turn melodic mode on",
-        );
-        melodicInstrument.disabled = !runtime.melodicMode;
-        melodicScale.disabled = !runtime.melodicMode;
-        melodicRoot.disabled = !runtime.melodicMode;
-        melodicInstrument.value = runtime.melodicInstrument;
+        if (padBankSelect.options.length !== MELODIC_TRACKS.length + 1) {
+          padBankSelect.innerHTML = '<option value="kit">KIT</option>';
+          MELODIC_TRACKS.forEach((track) => {
+            const option = document.createElement("option");
+            option.value = track.id;
+            option.textContent = track.label;
+            padBankSelect.appendChild(option);
+          });
+        }
+        const isMelodic = melodicBankActive();
+        melodicControls.classList.toggle("is-active", isMelodic);
+        melodicScale.disabled = !isMelodic;
+        melodicRoot.disabled = !isMelodic;
+        padBankSelect.value = isMelodic ? runtime.padBank : "kit";
         melodicScale.value = runtime.melodicScale;
         melodicRoot.value = String(runtime.melodicRoot);
       }
 
-      function setMelodicMode(active) {
-        if (active && (runtime.mode === "countin" || runtime.mode === "recording")) {
+      function setPadBank(bankId, stopActiveRecording = true) {
+        const nextBank = MELODIC_TRACK_BY_ID.has(bankId) ? bankId : "kit";
+        const nextMelodicTrack = MELODIC_TRACK_BY_ID.get(nextBank);
+        if (
+          stopActiveRecording &&
+          nextBank !== runtime.padBank &&
+          (runtime.mode === "countin" || runtime.mode === "recording")
+        ) {
           stopTransport();
         }
-        runtime.melodicMode = active;
-        if (active && runtime.muteMode) runtime.muteMode = false;
+        runtime.padBank = nextBank;
+        if (nextMelodicTrack) {
+          runtime.editSoundIndex = nextMelodicTrack.index;
+        } else if (MELODIC_TRACK_BY_INDEX.has(runtime.editSoundIndex)) {
+          runtime.editSoundIndex = 0;
+        }
+        if (nextBank !== "kit" && runtime.muteMode) runtime.muteMode = false;
         updateMelodicControls();
         renderPads();
         updateButtons();
         updateDisplay();
       }
 
-      function playMelodicPad(index) {
-        const note = melodicPadLayout()[index];
-        if (!note) return;
+      function playMelodicPad(index, instrument = activeMelodicTrack()) {
+        const note = melodicPadLayout(instrument)[index];
+        if (!note) return null;
         play(note.file, undefined, note.playbackRate);
+        return note;
+      }
+
+      function playLockedMelodicNote(noteMidi, soundIndex) {
+        const pitchClass = ((noteMidi % 12) + 12) % 12;
+        const sourceMidi = 60 + pitchClass;
+        const instrument = MELODIC_TRACK_BY_INDEX.get(soundIndex);
+        if (!instrument) return;
+        play(
+          instrument.files[pitchClass],
+          undefined,
+          Math.pow(2, (noteMidi - sourceMidi) / 12),
+        );
       }
 
       function updatePadMuteStates() {
         const mutedPads = activeMutedPads();
         Array.from(grid.children).forEach((pad, index) => {
-          const isMuted = !runtime.melodicMode && mutedPads.has(index);
+          const isMuted = !melodicBankActive() && mutedPads.has(index);
           pad.classList.toggle("is-muted", isMuted);
           pad.setAttribute("aria-pressed", String(isMuted));
         });
@@ -6526,7 +6620,33 @@
         return now;
       }
 
-      function hit(i, fromLoop, inputTime, loopTime) {
+      function recordLiveHit(i, now, noteMidi = null) {
+        if (!runtime.recordLayer) return;
+        const total = fixedLoopLength();
+        let eventTime = null;
+        if (runtime.mode === "recording") {
+          eventTime = now - runtime.recordStart;
+        } else if (runtime.mode === "countin") {
+          const scheduledStart =
+            runtime.countInStart + COUNT_IN_BEATS * beatMs();
+          if (now >= scheduledStart - boundaryGraceMs(total)) {
+            eventTime = now - scheduledStart;
+          }
+        }
+        if (eventTime === null) return;
+        const event = [i, wrapLoopTime(eventTime, total)];
+        if (noteMidi !== null) event.push(noteMidi);
+        runtime.recordLayer.events.push(event);
+      }
+
+      function hit(
+        i,
+        fromLoop,
+        inputTime,
+        loopTime,
+        recordedEvent,
+        playbackSequence = activeSequence(),
+      ) {
         resumeAudio();
         if (
           fromLoop &&
@@ -6541,39 +6661,35 @@
           togglePadMute(i);
           return;
         }
-        if (!fromLoop && runtime.melodicMode) {
-          playMelodicPad(i);
-          flash(i);
-          return;
-        }
-        if (activeMutedPads().has(i)) return;
         const now =
           !fromLoop && Number.isFinite(inputTime)
             ? inputTime
             : performance.now();
+        if (!fromLoop && melodicBankActive()) {
+          const melodicTrack = activeMelodicTrack();
+          const note = playMelodicPad(i, melodicTrack);
+          flash(i);
+          if (note) {
+            recordLiveHit(melodicTrack.index, now, note.midi);
+          }
+          return;
+        }
+        const mutedPads = fromLoop
+          ? new Set(playbackSequence?.mutedPads || [])
+          : activeMutedPads();
+        if (mutedPads.has(i)) return;
+        const lockedNote = fromLoop ? eventNoteMidi(recordedEvent) : null;
+        if (lockedNote !== null) {
+          playLockedMelodicNote(lockedNote, i);
+          flashEditHit(i, loopTime);
+          return;
+        }
         const k = kit[i];
+        if (!k) return;
         play(k.file, i);
         flash(i);
         if (fromLoop) flashEditHit(i, loopTime);
-        if (!fromLoop && runtime.recordLayer) {
-          const total = fixedLoopLength();
-          let eventTime = null;
-          if (runtime.mode === "recording") {
-            eventTime = now - runtime.recordStart;
-          } else if (runtime.mode === "countin") {
-            const scheduledStart =
-              runtime.countInStart + COUNT_IN_BEATS * beatMs();
-            if (now >= scheduledStart - boundaryGraceMs(total)) {
-              eventTime = now - scheduledStart;
-            }
-          }
-          if (eventTime !== null) {
-            runtime.recordLayer.events.push([
-              i,
-              wrapLoopTime(eventTime, total),
-            ]);
-          }
-        }
+        if (!fromLoop) recordLiveHit(i, now);
       }
 
       const keyMap = {};
@@ -6694,21 +6810,19 @@
         runtime.rafId = requestAnimationFrame(runTransportFrame);
       }
 
-      function triggerSongPad(i, sequence, loopTime) {
-        if (!sequence || sequence.mutedPads?.has(i)) return;
-        const k = kit[i];
-        if (!k) return;
-        play(k.file, i);
-        flash(i);
+      function triggerSongPad(event, sequence, loopTime) {
+        if (!sequence || !event) return;
+        hit(event[0], true, undefined, loopTime, event, sequence);
       }
 
       function fireSequenceWindow(sequence, start, end, targetLength) {
         if (!sequence || targetLength <= 0) return;
         const lower = start === 0 ? -0.0001 : start;
         sequence.layers.forEach((layer) => {
-          layer.events.forEach(([i, tick]) => {
+          layer.events.forEach((event) => {
+            const tick = event[1];
             const t = ticksToMs(tick, targetLength);
-            if (t > lower && t <= end) triggerSongPad(i, sequence, t);
+            if (t > lower && t <= end) triggerSongPad(event, sequence, t);
           });
         });
       }
@@ -6813,9 +6927,12 @@
       function fireLoopWindow(start, end, targetLength) {
         if (!loop.events.length || targetLength <= 0) return;
         const lower = start === 0 ? -0.0001 : start;
-        loop.events.forEach(([i, t]) => {
+        loop.events.forEach((event) => {
+          const [i, t] = event;
           const scaled = loop.length > 0 ? (t / loop.length) * targetLength : t;
-          if (scaled > lower && scaled <= end) hit(i, true, undefined, scaled);
+          if (scaled > lower && scaled <= end) {
+            hit(i, true, undefined, scaled, event, activeSequence());
+          }
         });
       }
 
@@ -7137,7 +7254,7 @@
         return layerStr ? head.concat(layerStr).join(".") : head.join(".");
       }
 
-      function encodeSong() {
+      function encodeSong(includeActiveSequence = false) {
         const refsBySequenceIndex = new Map();
         const uniqueSequenceIndices = [];
         const songRefs = [];
@@ -7149,6 +7266,17 @@
           }
           songRefs.push(refsBySequenceIndex.get(sequenceIndex));
         });
+        if (
+          includeActiveSequence &&
+          sequences[activeSequenceIndex] &&
+          !refsBySequenceIndex.has(activeSequenceIndex)
+        ) {
+          refsBySequenceIndex.set(
+            activeSequenceIndex,
+            uniqueSequenceIndices.length,
+          );
+          uniqueSequenceIndices.push(activeSequenceIndex);
+        }
         const header = [
           (seed >>> 0).toString(36),
           bpm.toString(36),
@@ -7162,6 +7290,7 @@
               index.toString(36),
               Math.max(0, SEQUENCE_LABELS.indexOf(sequence.label)).toString(36),
               packMuteSet(sequence.mutedPads),
+              "-",
               sequence.layers.map((layer) => packTickLayerString(layer.events)).join("/"),
             ].join(",");
           })
@@ -7200,10 +7329,16 @@
       function packTickLayerString(events) {
         let prev = 0;
         return normalizeTickLayer(events)
-          .map(([i, tick], index) => {
+          .map((event, index) => {
+            const [i, tick] = event;
             const delta = index === 0 ? tick : tick - prev;
             prev = tick;
-            return i.toString(36) + Math.max(0, delta).toString(36);
+            const note = eventNoteMidi(event);
+            return (
+              i.toString(36) +
+              Math.max(0, delta).toString(36) +
+              (note !== null ? "!" + note.toString(36) : "")
+            );
           })
           .join(".");
       }
@@ -7216,11 +7351,15 @@
             .split(".")
             .filter(Boolean)
             .map((token, index) => {
-              const padIndex = parseInt(token.charAt(0), 36) || 0;
-              const delta = parseInt(token.slice(1) || "0", 36) || 0;
+              const [timingToken, noteToken] = token.split("!");
+              const padIndex = parseInt(timingToken.charAt(0), 36) || 0;
+              const delta = parseInt(timingToken.slice(1) || "0", 36) || 0;
               const tick = index === 0 ? delta : prev + delta;
               prev = tick;
-              return [padIndex, tick];
+              const note = parseInt(noteToken, 36);
+              return Number.isInteger(note)
+                ? [padIndex, tick, note]
+                : [padIndex, tick];
             }),
         );
       }
@@ -7278,11 +7417,18 @@
           ? sequencePayload.split("~").filter(Boolean)
           : [];
         const parsedEntries = entries.map((entry) => {
-          const [indexValue, labelValue, muteValue = "-", layersValue = ""] =
-            entry.split(",");
+          const values = entry.split(",");
+          const [indexValue, labelValue, muteValue = "-"] = values;
+          const hasInstrumentField = values.length >= 5;
+          const instrumentValue = hasInstrumentField ? values[3] : "-";
+          const layersValue = hasInstrumentField ? values[4] : values[3] || "";
+          const instrumentIndex = parseInt(instrumentValue, 36);
           return {
             index: parseInt(indexValue, 36) || 0,
             label: SEQUENCE_LABELS[parseInt(labelValue, 36) || 0] || "seq",
+            instrument: Number.isInteger(instrumentIndex)
+              ? MELODIC_INSTRUMENT_IDS[instrumentIndex] || null
+              : null,
             layers: layersValue
               ? layersValue.split("/").map(unpackTickLayerString)
               : [],
@@ -7335,8 +7481,18 @@
           sequences[index].label = SEQUENCE_LABELS.includes(entry.label)
             ? entry.label
             : "seq";
+          const legacyMelodicTrack = MELODIC_TRACK_BY_ID.get(entry.instrument);
           sequences[index].layers = (entry.layers || []).map((events) => ({
-            events: normalizeTickLayer(events || []),
+            events: normalizeTickLayer(events || []).map((event) => {
+              if (
+                legacyMelodicTrack &&
+                eventNoteMidi(event) !== null &&
+                !MELODIC_TRACK_BY_INDEX.has(event[0])
+              ) {
+                return [legacyMelodicTrack.index, event[1], event[2]];
+              }
+              return event;
+            }),
           }));
           sequences[index].mutedPads = new Set(entry.mutedPads || []);
         });
@@ -7446,15 +7602,8 @@
         updateDisplay();
       });
 
-      melodicToggle.addEventListener("click", () => {
-        setMelodicMode(!runtime.melodicMode);
-      });
-
-      melodicInstrument.addEventListener("change", () => {
-        if (!MELODIC_INSTRUMENTS[melodicInstrument.value]) return;
-        runtime.melodicInstrument = melodicInstrument.value;
-        renderPads();
-        updateDisplay();
+      padBankSelect.addEventListener("change", () => {
+        setPadBank(padBankSelect.value);
       });
 
       melodicScale.addEventListener("change", () => {
@@ -7527,7 +7676,9 @@
         const encodedLoop =
           runtime.viewMode === "seq" && runtime.seqView === "song" && songHasContent()
             ? encodeSong()
-            : encode();
+            : sequenceHasMelodicHits()
+              ? encodeSong(true)
+              : encode();
         const url = standaloneShareUrl(encodedLoop);
         shareCurrentLink(url);
         location.hash = encodedLoop;
