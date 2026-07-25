@@ -845,6 +845,122 @@
           rgba(9, 9, 11, 0.3);
       }
 
+      .pad-zone-inner {
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 6px;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+      }
+
+      .melodic-controls {
+        display: grid;
+        grid-template-columns:
+          minmax(0, 0.88fr)
+          minmax(0, 1.08fr)
+          minmax(0, 1.16fr)
+          minmax(0, 0.68fr);
+        gap: 5px;
+        min-height: 34px;
+      }
+
+      .melodic-toggle,
+      .melodic-field {
+        min-width: 0;
+        min-height: 34px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(9, 9, 11, 0.9)),
+          rgba(13, 13, 16, 0.86);
+        color: rgba(232, 232, 234, 0.64);
+        font-family: "Space Mono", monospace;
+      }
+
+      .melodic-toggle {
+        padding: 0 7px;
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        transition:
+          border-color 0.16s ease,
+          color 0.16s ease,
+          background 0.16s ease,
+          box-shadow 0.16s ease;
+      }
+
+      .melodic-toggle.is-active {
+        border-color: rgba(255, 190, 80, 0.5);
+        color: #ffe6ae;
+        background:
+          radial-gradient(circle at top, rgba(255, 190, 80, 0.18), transparent 80%),
+          linear-gradient(180deg, rgba(67, 45, 14, 0.92), rgba(20, 15, 9, 0.98));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 242, 209, 0.06),
+          0 0 16px rgba(255, 171, 42, 0.1);
+      }
+
+      .melodic-field {
+        position: relative;
+        display: block;
+        overflow: hidden;
+      }
+
+      .melodic-field > span {
+        position: absolute;
+        z-index: 1;
+        top: 4px;
+        left: 8px;
+        pointer-events: none;
+        color: rgba(255, 211, 125, 0.58);
+        font-size: 6px;
+        font-weight: 700;
+        letter-spacing: 0.13em;
+        line-height: 1;
+      }
+
+      .melodic-field select {
+        appearance: none;
+        -webkit-appearance: none;
+        color-scheme: dark;
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        padding: 11px 20px 2px 8px;
+        border: 0;
+        outline: 0;
+        background:
+          linear-gradient(45deg, transparent 50%, rgba(255, 220, 154, 0.72) 50%)
+            calc(100% - 10px) 55% / 4px 4px no-repeat,
+          linear-gradient(135deg, rgba(255, 220, 154, 0.72) 50%, transparent 50%)
+            calc(100% - 6px) 55% / 4px 4px no-repeat;
+        color: #f1e9d8;
+        font: 700 8px/1 "Space Mono", monospace;
+        letter-spacing: 0.025em;
+        text-transform: uppercase;
+      }
+
+      .melodic-field select option {
+        background: #151317;
+        color: #f4ead5;
+        font-family: "Space Mono", monospace;
+      }
+
+      .melodic-field select option:checked {
+        background: #5a3c12;
+        color: #fff1c8;
+      }
+
+      .melodic-field select:disabled {
+        opacity: 0.32;
+        cursor: default;
+      }
+
+      .melodic-controls:not(.is-active) .melodic-field {
+        opacity: 0.46;
+      }
+
       .fx-zone {
         flex: 1;
         min-height: 0;
@@ -1858,6 +1974,46 @@
         opacity: 0.42;
       }
 
+      .pad.is-melodic {
+        border-color: rgba(255, 202, 106, 0.13);
+        background:
+          radial-gradient(circle at 50% 100%, rgba(255, 177, 55, 0.08), transparent 64%),
+          linear-gradient(160deg, #29272a, #131315);
+      }
+
+      .pad.is-melodic .lab {
+        color: rgba(255, 240, 207, 0.88);
+        font-size: 11px;
+        letter-spacing: 0.055em;
+      }
+
+      .pad.is-root {
+        border-color: rgba(255, 190, 80, 0.6);
+        box-shadow:
+          0 3px 0 rgba(0, 0, 0, 0.55),
+          inset 0 0 0 1px rgba(255, 190, 80, 0.12),
+          inset 0 1px 0 rgba(255, 255, 255, 0.07),
+          0 0 14px rgba(255, 171, 42, 0.09);
+      }
+
+      .pad.is-root::before {
+        content: "ROOT";
+        position: absolute;
+        left: 50%;
+        top: 6px;
+        transform: translateX(-50%);
+        z-index: 2;
+        padding: 2px 5px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 194, 84, 0.32);
+        background: rgba(29, 18, 5, 0.8);
+        color: #ffd98d;
+        font-family: "Space Mono", monospace;
+        font-size: 6px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+      }
+
       .bottom-row {
         position: relative;
         z-index: 2;
@@ -2005,6 +2161,36 @@
           padding: 5px;
         }
 
+        .pad-zone-inner {
+          gap: 5px;
+        }
+
+        .melodic-controls {
+          gap: 4px;
+          min-height: 32px;
+        }
+
+        .melodic-toggle,
+        .melodic-field {
+          min-height: 32px;
+        }
+
+        .melodic-toggle {
+          padding-inline: 4px;
+          font-size: 7.5px;
+          letter-spacing: 0.04em;
+        }
+
+        .melodic-field > span {
+          left: 6px;
+        }
+
+        .melodic-field select {
+          padding-left: 6px;
+          padding-right: 16px;
+          font-size: 7px;
+        }
+
         .seq-bank {
           gap: 5px;
           padding: 6px;
@@ -2107,6 +2293,16 @@
           letter-spacing: 0;
         }
 
+        .pad.is-melodic .lab {
+          font-size: 8px;
+        }
+
+        .pad.is-root::before {
+          top: 5px;
+          padding: 1px 3px;
+          font-size: 5px;
+        }
+
         .lcd-status {
           font-size: 14px;
         }
@@ -2152,6 +2348,37 @@
         .pad-zone {
           padding: 4px;
           border-radius: 16px;
+        }
+
+        .melodic-controls {
+          grid-template-columns:
+            minmax(0, 0.86fr)
+            minmax(0, 1.06fr)
+            minmax(0, 1.08fr)
+            minmax(0, 0.62fr);
+          gap: 3px;
+          min-height: 30px;
+        }
+
+        .melodic-toggle,
+        .melodic-field {
+          min-height: 30px;
+          border-radius: 8px;
+        }
+
+        .melodic-toggle {
+          font-size: 7px;
+        }
+
+        .melodic-field > span {
+          top: 3px;
+          font-size: 5px;
+        }
+
+        .melodic-field select {
+          padding-top: 10px;
+          padding-right: 13px;
+          font-size: 6.5px;
         }
 
         .grid {
@@ -2584,7 +2811,59 @@
             role="tabpanel"
             aria-labelledby="padsModeBtn"
           >
-            <div class="grid" id="grid"></div>
+            <div class="pad-zone-inner">
+              <div class="melodic-controls" id="melodicControls">
+                <button
+                  class="melodic-toggle"
+                  id="melodicToggle"
+                  type="button"
+                  aria-pressed="false"
+                  aria-label="Turn melodic kalimba mode on"
+                >
+                  MELODIC
+                </button>
+                <label class="melodic-field">
+                  <span>INSTR</span>
+                  <select
+                    id="melodicInstrument"
+                    aria-label="Melodic instrument"
+                    disabled
+                  >
+                    <option value="kalimba" selected>KALIMBA</option>
+                    <option value="bell">BELLS</option>
+                    <option value="pluck">PLUCKS</option>
+                  </select>
+                </label>
+                <label class="melodic-field">
+                  <span>SCALE</span>
+                  <select id="melodicScale" aria-label="Melodic scale" disabled>
+                    <option value="chromatic">CHROMATIC</option>
+                    <option value="major">MAJOR</option>
+                    <option value="minor">MINOR</option>
+                    <option value="minorPentatonic" selected>MIN PENTA</option>
+                    <option value="majorPentatonic">MAJ PENTA</option>
+                  </select>
+                </label>
+                <label class="melodic-field">
+                  <span>ROOT</span>
+                  <select id="melodicRoot" aria-label="Melodic root note" disabled>
+                    <option value="0">C</option>
+                    <option value="1">C#</option>
+                    <option value="2">D</option>
+                    <option value="3">D#</option>
+                    <option value="4">E</option>
+                    <option value="5">F</option>
+                    <option value="6">F#</option>
+                    <option value="7">G</option>
+                    <option value="8">G#</option>
+                    <option value="9" selected>A</option>
+                    <option value="10">A#</option>
+                    <option value="11">B</option>
+                  </select>
+                </label>
+              </div>
+              <div class="grid" id="grid"></div>
+            </div>
           </div>
 
           <div
@@ -2943,6 +3222,61 @@
         kalimba: "KALIMBA",
         bell: "BELL",
       };
+      const NOTE_NAMES = [
+        "C",
+        "C#",
+        "D",
+        "D#",
+        "E",
+        "F",
+        "F#",
+        "G",
+        "G#",
+        "A",
+        "A#",
+        "B",
+      ];
+      const MELODIC_SCALES = {
+        chromatic: { label: "CHROMATIC", intervals: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] },
+        major: { label: "MAJOR", intervals: [0, 2, 4, 5, 7, 9, 11] },
+        minor: { label: "MINOR", intervals: [0, 2, 3, 5, 7, 8, 10] },
+        minorPentatonic: { label: "MIN PENTA", intervals: [0, 3, 5, 7, 10] },
+        majorPentatonic: { label: "MAJ PENTA", intervals: [0, 2, 4, 7, 9] },
+      };
+      const MELODIC_INSTRUMENTS = {
+        kalimba: {
+          label: "KALIMBA",
+          color: "#f0ae3d",
+          folder: "kalimba",
+          prefix: "kalimba",
+        },
+        bell: {
+          label: "BELLS",
+          color: "#8b5cf6",
+          folder: "bell",
+          prefix: "bell",
+        },
+        pluck: {
+          label: "PLUCKS",
+          color: "#00cc50",
+          folder: "pluck",
+          prefix: "pluck",
+        },
+      };
+      Object.values(MELODIC_INSTRUMENTS).forEach((instrument) => {
+        instrument.files = NOTE_NAMES.map(
+          (note) =>
+            instrument.folder +
+            "/" +
+            instrument.prefix +
+            "_" +
+            note.replace("#", "s") +
+            "4",
+        );
+      });
+      const MELODIC_SAMPLE_FILES = Object.values(MELODIC_INSTRUMENTS).flatMap(
+        (instrument) => instrument.files,
+      );
       const PERC_LABELS = [
         "SHAKER",
         "TAMB",
@@ -3048,6 +3382,10 @@
         fxPitchRate: 1,
         playLastFrameTime: 0,
         fxAssignments: { x: "phaser", y: "filter" },
+        melodicMode: false,
+        melodicInstrument: "kalimba",
+        melodicScale: "minorPentatonic",
+        melodicRoot: 9,
       };
 
       // ---------- sample buffer cache ----------
@@ -3070,9 +3408,14 @@
       async function loadKit() {
         initAudio();
         await Promise.all(
-          kit.map(function (k) {
-            return loadBuffer(soundURL(k.file));
-          }),
+          kit
+            .map(function (k) {
+              return k.file;
+            })
+            .concat(MELODIC_SAMPLE_FILES)
+            .map(function (file) {
+              return loadBuffer(soundURL(file));
+            }),
         );
       }
 
@@ -3398,6 +3741,11 @@
       const seqModeBtn = document.getElementById("seqModeBtn");
       const fxModeBtn = document.getElementById("fxModeBtn");
       const padsPage = document.getElementById("padsPage");
+      const melodicControls = document.getElementById("melodicControls");
+      const melodicToggle = document.getElementById("melodicToggle");
+      const melodicInstrument = document.getElementById("melodicInstrument");
+      const melodicScale = document.getElementById("melodicScale");
+      const melodicRoot = document.getElementById("melodicRoot");
       const seqPage = document.getElementById("seqPage");
       const fxPage = document.getElementById("fxPage");
       const sequenceSubtab = document.getElementById("sequenceSubtab");
@@ -3690,7 +4038,11 @@
         liveSources.forEach((src) => {
           try {
             src.playbackRate.cancelScheduledValues(now);
-            src.playbackRate.setTargetAtTime(rate, now, ramp);
+            src.playbackRate.setTargetAtTime(
+              (src._basePlaybackRate || 1) * rate,
+              now,
+              ramp,
+            );
           } catch (e) {
             /* source may already be gone */
           }
@@ -3924,7 +4276,7 @@
         return release;
       }
 
-      function play(file, padIndex) {
+      function play(file, padIndex, basePlaybackRate = 1) {
         if (!ctx) return;
         const url = soundURL(file);
         const buf = bufferCache[url];
@@ -3947,7 +4299,9 @@
 
         const src = ctx.createBufferSource();
         src.buffer = buf;
-        src.playbackRate.value = runtime.fxPitchRate || 1;
+        src._basePlaybackRate = basePlaybackRate;
+        src.playbackRate.value =
+          basePlaybackRate * (runtime.fxPitchRate || 1);
         const g = ctx.createGain();
         g.gain.value = 1;
         src.connect(g);
@@ -4892,6 +5246,15 @@
       }
 
       function currentIdleMessage() {
+        if (runtime.viewMode === "pads" && runtime.melodicMode) {
+          return (
+            activeMelodicInstrument().label +
+            " \u00b7 " +
+            NOTE_NAMES[runtime.melodicRoot] +
+            " " +
+            MELODIC_SCALES[runtime.melodicScale].label
+          );
+        }
         if (runtime.loadedFromShare && loop.events.length)
           return "SHARED LOOP READY";
         if (loop.events.length)
@@ -5200,6 +5563,12 @@
           return;
         }
 
+        if (runtime.viewMode === "pads" && runtime.melodicMode) {
+          lcdStatus.textContent = runtime.mode === "playing" ? "PLAY + MEL" : "MELODIC";
+          lcdMessage.textContent = currentIdleMessage();
+          return;
+        }
+
         if (
           runtime.viewMode === "seq" &&
           runtime.seqView === "song" &&
@@ -5275,6 +5644,7 @@
         const live = runtime.mode === "countin" || runtime.mode === "recording";
         const playing = runtime.mode === "playing";
         const onPads = runtime.viewMode === "pads";
+        const kitPadsActive = onPads && !runtime.melodicMode;
         const canClear = canClearCurrentContext();
         const canUndo = canUndoSequenceAction();
         playBtn.classList.toggle("is-playing", playing);
@@ -5284,10 +5654,10 @@
         playBtn.setAttribute("aria-label", playing ? "Stop loop" : "Play loop");
         playBtn.setAttribute("title", playing ? "Stop loop" : "Play loop");
         recDot.classList.toggle("is-live", live);
-        recBtn.disabled = !onPads;
+        recBtn.disabled = !kitPadsActive;
         clearBtn.disabled = !canClear || live;
         undoBtn.disabled = !canUndo || live;
-        muteBtn.disabled = !onPads;
+        muteBtn.disabled = !kitPadsActive;
         muteBtn.classList.toggle("is-mute", runtime.muteMode);
         muteBtn.setAttribute("aria-pressed", String(runtime.muteMode));
         muteBtn.setAttribute(
@@ -5924,15 +6294,31 @@
         grid.innerHTML = "";
         renderSeqSoundSelect();
         const mutedPads = activeMutedPads();
-        kit.forEach((k, i) => {
-          const col = CAT_COLOR[k.cat];
+        const displayPads = runtime.melodicMode ? melodicPadLayout() : kit;
+        displayPads.forEach((k, i) => {
+          const col = runtime.melodicMode
+            ? activeMelodicInstrument().color
+            : CAT_COLOR[k.cat];
           const d = document.createElement("button");
           d.type = "button";
           d.className = "pad";
           d.dataset.i = i;
-          d.classList.toggle("is-muted", mutedPads.has(i));
-          d.setAttribute("aria-label", k.label + " pad, key " + k.key);
-          d.setAttribute("aria-pressed", String(mutedPads.has(i)));
+          d.classList.toggle("is-melodic", runtime.melodicMode);
+          d.classList.toggle("is-root", Boolean(k.isRoot));
+          d.classList.toggle(
+            "is-muted",
+            !runtime.melodicMode && mutedPads.has(i),
+          );
+          d.setAttribute(
+            "aria-label",
+            runtime.melodicMode
+              ? k.label + (k.isRoot ? " root note" : "") + ", key " + k.key
+              : k.label + " pad, key " + k.key,
+          );
+          d.setAttribute(
+            "aria-pressed",
+            String(!runtime.melodicMode && mutedPads.has(i)),
+          );
           d.setAttribute("aria-keyshortcuts", k.key);
           d.innerHTML =
             '<span class="dot" style="background:' +
@@ -5963,10 +6349,84 @@
         });
       }
 
+      function melodicNoteAt(position) {
+        const scale =
+          MELODIC_SCALES[runtime.melodicScale] ||
+          MELODIC_SCALES.minorPentatonic;
+        const instrument = activeMelodicInstrument();
+        const scaleLength = scale.intervals.length;
+        const interval =
+          scale.intervals[position % scaleLength] +
+          Math.floor(position / scaleLength) * 12;
+        const midi = 48 + runtime.melodicRoot + interval;
+        const pitchClass = ((midi % 12) + 12) % 12;
+        const octave = Math.floor(midi / 12) - 1;
+        const sourceMidi = 60 + pitchClass;
+        return {
+          key: "",
+          label: NOTE_NAMES[pitchClass] + octave,
+          file: instrument.files[pitchClass],
+          playbackRate: Math.pow(2, (midi - sourceMidi) / 12),
+          isRoot: pitchClass === runtime.melodicRoot,
+        };
+      }
+
+      function activeMelodicInstrument() {
+        return (
+          MELODIC_INSTRUMENTS[runtime.melodicInstrument] ||
+          MELODIC_INSTRUMENTS.kalimba
+        );
+      }
+
+      function melodicPadLayout() {
+        return KEYS.map((key, index) => {
+          const row = Math.floor(index / 4);
+          const column = index % 4;
+          const ascendingPosition = (3 - row) * 4 + column;
+          return Object.assign(melodicNoteAt(ascendingPosition), { key });
+        });
+      }
+
+      function updateMelodicControls() {
+        melodicControls.classList.toggle("is-active", runtime.melodicMode);
+        melodicToggle.classList.toggle("is-active", runtime.melodicMode);
+        melodicToggle.setAttribute("aria-pressed", String(runtime.melodicMode));
+        melodicToggle.setAttribute(
+          "aria-label",
+          runtime.melodicMode
+            ? "Turn melodic mode off"
+            : "Turn melodic mode on",
+        );
+        melodicInstrument.disabled = !runtime.melodicMode;
+        melodicScale.disabled = !runtime.melodicMode;
+        melodicRoot.disabled = !runtime.melodicMode;
+        melodicInstrument.value = runtime.melodicInstrument;
+        melodicScale.value = runtime.melodicScale;
+        melodicRoot.value = String(runtime.melodicRoot);
+      }
+
+      function setMelodicMode(active) {
+        if (active && (runtime.mode === "countin" || runtime.mode === "recording")) {
+          stopTransport();
+        }
+        runtime.melodicMode = active;
+        if (active && runtime.muteMode) runtime.muteMode = false;
+        updateMelodicControls();
+        renderPads();
+        updateButtons();
+        updateDisplay();
+      }
+
+      function playMelodicPad(index) {
+        const note = melodicPadLayout()[index];
+        if (!note) return;
+        play(note.file, undefined, note.playbackRate);
+      }
+
       function updatePadMuteStates() {
         const mutedPads = activeMutedPads();
         Array.from(grid.children).forEach((pad, index) => {
-          const isMuted = mutedPads.has(index);
+          const isMuted = !runtime.melodicMode && mutedPads.has(index);
           pad.classList.toggle("is-muted", isMuted);
           pad.setAttribute("aria-pressed", String(isMuted));
         });
@@ -6079,6 +6539,11 @@
         }
         if (!fromLoop && runtime.muteMode) {
           togglePadMute(i);
+          return;
+        }
+        if (!fromLoop && runtime.melodicMode) {
+          playMelodicPad(i);
+          flash(i);
           return;
         }
         if (activeMutedPads().has(i)) return;
@@ -6981,6 +7446,33 @@
         updateDisplay();
       });
 
+      melodicToggle.addEventListener("click", () => {
+        setMelodicMode(!runtime.melodicMode);
+      });
+
+      melodicInstrument.addEventListener("change", () => {
+        if (!MELODIC_INSTRUMENTS[melodicInstrument.value]) return;
+        runtime.melodicInstrument = melodicInstrument.value;
+        renderPads();
+        updateDisplay();
+      });
+
+      melodicScale.addEventListener("change", () => {
+        if (!MELODIC_SCALES[melodicScale.value]) return;
+        runtime.melodicScale = melodicScale.value;
+        renderPads();
+        updateDisplay();
+      });
+
+      melodicRoot.addEventListener("change", () => {
+        runtime.melodicRoot = Math.max(
+          0,
+          Math.min(11, Number(melodicRoot.value) || 0),
+        );
+        renderPads();
+        updateDisplay();
+      });
+
       bpmDownBtn.addEventListener("click", () => {
         setTempo(bpm - BPM_STEP);
       });
@@ -7117,6 +7609,7 @@
         setViewMode("pads");
       }
       renderPads();
+      updateMelodicControls();
       loadKit();
       updateButtons();
       updateDisplay();
