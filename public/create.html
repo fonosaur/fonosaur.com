@@ -2056,7 +2056,7 @@
         min-height: 100%;
         justify-content: flex-start;
         gap: 8px;
-        padding: 4px;
+        padding: 8px 4px 4px;
       }
 
       @media (min-width: 700px) {
@@ -2792,7 +2792,7 @@
                 <label class="melodic-field">
                   <span>BANK</span>
                   <select id="padBankSelect" aria-label="Pad sound bank">
-                    <option value="kit" selected>KIT</option>
+                    <option value="oneshots" selected>KIT</option>
                   </select>
                 </label>
                 <label class="melodic-field">
@@ -3045,7 +3045,7 @@
               class="bottom-btn"
               id="shuffle"
               type="button"
-              aria-label="Shuffle sounds"
+              aria-label="Shuffle drum and percussion one-shots"
             >
               SHUFFLE
             </button>
@@ -3096,7 +3096,7 @@
         };
       }
 
-      // ---------- kit layout ----------
+      // ---------- one-shot layout ----------
       const KEYS = [
         "1",
         "2",
@@ -3170,19 +3170,6 @@
         "vox/vox6_ohsnap",
       ];
       const PROGRESSIONS = ["amin", "dmin", "cmaj", "fmaj", "gmin"];
-      const PENT_NOTES = {
-        amin: ["A", "C", "D", "E", "G"],
-        dmin: ["D", "F", "G", "A", "C"],
-        cmaj: ["C", "D", "E", "G", "A"],
-        fmaj: ["F", "G", "A", "C", "D"],
-        gmin: ["G", "A#", "C", "D", "F"],
-      };
-      const PAIRED_MELODIC_INSTRUMENTS = ["pluck", "kalimba", "bell"];
-      const SINGLE_LABELS = {
-        pluck: "PLUCK",
-        kalimba: "KALIMBA",
-        bell: "BELL",
-      };
       const NOTE_NAMES = [
         "C",
         "C#",
@@ -3239,11 +3226,11 @@
         (instrument) => instrument.files,
       );
       const MELODIC_INSTRUMENT_IDS = Object.keys(MELODIC_INSTRUMENTS);
-      const KIT_SOUND_COUNT = 16;
+      const ONE_SHOT_SOUND_COUNT = 16;
       const MELODIC_TRACKS = MELODIC_INSTRUMENT_IDS.map((id, offset) => ({
         ...MELODIC_INSTRUMENTS[id],
         id,
-        index: KIT_SOUND_COUNT + offset,
+        index: ONE_SHOT_SOUND_COUNT + offset,
         cat: "melodic",
       }));
       const MELODIC_TRACK_BY_ID = new Map(
@@ -3271,7 +3258,6 @@
         perc: "#00cc50",
         rhodes: "#a78bfa",
         triad: "#3b8bff",
-        single: "#00cc50",
         siren: "#ff6b5c",
         vox: "#3b8bff",
       };
@@ -3301,14 +3287,14 @@
       const MOBILE_LOOP_BOUNDARY_GRACE_MS = 128;
 
       let seed = 0;
-      let kit = [];
+      let oneShotBank = [];
       let bpm = FIXED_BPM;
       let skinIdx = 0;
       let metronomeOn = true;
       let quantizeIndex = 2;
 
       // Hit tuples are [soundIndex, tickOrMs, lockedMidiNote?]. Melodic
-      // tracks follow the 16 kit sounds and keep their pitch in the tuple.
+      // tracks follow the 16 one-shots and keep their pitch in the tuple.
       const loop = { events: [], length: 0, layers: [] };
       const sequences = Array.from({ length: MAX_SEQUENCES }, (_, index) =>
         index === 0 ? createSequence(index) : null,
@@ -3359,7 +3345,7 @@
         fxPitchRate: 1,
         playLastFrameTime: 0,
         fxAssignments: { x: "phaser", y: "filter" },
-        padBank: "kit",
+        padBank: "oneshots",
         melodicScale: "minorPentatonic",
         melodicRoot: 9,
       };
@@ -3381,10 +3367,10 @@
           "/sounds/" + path.replace(/#/g, "s").replace(/ /g, "%20") + ".mp3"
         );
       }
-      async function loadKit() {
+      async function loadSoundBanks() {
         initAudio();
         await Promise.all(
-          kit
+          oneShotBank
             .map(function (k) {
               return k.file;
             })
@@ -3395,45 +3381,36 @@
         );
       }
 
-      // ---------- kit generation ----------
-      function pickOther(notes, rootNote, rnd) {
-        const others = notes.filter(function (n) {
-          return n !== rootNote;
-        });
-        return others[Math.floor(rnd() * others.length)];
-      }
-
-      function buildKit(s) {
+      // ---------- one-shot generation ----------
+      function buildOneShotBank(s) {
         seed = s >>> 0;
-        const rnd = mulberry32(seed);
+        const drumRnd = mulberry32((seed & 0xffff) ^ 0xa53c);
+        const characterRnd = mulberry32((seed >>> 16) ^ 0x6d2b);
 
         // 1. Pick progression
-        const progIdx = Math.floor(rnd() * PROGRESSIONS.length);
+        const progIdx = Math.floor(characterRnd() * PROGRESSIONS.length);
         const prog = PROGRESSIONS[progIdx];
-        const notes = PENT_NOTES[prog];
-        const rootNote = notes[0];
 
         // 2. Drums
-        const kickIdx = Math.floor(rnd() * KICK_FILES.length);
-        const snareIdx = Math.floor(rnd() * SNARE_FILES.length);
-        const hatIdx = Math.floor(rnd() * HIHAT_MACHINES.length);
-        const clapIdx = Math.floor(rnd() * CLAP_FILES.length);
-        const percIdx = Math.floor(rnd() * PERC_FILES.length);
-        const voxIdx = Math.floor(rnd() * VOX_FILES.length);
-        const sirenIdx = Math.floor(rnd() * SIREN_FILES.length);
-
-        // 3. Bottom-row melodic pairs: two different instruments, two pads each.
-        const melodicChoices = PAIRED_MELODIC_INSTRUMENTS.slice();
-        const firstMelodicIdx = Math.floor(rnd() * melodicChoices.length);
-        const firstMelodic = melodicChoices.splice(firstMelodicIdx, 1)[0];
-        const secondMelodic =
-          melodicChoices[Math.floor(rnd() * melodicChoices.length)];
-        const firstMelodicOther = pickOther(notes, rootNote, rnd);
-        const secondMelodicOther = pickOther(notes, rootNote, rnd);
+        const kickIdx = Math.floor(drumRnd() * KICK_FILES.length);
+        const snareIdx = Math.floor(drumRnd() * SNARE_FILES.length);
+        const hatIdx = Math.floor(drumRnd() * HIHAT_MACHINES.length);
+        const clapIdx = Math.floor(drumRnd() * CLAP_FILES.length);
+        const percOrder = PERC_FILES.map((_, index) => index);
+        for (let i = percOrder.length - 1; i > 0; i--) {
+          const swapIndex = Math.floor(drumRnd() * (i + 1));
+          [percOrder[i], percOrder[swapIndex]] = [
+            percOrder[swapIndex],
+            percOrder[i],
+          ];
+        }
+        const percIdx = percOrder[0];
+        const voxIdx = Math.floor(characterRnd() * VOX_FILES.length);
+        const sirenIdx = Math.floor(characterRnd() * SIREN_FILES.length);
 
         const hatMachine = HIHAT_MACHINES[hatIdx];
 
-        kit = [
+        oneShotBank = [
           // Row 1: kick snare hat-cl hat-op
           {
             cat: "kick",
@@ -3504,39 +3481,38 @@
             file: "rhodes/rhodes_" + prog + "_4",
             label: "CHORD 4",
           },
-          // Row 4: melodic pair + different melodic pair
+          // Row 4: extra one-shot percussion, separate from instruments.
           {
-            cat: "single",
+            cat: "perc",
             key: KEYS[12],
-            file: firstMelodic + "/" + firstMelodic + "_" + rootNote + "4",
-            label: SINGLE_LABELS[firstMelodic],
+            file: PERC_FILES[percOrder[1]],
+            label: PERC_LABELS[percOrder[1]],
           },
           {
-            cat: "single",
+            cat: "perc",
             key: KEYS[13],
-            file:
-              firstMelodic + "/" + firstMelodic + "_" + firstMelodicOther + "4",
-            label: SINGLE_LABELS[firstMelodic],
+            file: PERC_FILES[percOrder[2]],
+            label: PERC_LABELS[percOrder[2]],
           },
           {
-            cat: "single",
+            cat: "perc",
             key: KEYS[14],
-            file: secondMelodic + "/" + secondMelodic + "_" + rootNote + "4",
-            label: SINGLE_LABELS[secondMelodic],
+            file: PERC_FILES[percOrder[3]],
+            label: PERC_LABELS[percOrder[3]],
           },
           {
-            cat: "single",
+            cat: "perc",
             key: KEYS[15],
-            file:
-              secondMelodic +
-              "/" +
-              secondMelodic +
-              "_" +
-              secondMelodicOther +
-              "4",
-            label: SINGLE_LABELS[secondMelodic],
+            file: PERC_FILES[percOrder[4]],
+            label: PERC_LABELS[percOrder[4]],
           },
         ];
+      }
+
+      function shuffleDrumOneShots() {
+        const nextDrumSeed = Math.floor(Math.random() * 0x10000);
+        const nextSeed = ((seed & 0xffff0000) | nextDrumSeed) >>> 0;
+        buildOneShotBank(nextSeed);
       }
 
       // ---------- procedural collage skin ----------
@@ -4224,7 +4200,7 @@
       const chokeVoices = { rhodes: null, hat: null };
 
       function chokeGroup(padIndex) {
-        const k = kit[padIndex];
+        const k = oneShotBank[padIndex];
         if (k.cat === "rhodes") return "rhodes";
         if (k.cat === "hat") return "hat";
         return null;
@@ -4232,7 +4208,7 @@
 
       function hasTempoScaledRelease(padIndex) {
         if (padIndex === undefined) return false;
-        const sound = kit[padIndex];
+        const sound = oneShotBank[padIndex];
         return sound?.cat === "rhodes" || sound?.file?.startsWith("bell/");
       }
 
@@ -4481,7 +4457,7 @@
       }
 
       function soundAt(index) {
-        return kit[index] || MELODIC_TRACK_BY_INDEX.get(index) || null;
+        return oneShotBank[index] || MELODIC_TRACK_BY_INDEX.get(index) || null;
       }
 
       function activeMelodicTrack() {
@@ -5090,7 +5066,7 @@
           } catch (error) {}
         }
         flashShareFeedback();
-        showToast("Link copied - your kit + beat");
+        showToast("Link copied - your beat");
       }
 
       function nativeShareData(url) {
@@ -5305,25 +5281,25 @@
       function renderSeqSoundSelect() {
         if (!seqSoundSelect) return;
         seqSoundSelect.innerHTML = "";
-        const kitGroup = document.createElement("optgroup");
-        kitGroup.label = "KIT";
-        kit.forEach((sound, index) => {
+        const oneShotGroup = document.createElement("optgroup");
+        oneShotGroup.label = "KIT";
+        oneShotBank.forEach((sound, index) => {
           const option = document.createElement("option");
           option.value = String(index);
           option.textContent =
             String(index + 1).padStart(2, "0") + " \u00b7 " + sound.label;
-          kitGroup.appendChild(option);
+          oneShotGroup.appendChild(option);
         });
-        seqSoundSelect.appendChild(kitGroup);
-        const melodicGroup = document.createElement("optgroup");
-        melodicGroup.label = "MELODIC";
+        seqSoundSelect.appendChild(oneShotGroup);
+        const instrumentGroup = document.createElement("optgroup");
+        instrumentGroup.label = "INSTRUMENTS";
         MELODIC_TRACKS.forEach((track) => {
           const option = document.createElement("option");
           option.value = String(track.index);
           option.textContent = track.label;
-          melodicGroup.appendChild(option);
+          instrumentGroup.appendChild(option);
         });
-        seqSoundSelect.appendChild(melodicGroup);
+        seqSoundSelect.appendChild(instrumentGroup);
         if (!soundAt(runtime.editSoundIndex)) runtime.editSoundIndex = 0;
         seqSoundSelect.value = String(runtime.editSoundIndex);
       }
@@ -5707,7 +5683,7 @@
         const live = runtime.mode === "countin" || runtime.mode === "recording";
         const playing = runtime.mode === "playing";
         const onPads = runtime.viewMode === "pads";
-        const kitPadsActive = onPads && !melodicBankActive();
+        const oneShotPadsActive = onPads && !melodicBankActive();
         const canClear = canClearCurrentContext();
         const canUndo = canUndoSequenceAction();
         playBtn.classList.toggle("is-playing", playing);
@@ -5720,7 +5696,7 @@
         recBtn.disabled = !onPads;
         clearBtn.disabled = !canClear || live;
         undoBtn.disabled = !canUndo || live;
-        muteBtn.disabled = !kitPadsActive;
+        muteBtn.disabled = !oneShotPadsActive;
         muteBtn.classList.toggle("is-mute", runtime.muteMode);
         muteBtn.setAttribute("aria-pressed", String(runtime.muteMode));
         muteBtn.setAttribute(
@@ -6269,7 +6245,7 @@
       seqSoundSelect.addEventListener("change", () => {
         runtime.editSoundIndex = Number(seqSoundSelect.value) || 0;
         const melodicTrack = MELODIC_TRACK_BY_INDEX.get(runtime.editSoundIndex);
-        setPadBank(melodicTrack ? melodicTrack.id : "kit", false);
+        setPadBank(melodicTrack ? melodicTrack.id : "oneshots", false);
         resetEditSelection();
         renderSeqEditPanel();
         updateDisplay();
@@ -6371,7 +6347,9 @@
         const mutedPads = activeMutedPads();
         const melodicTrack = activeMelodicTrack();
         const isMelodic = Boolean(melodicTrack);
-        const displayPads = isMelodic ? melodicPadLayout(melodicTrack) : kit;
+        const displayPads = isMelodic
+          ? melodicPadLayout(melodicTrack)
+          : oneShotBank;
         displayPads.forEach((k, i) => {
           const col = isMelodic ? melodicTrack.color : CAT_COLOR[k.cat];
           const d = document.createElement("button");
@@ -6458,7 +6436,8 @@
 
       function updateMelodicControls() {
         if (padBankSelect.options.length !== MELODIC_TRACKS.length + 1) {
-          padBankSelect.innerHTML = '<option value="kit">KIT</option>';
+          padBankSelect.innerHTML =
+            '<option value="oneshots">KIT</option>';
           MELODIC_TRACKS.forEach((track) => {
             const option = document.createElement("option");
             option.value = track.id;
@@ -6470,13 +6449,15 @@
         melodicControls.classList.toggle("is-active", isMelodic);
         melodicScale.disabled = !isMelodic;
         melodicRoot.disabled = !isMelodic;
-        padBankSelect.value = isMelodic ? runtime.padBank : "kit";
+        padBankSelect.value = isMelodic ? runtime.padBank : "oneshots";
         melodicScale.value = runtime.melodicScale;
         melodicRoot.value = String(runtime.melodicRoot);
       }
 
       function setPadBank(bankId, stopActiveRecording = true) {
-        const nextBank = MELODIC_TRACK_BY_ID.has(bankId) ? bankId : "kit";
+        const nextBank = MELODIC_TRACK_BY_ID.has(bankId)
+          ? bankId
+          : "oneshots";
         const nextMelodicTrack = MELODIC_TRACK_BY_ID.get(nextBank);
         if (
           stopActiveRecording &&
@@ -6491,7 +6472,7 @@
         } else if (MELODIC_TRACK_BY_INDEX.has(runtime.editSoundIndex)) {
           runtime.editSoundIndex = 0;
         }
-        if (nextBank !== "kit" && runtime.muteMode) runtime.muteMode = false;
+        if (nextBank !== "oneshots" && runtime.muteMode) runtime.muteMode = false;
         updateMelodicControls();
         renderPads();
         updateButtons();
@@ -6684,7 +6665,7 @@
           flashEditHit(i, loopTime);
           return;
         }
-        const k = kit[i];
+        const k = oneShotBank[i];
         if (!k) return;
         play(k.file, i);
         flash(i);
@@ -7686,9 +7667,9 @@
 
       shuffleBtn.addEventListener("click", () => {
         stopTransport();
-        buildKit((Math.random() * 4294967296) >>> 0);
+        shuffleDrumOneShots();
         renderPads();
-        loadKit();
+        loadSoundBanks();
       });
 
       skinBtn.addEventListener("click", () => {
@@ -7743,9 +7724,9 @@
       window.addEventListener("resize", syncDeviceFrame);
 
       if (loadHash()) {
-        buildKit(seed);
+        buildOneShotBank(seed);
       } else {
-        buildKit((Math.random() * 4294967296) >>> 0);
+        buildOneShotBank((Math.random() * 4294967296) >>> 0);
         loop.length = fixedLoopLength();
         skinIdx = randomDefaultSkinIndex();
       }
@@ -7761,7 +7742,7 @@
       }
       renderPads();
       updateMelodicControls();
-      loadKit();
+      loadSoundBanks();
       updateButtons();
       updateDisplay();
       syncDeviceFrame();

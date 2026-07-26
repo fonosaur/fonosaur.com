@@ -724,7 +724,7 @@ function Create() {
           color: C.sub,
           fontSize: 15,
           lineHeight: 1.6,
-          margin: "0 0 20px",
+          margin: "0 0 8px",
           maxWidth: "min(100%, 28rem)",
         }}
       >
