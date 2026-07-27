@@ -5627,16 +5627,10 @@
         const activeStep = playing
           ? Math.min(QUANTIZE_STEPS - 1, Math.floor(ratio * QUANTIZE_STEPS))
           : -1;
-        const isPianoRoll = seqEditGrid.classList.contains("is-piano-roll");
         Array.from(seqEditGrid.querySelectorAll(".seq-edit-cell")).forEach(
           (cell) => {
             const cellStep = Number(cell.dataset.step);
-            const cellPitch = Number(cell.dataset.lockedValue);
-            cell.classList.toggle(
-              "is-current",
-              cellStep === activeStep &&
-                (!isPianoRoll || cellPitch === runtime.editPitchValue),
-            );
+            cell.classList.toggle("is-current", cellStep === activeStep);
           },
         );
       }
