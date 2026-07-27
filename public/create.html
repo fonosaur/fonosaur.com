@@ -1309,6 +1309,40 @@
         overflow: hidden;
       }
 
+      .seq-edit-grid.is-piano-roll {
+        --piano-step-width: 28px;
+        --piano-row-height: 34px;
+        grid-template-columns: 42px repeat(64, var(--piano-step-width));
+        grid-template-rows: repeat(
+          var(--piano-row-count, 1),
+          minmax(var(--piano-row-height), 1fr)
+        );
+        align-content: start;
+        overflow: auto;
+        overscroll-behavior: contain;
+        scrollbar-color: rgba(125, 255, 184, 0.22) rgba(0, 0, 0, 0.16);
+      }
+
+      .seq-pitch-label {
+        position: sticky;
+        left: 0;
+        z-index: 3;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2px;
+        border-radius: 7px;
+        border: 1px solid rgba(255, 209, 122, 0.2);
+        background: rgba(7, 13, 10, 0.96);
+        color: rgba(255, 228, 164, 0.9);
+        font-size: 7px;
+        line-height: 1.1;
+        letter-spacing: 0;
+        text-align: center;
+        white-space: normal;
+      }
+
       .seq-edit-cell {
         position: relative;
         min-width: 0;
@@ -1326,6 +1360,11 @@
         background:
           radial-gradient(circle at 50% 0, rgba(125, 255, 184, 0.045), transparent 72%),
           rgba(8, 8, 10, 0.56);
+      }
+
+      .seq-edit-cell.is-bar-start {
+        border-left-color: rgba(255, 209, 122, 0.34);
+        box-shadow: inset 1px 0 0 rgba(255, 209, 122, 0.08);
       }
 
       .seq-edit-cell.is-hit {
@@ -2249,6 +2288,16 @@
         .seq-edit-grid {
           gap: 2px;
           padding: 6px;
+        }
+
+        .seq-edit-grid.is-piano-roll {
+          --piano-step-width: 24px;
+          --piano-row-height: 30px;
+          grid-template-columns: 38px repeat(64, var(--piano-step-width));
+        }
+
+        .seq-pitch-label {
+          font-size: 6px;
         }
 
         .seq-edit-cell {
@@ -3407,6 +3456,7 @@
         songBlockIndex: -1,
         songAuditionSequenceIndex: -1,
         editSoundIndex: 0,
+        editPitchValue: null,
         selectedEditHit: null,
         editSelectAll: false,
         editStartTick: 0,
@@ -4828,6 +4878,7 @@
           eventIndex: selected.eventIndex,
           padIndex: event[0],
           tick: event[1],
+          lockedValue: eventLockedValue(event),
           note: eventNoteMidi(event),
           identityLabel: eventIdentityLabel(event),
           velocity: eventVelocity(event),
@@ -4868,6 +4919,7 @@
               eventIndex,
               padIndex: i,
               tick,
+              lockedValue: eventLockedValue(event),
               note: eventNoteMidi(event),
               identityLabel: eventIdentityLabel(event),
               velocity: eventVelocity(event),
@@ -4877,6 +4929,53 @@
           });
         });
         return hits.sort((a, b) => a.step - b.step || a.offset - b.offset);
+      }
+
+      function instrumentEditPitchRows(track, hits) {
+        if (!track) return [];
+        const rows = new Map();
+        const addRow = (lockedValue, label, sortValue) => {
+          if (!Number.isInteger(lockedValue) || rows.has(lockedValue)) return;
+          rows.set(lockedValue, { lockedValue, label, sortValue });
+        };
+
+        melodicPadLayout(track).forEach((pad) => {
+          const lockedValue =
+            track.kind === "chords" ? pad.lockedValue : pad.midi;
+          addRow(
+            lockedValue,
+            track.kind === "chords"
+              ? chordIdentityLabel(decodeChordIdentity(lockedValue))
+              : midiNoteLabel(lockedValue),
+            instrumentPitchSortValue(track, lockedValue),
+          );
+        });
+
+        hits.forEach((hitData) => {
+          const lockedValue = hitData.lockedValue;
+          addRow(
+            lockedValue,
+            hitData.identityLabel || String(lockedValue),
+            instrumentPitchSortValue(track, lockedValue),
+          );
+        });
+
+        // The pad grid ascends bottom-to-top, so the piano roll mirrors it:
+        // high identities at the top and low identities at the bottom.
+        return Array.from(rows.values()).sort(
+          (a, b) => b.sortValue - a.sortValue || a.label.localeCompare(b.label),
+        );
+      }
+
+      function instrumentPitchSortValue(track, lockedValue) {
+        if (track.kind !== "chords") return lockedValue;
+        const identity = decodeChordIdentity(lockedValue);
+        if (!identity) return lockedValue;
+        return (
+          identity.octave * 1000 +
+          identity.keyIndex * 10 +
+          identity.chordIndex
+        );
       }
 
       function findEditHitAtStep(step, padIndex = runtime.editSoundIndex) {
@@ -5528,9 +5627,18 @@
         const activeStep = playing
           ? Math.min(QUANTIZE_STEPS - 1, Math.floor(ratio * QUANTIZE_STEPS))
           : -1;
-        Array.from(seqEditGrid.children).forEach((cell, index) => {
-          cell.classList.toggle("is-current", index === activeStep);
-        });
+        const isPianoRoll = seqEditGrid.classList.contains("is-piano-roll");
+        Array.from(seqEditGrid.querySelectorAll(".seq-edit-cell")).forEach(
+          (cell) => {
+            const cellStep = Number(cell.dataset.step);
+            const cellPitch = Number(cell.dataset.lockedValue);
+            cell.classList.toggle(
+              "is-current",
+              cellStep === activeStep &&
+                (!isPianoRoll || cellPitch === runtime.editPitchValue),
+            );
+          },
+        );
       }
 
       function currentIdleMessage() {
@@ -5594,78 +5702,140 @@
         return ticksToMs(runtime.editStartTick || 0, targetLength);
       }
 
+      function createSeqEditCell(step, hitData, sound, lockedValue = null) {
+        const cell = document.createElement("button");
+        cell.type = "button";
+        cell.className = "seq-edit-cell";
+        cell.dataset.step = String(step);
+        if (Number.isInteger(lockedValue)) {
+          cell.dataset.lockedValue = String(lockedValue);
+        }
+        cell.classList.toggle("is-beat", step % 4 === 0);
+        cell.classList.toggle("is-bar-start", step % 16 === 0);
+        cell.classList.toggle("is-hit", Boolean(hitData));
+        cell.classList.toggle(
+          "is-selected",
+          Boolean(
+            hitData &&
+              (runtime.editSelectAll ||
+                sameEditHit(runtime.selectedEditHit, hitData)),
+          ),
+        );
+        const bar = Math.floor(step / 16) + 1;
+        const stepInBar = (step % 16) + 1;
+        cell.setAttribute(
+          "aria-label",
+          (hitData?.identityLabel || (sound ? sound.label : "Sound")) +
+            " bar " +
+            bar +
+            " step " +
+            stepInBar +
+            (hitData
+              ? " hit " +
+                formatTickOffset(hitData.offset) +
+                " velocity " +
+                hitData.velocity
+              : " empty"),
+        );
+        if (hitData) {
+          const shift = Math.max(-8, Math.min(8, hitData.offset * 0.7));
+          const velocityY =
+            76 -
+            ((hitData.velocity - MIN_VELOCITY) /
+              (MAX_VELOCITY - MIN_VELOCITY)) *
+              52;
+          cell.innerHTML =
+            (hitData.identityLabel
+              ? '<span class="seq-hit-note">' +
+                hitData.identityLabel +
+                "</span>"
+              : "") +
+            '<span class="seq-hit-dot" style="--tick-shift:' +
+            shift.toFixed(1) +
+            "px;--velocity-y:" +
+            velocityY.toFixed(1) +
+            '%"></span>' +
+            (hitData.offset
+              ? '<span class="seq-hit-offset">' +
+                formatTickOffset(hitData.offset) +
+                "</span>"
+              : "");
+        }
+        cell.addEventListener("click", () =>
+          toggleEditCell(step, hitData, lockedValue),
+        );
+        return cell;
+      }
+
       function renderSeqEditPanel() {
         if (!seqEditPanel || runtime.seqView !== "edit") return;
         const sequence = activeSequence();
         renderSeqSoundSelect();
         const sound = soundAt(runtime.editSoundIndex);
+        const editTrack = MELODIC_TRACK_BY_INDEX.get(runtime.editSoundIndex);
+        const previousScrollLeft = seqEditGrid.scrollLeft;
+        const previousScrollTop = seqEditGrid.scrollTop;
         seqEditTitle.textContent = sequenceDisplayName(sequence);
         seqSoundSelect.disabled = !sequence;
         seqEditGrid.innerHTML = "";
         const hits = collectEditHits(runtime.editSoundIndex);
-        const hitsByStep = new Map();
-        hits.forEach((hitData) => {
-          if (!hitsByStep.has(hitData.step)) hitsByStep.set(hitData.step, hitData);
-        });
-        for (let step = 0; step < QUANTIZE_STEPS; step++) {
-          const hitData = hitsByStep.get(step);
-          const cell = document.createElement("button");
-          cell.type = "button";
-          cell.className = "seq-edit-cell";
-          cell.classList.toggle("is-beat", step % 4 === 0);
-          cell.classList.toggle("is-hit", Boolean(hitData));
-          cell.classList.toggle(
-            "is-selected",
-            Boolean(
-              hitData &&
-                (runtime.editSelectAll ||
-                  sameEditHit(runtime.selectedEditHit, hitData)),
-            ),
-          );
-          const bar = Math.floor(step / 16) + 1;
-          const stepInBar = (step % 16) + 1;
-          cell.setAttribute(
-            "aria-label",
-            (sound ? sound.label : "Sound") +
-              " bar " +
-              bar +
-              " step " +
-              stepInBar +
-              (hitData
-                ? " hit " +
-                  (hitData.identityLabel ? hitData.identityLabel + " " : "") +
-                  formatTickOffset(hitData.offset) +
-                  " velocity " +
-                  hitData.velocity
-                : " empty"),
-          );
-          if (hitData) {
-            const shift = Math.max(-8, Math.min(8, hitData.offset * 0.7));
-            const velocityY =
-              76 -
-              ((hitData.velocity - MIN_VELOCITY) /
-                (MAX_VELOCITY - MIN_VELOCITY)) *
-                52;
-            cell.innerHTML =
-              (hitData.identityLabel
-                ? '<span class="seq-hit-note">' +
-                  hitData.identityLabel +
-                  "</span>"
-                : "") +
-              '<span class="seq-hit-dot" style="--tick-shift:' +
-              shift.toFixed(1) +
-              "px;--velocity-y:" +
-              velocityY.toFixed(1) +
-              '%"></span>' +
-              (hitData.offset
-                ? '<span class="seq-hit-offset">' +
-                  formatTickOffset(hitData.offset) +
-                  "</span>"
-                : "");
+        seqEditGrid.classList.toggle("is-piano-roll", Boolean(editTrack));
+        if (editTrack) {
+          const pitchRows = instrumentEditPitchRows(editTrack, hits);
+          const selectedPitch = selectedEditEvent()?.lockedValue;
+          if (Number.isInteger(selectedPitch)) runtime.editPitchValue = selectedPitch;
+          if (!pitchRows.some((row) => row.lockedValue === runtime.editPitchValue)) {
+            runtime.editPitchValue = pitchRows.at(-1)?.lockedValue ?? null;
           }
-          cell.addEventListener("click", () => toggleEditCell(step, hitData));
-          seqEditGrid.appendChild(cell);
+          seqEditGrid.style.setProperty(
+            "--piano-row-count",
+            String(Math.max(1, pitchRows.length)),
+          );
+          const hitsByPitchAndStep = new Map();
+          hits.forEach((hitData) => {
+            const key = hitData.lockedValue + ":" + hitData.step;
+            if (!hitsByPitchAndStep.has(key)) {
+              hitsByPitchAndStep.set(key, hitData);
+            }
+          });
+          pitchRows.forEach((row, rowIndex) => {
+            const label = document.createElement("div");
+            label.className = "seq-pitch-label";
+            label.textContent = row.label;
+            label.style.gridRow = String(rowIndex + 1);
+            label.style.gridColumn = "1";
+            seqEditGrid.appendChild(label);
+            for (let step = 0; step < QUANTIZE_STEPS; step++) {
+              const hitData = hitsByPitchAndStep.get(
+                row.lockedValue + ":" + step,
+              );
+              const cell = createSeqEditCell(
+                step,
+                hitData,
+                sound,
+                row.lockedValue,
+              );
+              cell.style.gridRow = String(rowIndex + 1);
+              cell.style.gridColumn = String(step + 2);
+              seqEditGrid.appendChild(cell);
+            }
+          });
+        } else {
+          seqEditGrid.style.removeProperty("--piano-row-count");
+          const hitsByStep = new Map();
+          hits.forEach((hitData) => {
+            if (!hitsByStep.has(hitData.step)) {
+              hitsByStep.set(hitData.step, hitData);
+            }
+          });
+          for (let step = 0; step < QUANTIZE_STEPS; step++) {
+            seqEditGrid.appendChild(
+              createSeqEditCell(step, hitsByStep.get(step), sound),
+            );
+          }
         }
+        seqEditGrid.scrollLeft = editTrack ? previousScrollLeft : 0;
+        seqEditGrid.scrollTop = editTrack ? previousScrollTop : 0;
         const hasSelection = hasEditSelection();
         seqSelectAllBtn.disabled = !hits.length;
         seqSelectAllBtn.classList.toggle("is-active", runtime.editSelectAll);
@@ -6259,10 +6429,13 @@
         refreshSequenceState();
       }
 
-      function toggleEditCell(step, hitData) {
+      function toggleEditCell(step, hitData, pitchLockedValue = null) {
         const sequence = activeSequence();
         if (!sequence) return;
         setEditStartStep(step);
+        if (Number.isInteger(pitchLockedValue)) {
+          runtime.editPitchValue = pitchLockedValue;
+        }
         if (hitData) {
           if (sameEditHit(runtime.selectedEditHit, hitData)) {
             const layer = sequence.layers[hitData.layerIndex];
@@ -6287,13 +6460,11 @@
 
         const editTrack = MELODIC_TRACK_BY_INDEX.get(runtime.editSoundIndex);
         const lockedValue = editTrack
-          ? editTrack.kind === "chords"
-            ? encodeChordIdentity(
-                runtime.chordKey,
-                0,
-                0,
-              )
-            : melodicNoteAt(0, editTrack).midi
+          ? Number.isInteger(pitchLockedValue)
+            ? pitchLockedValue
+            : editTrack.kind === "chords"
+              ? encodeChordIdentity(runtime.chordKey, 0, 0)
+              : melodicNoteAt(0, editTrack).midi
           : null;
         pushUndoSnapshot("add-hit");
         const layerIndex = ensureEditLayer(sequence);
@@ -6603,6 +6774,7 @@
       seqEditBackBtn.addEventListener("click", () => setSeqSubView("sequence"));
       seqSoundSelect.addEventListener("change", () => {
         runtime.editSoundIndex = Number(seqSoundSelect.value) || 0;
+        runtime.editPitchValue = null;
         const melodicTrack = MELODIC_TRACK_BY_INDEX.get(runtime.editSoundIndex);
         setPadBank(melodicTrack ? melodicTrack.id : "oneshots", false);
         resetEditSelection();
@@ -7067,7 +7239,7 @@
         setTimeout(() => el.classList.remove("hit"), 24);
       }
 
-      function flashEditHit(i, loopTime) {
+      function flashEditHit(i, loopTime, recordedEvent) {
         if (
           runtime.viewMode !== "seq" ||
           runtime.seqView !== "edit" ||
@@ -7078,7 +7250,15 @@
         }
         const targetLength = loop.length || fixedLoopLength();
         const step = editStepInfo(msToTicks(loopTime || 0, targetLength)).step;
-        const cell = seqEditGrid.children[step];
+        const lockedValue = eventLockedValue(recordedEvent);
+        const selector =
+          '.seq-edit-cell[data-step="' +
+          step +
+          '"]' +
+          (MELODIC_TRACK_BY_INDEX.has(i) && lockedValue !== null
+            ? '[data-locked-value="' + lockedValue + '"]'
+            : "");
+        const cell = seqEditGrid.querySelector(selector);
         if (!cell || !cell.classList.contains("is-hit")) return;
         cell.classList.add("is-firing");
         window.setTimeout(() => cell.classList.remove("is-firing"), 130);
@@ -7172,7 +7352,7 @@
         if (lockedValue !== null && MELODIC_TRACK_BY_INDEX.has(i)) {
           playLockedMelodicNote(lockedValue, i, velocity);
           if (fromLoop) flashPlaybackEvent(i, lockedValue);
-          flashEditHit(i, loopTime);
+          flashEditHit(i, loopTime, recordedEvent);
           return;
         }
         const k = oneShotBank[i];
@@ -7180,7 +7360,7 @@
         play(k.file, i, 1, { velocity });
         if (fromLoop) {
           flashPlaybackEvent(i, null);
-          flashEditHit(i, loopTime);
+          flashEditHit(i, loopTime, recordedEvent);
         } else {
           flash(i);
         }
