@@ -3930,6 +3930,11 @@
       const DEVICE_MAX_WIDTH = 520;
       let toastTimer = 0;
       let shareTimer = 0;
+      let preparedShare = {
+        encoded: "",
+        promise: null,
+        result: null,
+      };
 
       // ---------- audio ----------
       let ctx;
@@ -5395,8 +5400,24 @@
       function resetShareFeedback() {
         shareBtn.classList.remove("is-copied");
         shareLabel.textContent = "SHARE";
+        shareBtn.removeAttribute("aria-busy");
         shareBtn.setAttribute("aria-label", "Copy share link");
         shareBtn.setAttribute("title", "Copy share link");
+      }
+
+      function showSharePreparing() {
+        shareLabel.textContent = "MAKING LINK";
+        shareBtn.setAttribute("aria-busy", "true");
+        shareBtn.setAttribute("aria-label", "Creating short share link");
+        shareBtn.setAttribute("title", "Creating short share link");
+      }
+
+      function showShareReady() {
+        shareBtn.classList.add("is-copied");
+        shareLabel.textContent = "TAP TO SHARE";
+        shareBtn.removeAttribute("aria-busy");
+        shareBtn.setAttribute("aria-label", "Open share options");
+        shareBtn.setAttribute("title", "Open share options");
       }
 
       function flashShareFeedback() {
@@ -5494,6 +5515,94 @@
         url.search = "";
         url.hash = encodedLoop;
         return url.href;
+      }
+
+      function standaloneShortShareUrl(id) {
+        const url = new URL("/create.html", location.origin);
+        url.searchParams.set("s", id);
+        return url.href;
+      }
+
+      function currentShareEncoding() {
+        return runtime.viewMode === "seq" &&
+          runtime.seqView === "song" &&
+          songHasContent()
+          ? encodeSong()
+          : sequenceHasMelodicHits() || sequenceHasVelocityEdits()
+            ? encodeSong(true)
+            : encode();
+      }
+
+      function prepareShortShare(encoded) {
+        if (preparedShare.encoded === encoded) {
+          if (preparedShare.result) return Promise.resolve(preparedShare.result);
+          if (preparedShare.promise) return preparedShare.promise;
+        }
+
+        const promise = fetch("/api/fs86-share", {
+          method: "POST",
+          headers: {
+            accept: "application/json",
+            "content-type": "application/json",
+          },
+          body: JSON.stringify({ data: encoded }),
+        })
+          .then(async (response) => {
+            const payload = await response.json().catch(() => ({}));
+            if (
+              !response.ok ||
+              typeof payload.id !== "string" ||
+              !/^[A-Za-z0-9_-]{12}$/.test(payload.id)
+            ) {
+              throw new Error(payload.error || "Could not create short link");
+            }
+            return {
+              url: standaloneShortShareUrl(payload.id),
+              short: true,
+            };
+          })
+          .catch(() => ({
+            url: standaloneShareUrl(encoded),
+            short: false,
+          }))
+          .then((result) => {
+            if (preparedShare.encoded === encoded) {
+              preparedShare.promise = null;
+              preparedShare.result = result;
+            }
+            return result;
+          });
+
+        preparedShare = { encoded, promise, result: null };
+        return promise;
+      }
+
+      async function shareEncodedState(encoded) {
+        location.hash = encoded;
+        const cached =
+          preparedShare.encoded === encoded ? preparedShare.result : null;
+        if (cached) {
+          shareCurrentLink(cached.url);
+          return;
+        }
+
+        showSharePreparing();
+        const result = await prepareShortShare(encoded);
+        if (!result.short) {
+          showToast("Short link unavailable - using full link");
+        }
+        if (canNativeShare(nativeShareData(result.url))) {
+          // The network request may outlive the original activation. A second
+          // tap keeps navigator.share directly inside a user gesture.
+          showShareReady();
+          showToast("Link ready - tap SHARE again");
+          return;
+        }
+        shareCurrentLink(result.url);
+      }
+
+      function prewarmCurrentShare() {
+        prepareShortShare(currentShareEncoding());
       }
 
       function updateBarsReadout() {
@@ -6813,11 +6922,10 @@
         updateDisplay();
       });
       songDeleteBtn.addEventListener("click", deleteSelectedSongBlock);
+      songShareBtn.addEventListener("pointerdown", prewarmCurrentShare);
+      songShareBtn.addEventListener("focus", prewarmCurrentShare);
       songShareBtn.addEventListener("click", () => {
-        const encodedSong = encodeSong();
-        const url = standaloneShareUrl(encodedSong);
-        shareCurrentLink(url);
-        location.hash = encodedSong;
+        shareEncodedState(encodeSong());
       });
       xAxisBtn.addEventListener("click", (event) => {
         event.stopPropagation();
@@ -8196,10 +8304,8 @@
         return true;
       }
 
-      function loadHash() {
-        if (location.hash.length < 3) return false;
+      function loadEncodedShare(raw) {
         try {
-          const raw = location.hash.slice(1);
           if (raw.startsWith("fs1.")) return loadSongHash(raw);
           const parts = raw.split(".");
           if (parts[0] !== "f4") return false;
@@ -8233,6 +8339,39 @@
           runtime.loadedStandaloneShare = !embedded && runtime.loadedFromShare;
           return true;
         } catch (e) {
+          return false;
+        }
+      }
+
+      function loadHash() {
+        if (location.hash.length < 3) return false;
+        return loadEncodedShare(location.hash.slice(1));
+      }
+
+      async function loadShortShare(id) {
+        if (!/^[A-Za-z0-9_-]{12}$/.test(id)) {
+          showToast("This shared link is invalid");
+          return false;
+        }
+
+        try {
+          const response = await fetch(
+            "/api/fs86-share/" + encodeURIComponent(id),
+            {
+              headers: { accept: "application/json" },
+              cache: "no-store",
+            },
+          );
+          const payload = await response.json().catch(() => ({}));
+          if (!response.ok || typeof payload.data !== "string") {
+            throw new Error(payload.error || "Share not found");
+          }
+          if (!loadEncodedShare(payload.data)) {
+            throw new Error("Invalid shared loop data");
+          }
+          return true;
+        } catch (error) {
+          showToast("This shared loop could not be loaded");
           return false;
         }
       }
@@ -8381,16 +8520,11 @@
         setMuteMode(nextMuteMode);
       });
 
+      shareBtn.addEventListener("pointerdown", prewarmCurrentShare);
+      shareBtn.addEventListener("pointerenter", prewarmCurrentShare);
+      shareBtn.addEventListener("focus", prewarmCurrentShare);
       shareBtn.addEventListener("click", () => {
-        const encodedLoop =
-          runtime.viewMode === "seq" && runtime.seqView === "song" && songHasContent()
-            ? encodeSong()
-            : sequenceHasMelodicHits() || sequenceHasVelocityEdits()
-              ? encodeSong(true)
-              : encode();
-        const url = standaloneShareUrl(encodedLoop);
-        shareCurrentLink(url);
-        location.hash = encodedLoop;
+        shareEncodedState(currentShareEncoding());
       });
 
       shuffleBtn.addEventListener("click", () => {
@@ -8451,48 +8585,58 @@
       });
       window.addEventListener("resize", syncDeviceFrame);
 
-      if (loadHash()) {
-        buildOneShotBank(seed);
-      } else {
-        buildOneShotBank((Math.random() * 4294967296) >>> 0);
-        loop.length = fixedLoopLength();
-        skinIdx = randomDefaultSkinIndex();
-      }
+      async function initialise() {
+        const shortId = params.get("s");
+        if (shortId !== null) rootEl.setAttribute("aria-busy", "true");
+        const loadedShare =
+          shortId !== null ? await loadShortShare(shortId) : loadHash();
+        rootEl.removeAttribute("aria-busy");
 
-      applySkin();
-      updateAxisLabels();
-      updateXyCursor(0.5, 0.5, false);
-      if (songHasContent()) {
-        setViewMode("seq");
-        setSeqSubView("song");
-      } else {
-        setViewMode("pads");
-      }
-      renderPads();
-      updateMelodicControls();
-      loadSoundBanks();
-      updateButtons();
-      updateDisplay();
-      syncDeviceFrame();
+        if (loadedShare) {
+          buildOneShotBank(seed);
+        } else {
+          buildOneShotBank((Math.random() * 4294967296) >>> 0);
+          loop.length = fixedLoopLength();
+          skinIdx = randomDefaultSkinIndex();
+        }
 
-      if (demoMode === "countin") {
-        setTimeout(() => startRecordSequence(), 180);
-      } else if (demoMode === "loopready") {
-        if (!loop.events.length) createDemoLoop();
-        stopTransport();
-      } else if (demoMode === "overdub") {
-        if (!loop.events.length) createDemoLoop();
-        setTimeout(() => startRecordSequence(), 180);
-      } else if (demoMode === "play") {
-        if (!loop.events.length) createDemoLoop();
-        setTimeout(() => startLoop(), 180);
-      } else if (demoMode === "shared") {
-        if (!loop.events.length) {
-          createDemoLoop();
-          runtime.loadedFromShare = true;
-          updateDisplay();
+        applySkin();
+        updateAxisLabels();
+        updateXyCursor(0.5, 0.5, false);
+        if (songHasContent()) {
+          setViewMode("seq");
+          setSeqSubView("song");
+        } else {
+          setViewMode("pads");
+        }
+        renderPads();
+        updateMelodicControls();
+        loadSoundBanks();
+        updateButtons();
+        updateDisplay();
+        syncDeviceFrame();
+
+        if (demoMode === "countin") {
+          setTimeout(() => startRecordSequence(), 180);
+        } else if (demoMode === "loopready") {
+          if (!loop.events.length) createDemoLoop();
+          stopTransport();
+        } else if (demoMode === "overdub") {
+          if (!loop.events.length) createDemoLoop();
+          setTimeout(() => startRecordSequence(), 180);
+        } else if (demoMode === "play") {
+          if (!loop.events.length) createDemoLoop();
+          setTimeout(() => startLoop(), 180);
+        } else if (demoMode === "shared") {
+          if (!loop.events.length) {
+            createDemoLoop();
+            runtime.loadedFromShare = true;
+            updateDisplay();
+          }
         }
       }
+
+      initialise();
 
     </script>
   </body>
