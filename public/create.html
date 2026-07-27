@@ -3544,6 +3544,13 @@
       const CHORD_RELEASE_BARS = 0.7;
       const LOOP_BOUNDARY_GRACE_MS = 45;
       const MOBILE_LOOP_BOUNDARY_GRACE_MS = 128;
+      const AUDIO_LOOKAHEAD_SECONDS = 0.12;
+      const AUDIO_START_DELAY_SECONDS = 0.04;
+      const AUDIO_RESCHEDULE_GUARD_SECONDS = 0.025;
+      const AUDIO_SCHEDULER_INTERVAL_MS = 25;
+      const TIMING_DEBUG = new URLSearchParams(location.search).has(
+        "timing-debug",
+      );
 
       let seed = 0;
       let oneShotBank = [];
@@ -3605,6 +3612,15 @@
         stutterPointerId: null,
         fxPitchRate: 1,
         playLastFrameTime: 0,
+        audioSegmentStartTime: 0,
+        audioSegmentStartTick: 0,
+        audioSecondsPerTick: 0,
+        audioScheduleCursor: 0,
+        audioScheduleGeneration: 0,
+        audioTransportKind: "",
+        audioTimerId: 0,
+        audioVisualPass: -1,
+        scheduledPassStarts: [],
         fxAssignments: { x: "phaser", y: "filter" },
         padBank: "oneshots",
         melodicScale: "minorPentatonic",
@@ -4272,6 +4288,15 @@
       }
 
       function setPitchRate(rate, ramp = 0.035) {
+        const schedulerActive = Boolean(
+          ctx && runtime.mode === "playing" && runtime.audioTransportKind,
+        );
+        const cutoff = schedulerActive
+          ? ctx.currentTime + AUDIO_RESCHEDULE_GUARD_SECONDS
+          : 0;
+        const transportTick = schedulerActive
+          ? audioTickAtTime(cutoff)
+          : null;
         runtime.fxPitchRate = rate;
         if (!ctx) return;
         const now = ctx.currentTime;
@@ -4287,6 +4312,7 @@
             /* source may already be gone */
           }
         });
+        if (schedulerActive) reanchorAudioScheduler(cutoff, transportTick);
       }
 
       function neutralPitch(ramp) {
@@ -4521,7 +4547,10 @@
         const url = soundURL(file);
         const buf = bufferCache[url];
         if (!buf) return;
-        const t = ctx.currentTime;
+        const requestedTime = Number(options.when);
+        const t = Number.isFinite(requestedTime)
+          ? Math.max(ctx.currentTime, requestedTime)
+          : ctx.currentTime;
         const group =
           options.chokeGroup ||
           (padIndex !== undefined ? chokeGroup(padIndex) : null);
@@ -4542,6 +4571,7 @@
         const src = ctx.createBufferSource();
         src.buffer = buf;
         src._basePlaybackRate = basePlaybackRate;
+        src._scheduledStart = t;
         src.playbackRate.value =
           basePlaybackRate * (runtime.fxPitchRate || 1);
         const g = ctx.createGain();
@@ -5774,6 +5804,15 @@
           return;
         }
         const wasPlaying = runtime.mode === "playing";
+        const schedulerActive = Boolean(
+          wasPlaying && ctx && runtime.audioTransportKind,
+        );
+        const cutoff = schedulerActive
+          ? ctx.currentTime + AUDIO_RESCHEDULE_GUARD_SECONDS
+          : 0;
+        const transportTick = schedulerActive
+          ? audioTickAtTime(cutoff)
+          : null;
         const now = performance.now();
         const oldLength = fixedLoopLength();
         const previousProgress = wrapLoopTime(
@@ -5791,13 +5830,24 @@
         bpm = clamped;
         if (wasPlaying) {
           runtime.mode = "playing";
-          runtime.lastProgress = wrapLoopTime(
-            progressRatio * nextLength,
-            nextLength,
-          );
+          if (schedulerActive) {
+            reanchorAudioScheduler(cutoff, transportTick);
+            runtime.lastProgress =
+              runtime.audioTransportKind === "song"
+                ? (transportTick / SEQUENCE_TICKS) * nextLength
+                : ticksToMs(transportTick, nextLength);
+          } else {
+            runtime.lastProgress = wrapLoopTime(
+              progressRatio * nextLength,
+              nextLength,
+            );
+          }
           runtime.playLastFrameTime = now;
           runtime.playStart = now - runtime.lastProgress;
-          renderStepReadout(runtime.lastProgress, nextLength);
+          renderStepReadout(
+            wrapLoopTime(runtime.lastProgress, nextLength),
+            nextLength,
+          );
         }
         updateDisplay();
       }
@@ -6980,16 +7030,39 @@
           playbackPositionAt(now),
           total,
         );
+        if (runtime.audioTimerId) window.clearInterval(runtime.audioTimerId);
+        runtime.audioTimerId = 0;
+        cancelFutureScheduledSources(ctx.currentTime + 0.002);
         stutterBtn.classList.add("is-held");
         stutterBtn.setAttribute("aria-pressed", "true");
       }
 
-      function stopStutter() {
+      function stopStutter(resumeScheduler = true) {
+        const wasActive = runtime.stutterActive;
         runtime.stutterActive = false;
         runtime.stutterLastTick = -1;
         runtime.stutterPointerId = null;
         stutterBtn.classList.remove("is-held");
         stutterBtn.setAttribute("aria-pressed", "false");
+        if (
+          wasActive &&
+          resumeScheduler &&
+          ctx &&
+          runtime.mode === "playing" &&
+          runtime.audioTransportKind
+        ) {
+          const cutoff = ctx.currentTime + AUDIO_RESCHEDULE_GUARD_SECONDS;
+          const targetLength = fixedLoopLength();
+          const transportTick =
+            runtime.audioTransportKind === "song"
+              ? (runtime.lastProgress / targetLength) * SEQUENCE_TICKS
+              : msToTicks(runtime.lastProgress, targetLength);
+          reanchorAudioScheduler(cutoff, transportTick);
+          runtime.audioTimerId = window.setInterval(
+            scheduleAudioLookahead,
+            AUDIO_SCHEDULER_INTERVAL_MS,
+          );
+        }
       }
 
       function runStutterFrame(now, targetLength) {
@@ -7322,6 +7395,7 @@
         index,
         instrument = activeMelodicTrack(),
         velocity = DEFAULT_VELOCITY,
+        scheduledAudioTime,
       ) {
         const note = melodicPadLayout(instrument)[index];
         if (!note || note.inactive) return null;
@@ -7330,6 +7404,7 @@
           tempoScaledRelease:
             instrument.kind === "chords" || instrument.id === "bell",
           velocity,
+          when: scheduledAudioTime,
         });
         return note;
       }
@@ -7338,6 +7413,7 @@
         lockedValue,
         soundIndex,
         velocity = DEFAULT_VELOCITY,
+        scheduledAudioTime,
       ) {
         const instrument = MELODIC_TRACK_BY_INDEX.get(soundIndex);
         if (!instrument) return;
@@ -7348,7 +7424,12 @@
             instrument.files[identity.keyIndex * 4 + identity.chordIndex],
             undefined,
             Math.pow(2, identity.octave),
-            { chokeGroup: "rhodes", tempoScaledRelease: true, velocity },
+            {
+              chokeGroup: "rhodes",
+              tempoScaledRelease: true,
+              velocity,
+              when: scheduledAudioTime,
+            },
           );
           return;
         }
@@ -7358,7 +7439,11 @@
           instrument.files[pitchClass],
           undefined,
           Math.pow(2, (lockedValue - sourceMidi) / 12),
-          { tempoScaledRelease: instrument.id === "bell", velocity },
+          {
+            tempoScaledRelease: instrument.id === "bell",
+            velocity,
+            when: scheduledAudioTime,
+          },
         );
       }
 
@@ -7551,6 +7636,20 @@
         runtime.recordLayer.events.push(event);
       }
 
+      function atScheduledAudioTime(scheduledAudioTime, callback) {
+        if (!ctx || !Number.isFinite(scheduledAudioTime)) {
+          callback();
+          return;
+        }
+        const delay = Math.max(0, (scheduledAudioTime - ctx.currentTime) * 1000);
+        if (delay < 8) {
+          callback();
+        } else {
+          // This timer is visual only; audio has already been queued on the audio clock.
+          window.setTimeout(callback, delay);
+        }
+      }
+
       function hit(
         i,
         fromLoop,
@@ -7558,6 +7657,7 @@
         loopTime,
         recordedEvent,
         playbackSequence = activeSequence(),
+        scheduledAudioTime,
       ) {
         resumeAudio();
         if (
@@ -7600,17 +7700,26 @@
           ? eventVelocity(recordedEvent)
           : DEFAULT_VELOCITY;
         if (lockedValue !== null && MELODIC_TRACK_BY_INDEX.has(i)) {
-          playLockedMelodicNote(lockedValue, i, velocity);
-          if (fromLoop) flashPlaybackEvent(i, lockedValue);
-          flashEditHit(i, loopTime, recordedEvent);
+          playLockedMelodicNote(
+            lockedValue,
+            i,
+            velocity,
+            scheduledAudioTime,
+          );
+          atScheduledAudioTime(scheduledAudioTime, () => {
+            if (fromLoop) flashPlaybackEvent(i, lockedValue);
+            flashEditHit(i, loopTime, recordedEvent);
+          });
           return;
         }
         const k = oneShotBank[i];
         if (!k) return;
-        play(k.file, i, 1, { velocity });
+        play(k.file, i, 1, { velocity, when: scheduledAudioTime });
         if (fromLoop) {
-          flashPlaybackEvent(i, null);
-          flashEditHit(i, loopTime, recordedEvent);
+          atScheduledAudioTime(scheduledAudioTime, () => {
+            flashPlaybackEvent(i, null);
+            flashEditHit(i, loopTime, recordedEvent);
+          });
         } else {
           flash(i);
         }
@@ -7634,9 +7743,278 @@
         runtime.rafId = 0;
       }
 
+      function secondsPerTick(targetBpm = bpm, rate = runtime.fxPitchRate || 1) {
+        return 60 / (targetBpm * PPQ * Math.max(0.01, rate));
+      }
+
+      function audioTickAtTime(audioTime) {
+        if (!runtime.audioSecondsPerTick) return runtime.audioSegmentStartTick;
+        return (
+          runtime.audioSegmentStartTick +
+          (audioTime - runtime.audioSegmentStartTime) /
+            runtime.audioSecondsPerTick
+        );
+      }
+
+      function audioTimeForTick(tick) {
+        return (
+          runtime.audioSegmentStartTime +
+          (tick - runtime.audioSegmentStartTick) *
+            runtime.audioSecondsPerTick
+        );
+      }
+
+      function cancelFutureScheduledSources(cutoff = ctx?.currentTime || 0) {
+        liveSources.forEach((src) => {
+          if (
+            !Number.isFinite(src._scheduledStart) ||
+            src._scheduledStart < cutoff
+          )
+            return;
+          try {
+            src.stop(
+              Math.max(
+                ctx.currentTime,
+                Math.min(cutoff, src._scheduledStart),
+              ),
+            );
+          } catch (e) {
+            /* source may already have stopped */
+          }
+          liveSources.delete(src);
+          Object.keys(chokeVoices).forEach((group) => {
+            if (chokeVoices[group]?.src === src) chokeVoices[group] = null;
+          });
+        });
+      }
+
+      function clearAudioScheduler(cancelFuture = true) {
+        if (runtime.audioTimerId) window.clearInterval(runtime.audioTimerId);
+        runtime.audioTimerId = 0;
+        if (cancelFuture && ctx) {
+          cancelFutureScheduledSources(ctx.currentTime + 0.002);
+        }
+        runtime.audioTransportKind = "";
+        runtime.audioScheduleCursor = 0;
+        runtime.audioSecondsPerTick = 0;
+        runtime.audioVisualPass = -1;
+      }
+
+      function sequenceForScheduledPass(passIndex, currentPassIndex) {
+        if (
+          runtime.queuedSequenceIndex >= 0 &&
+          sequences[runtime.queuedSequenceIndex] &&
+          passIndex > currentPassIndex
+        ) {
+          return sequences[runtime.queuedSequenceIndex];
+        }
+        return activeSequence();
+      }
+
+      function collectSequenceEvents(sequence, baseTick, fromTick, toTick, out) {
+        if (!sequence) return;
+        sequence.layers.forEach((layer) => {
+          layer.events.forEach((event) => {
+            const eventTick = wrapSequenceTick(event[1]);
+            const absoluteTick = baseTick + eventTick;
+            if (
+              absoluteTick >= fromTick - 0.000001 &&
+              absoluteTick < toTick - 0.000001
+            ) {
+              out.push({ absoluteTick, event, sequence });
+            }
+          });
+        });
+      }
+
+      function collectAudioEvents(fromTick, toTick) {
+        const events = [];
+        if (runtime.audioTransportKind === "song") {
+          const firstBlock = Math.max(0, Math.floor(fromTick / SEQUENCE_TICKS));
+          const lastBlock = Math.min(
+            songTimeline.length - 1,
+            Math.floor(Math.max(fromTick, toTick - 0.000001) / SEQUENCE_TICKS),
+          );
+          for (
+            let blockIndex = firstBlock;
+            blockIndex <= lastBlock;
+            blockIndex++
+          ) {
+            collectSequenceEvents(
+              sequences[songTimeline[blockIndex]],
+              blockIndex * SEQUENCE_TICKS,
+              fromTick,
+              toTick,
+              events,
+            );
+          }
+        } else {
+          const firstPass = Math.floor(fromTick / SEQUENCE_TICKS);
+          const lastPass = Math.floor(
+            Math.max(fromTick, toTick - 0.000001) / SEQUENCE_TICKS,
+          );
+          const currentPass = Math.floor(
+            audioTickAtTime(ctx.currentTime) / SEQUENCE_TICKS,
+          );
+          for (let passIndex = firstPass; passIndex <= lastPass; passIndex++) {
+            const sequence =
+              runtime.audioTransportKind === "audition"
+                ? sequences[runtime.songAuditionSequenceIndex]
+                : sequenceForScheduledPass(passIndex, currentPass);
+            collectSequenceEvents(
+              sequence,
+              passIndex * SEQUENCE_TICKS,
+              fromTick,
+              toTick,
+              events,
+            );
+          }
+        }
+        return events.sort(
+          (a, b) =>
+            a.absoluteTick - b.absoluteTick || a.event[0] - b.event[0],
+        );
+      }
+
+      function logScheduledPassStarts(fromTime, toTime) {
+        const fromTick = audioTickAtTime(fromTime);
+        const toTick = audioTickAtTime(toTime);
+        const firstPass = Math.ceil((fromTick - 0.000001) / SEQUENCE_TICKS);
+        const finalPass = Math.floor((toTick - 0.000001) / SEQUENCE_TICKS);
+        const songLimit =
+          runtime.audioTransportKind === "song"
+            ? songTimeline.length - 1
+            : Infinity;
+        for (
+          let passIndex = firstPass;
+          passIndex <= Math.min(finalPass, songLimit);
+          passIndex++
+        ) {
+          const startTime = audioTimeForTick(passIndex * SEQUENCE_TICKS);
+          const entry = {
+            generation: runtime.audioScheduleGeneration,
+            kind: runtime.audioTransportKind,
+            pass: passIndex,
+            bpm,
+            startTime,
+          };
+          runtime.scheduledPassStarts.push(entry);
+          if (runtime.scheduledPassStarts.length > 128) {
+            runtime.scheduledPassStarts.shift();
+          }
+          if (TIMING_DEBUG) {
+            console.debug(
+              `[FS86 scheduler] ${entry.kind} pass ${entry.pass + 1} @ ${entry.startTime.toFixed(6)}s (${entry.bpm} BPM)`,
+            );
+          }
+        }
+      }
+
+      function scheduleAudioLookahead() {
+        if (
+          !ctx ||
+          runtime.mode !== "playing" ||
+          !runtime.audioTransportKind ||
+          runtime.stutterActive
+        ) {
+          return;
+        }
+        const songEndTick = songTimeline.length * SEQUENCE_TICKS;
+        const fromTime = Math.max(runtime.audioScheduleCursor, ctx.currentTime);
+        let toTime = ctx.currentTime + AUDIO_LOOKAHEAD_SECONDS;
+        if (runtime.audioTransportKind === "song") {
+          toTime = Math.min(toTime, audioTimeForTick(songEndTick));
+        }
+        if (toTime <= fromTime) return;
+        const fromTick = audioTickAtTime(fromTime);
+        const toTick = audioTickAtTime(toTime);
+        logScheduledPassStarts(fromTime, toTime);
+        collectAudioEvents(fromTick, toTick).forEach(
+          ({ absoluteTick, event, sequence }) => {
+            hit(
+              event[0],
+              true,
+              undefined,
+              ticksToMs(event[1], fixedLoopLength()),
+              event,
+              sequence,
+              audioTimeForTick(absoluteTick),
+            );
+          },
+        );
+        runtime.audioScheduleCursor = toTime;
+      }
+
+      function startAudioScheduler(kind, startTick) {
+        clearAudioScheduler(true);
+        const startTime = ctx.currentTime + AUDIO_START_DELAY_SECONDS;
+        runtime.audioTransportKind = kind;
+        runtime.audioSegmentStartTime = startTime;
+        runtime.audioSegmentStartTick = startTick;
+        runtime.audioSecondsPerTick = secondsPerTick();
+        runtime.audioScheduleCursor = startTime;
+        runtime.audioScheduleGeneration += 1;
+        runtime.audioVisualPass = Math.floor(startTick / SEQUENCE_TICKS);
+        runtime.scheduledPassStarts = [];
+        scheduleAudioLookahead();
+        runtime.audioTimerId = window.setInterval(
+          scheduleAudioLookahead,
+          AUDIO_SCHEDULER_INTERVAL_MS,
+        );
+      }
+
+      function reanchorAudioScheduler(cutoff, transportTick) {
+        if (!ctx || !runtime.audioTransportKind) return;
+        cancelFutureScheduledSources(cutoff);
+        runtime.audioSegmentStartTime = cutoff;
+        runtime.audioSegmentStartTick = transportTick;
+        runtime.audioSecondsPerTick = secondsPerTick();
+        runtime.audioScheduleCursor = cutoff;
+        runtime.audioScheduleGeneration += 1;
+        scheduleAudioLookahead();
+      }
+
+      function plannedPassStarts(targetBpm, count = 24, origin = 10, rate = 1) {
+        const passLength = SEQUENCE_TICKS * secondsPerTick(targetBpm, rate);
+        return Array.from(
+          { length: count },
+          (_, index) => origin + index * passLength,
+        );
+      }
+
+      window.__fs86TimingDiagnostics = {
+        plannedPassStarts,
+        snapshot() {
+          return {
+            kind: runtime.audioTransportKind,
+            bpm,
+            segmentStartTime: runtime.audioSegmentStartTime,
+            segmentStartTick: runtime.audioSegmentStartTick,
+            secondsPerTick: runtime.audioSecondsPerTick,
+            scheduleCursor: runtime.audioScheduleCursor,
+            scheduledPassStarts: runtime.scheduledPassStarts.slice(),
+          };
+        },
+      };
+
+      if (TIMING_DEBUG) {
+        [85, 100, 125].forEach((targetBpm) => {
+          const starts = plannedPassStarts(targetBpm);
+          const intervals = starts
+            .slice(1)
+            .map((time, index) => time - starts[index]);
+          console.info(
+            `[FS86 timing diagnostic] ${targetBpm} BPM / 24 passes`,
+            starts.map((time) => time.toFixed(6)),
+            `interval range ${Math.min(...intervals).toFixed(12)}-${Math.max(...intervals).toFixed(12)}s`,
+          );
+        });
+      }
+
       function stopTransport() {
         clearFrame();
-        stopStutter();
+        stopStutter(false);
+        clearAudioScheduler(true);
         clearQueuedSequence();
         runtime.mode = "idle";
         runtime.songBlockIndex = -1;
@@ -7729,6 +8107,7 @@
         runtime.playStart = performance.now() - startProgress;
         runtime.lastProgress = startProgress;
         runtime.playLastFrameTime = performance.now();
+        startAudioScheduler("sequence", msToTicks(startProgress, total));
         renderStepReadout(startProgress, total);
         renderEditCurrentCell(startProgress, total);
         updateButtons();
@@ -7821,6 +8200,7 @@
         runtime.playStart = performance.now();
         runtime.playLastFrameTime = runtime.playStart;
         runtime.songBlockIndex = startBlock;
+        startAudioScheduler("song", startBlock * SEQUENCE_TICKS);
         renderStepReadout(startProgress % targetLength, targetLength);
         renderSongPanel();
         updateButtons();
@@ -7843,6 +8223,7 @@
         runtime.lastProgress = 0;
         runtime.playStart = performance.now();
         runtime.playLastFrameTime = runtime.playStart;
+        startAudioScheduler("audition", 0);
         renderStepReadout(0, fixedLoopLength());
         renderSongPanel();
         updateButtons();
@@ -7918,51 +8299,57 @@
 
       function runPlaybackFrame(now) {
         const targetLength = fixedLoopLength();
-        const previous = runtime.lastProgress || 0;
-        const lastFrame = runtime.playLastFrameTime || now;
-        const delta = Math.max(0, now - lastFrame);
-        const rate = runtime.fxPitchRate || 1;
-        let pos = previous + delta * rate;
-        runtime.playLastFrameTime = now;
-
         if (runtime.stutterActive) {
+          const previous = runtime.lastProgress || 0;
+          const lastFrame = runtime.playLastFrameTime || now;
+          const delta = Math.max(0, now - lastFrame);
+          runtime.lastProgress = wrapLoopTime(
+            previous + delta * (runtime.fxPitchRate || 1),
+            targetLength,
+          );
+          runtime.playLastFrameTime = now;
           runStutterFrame(now, targetLength);
-        } else if (pos >= targetLength) {
-          fireLoopWindow(previous, targetLength, targetLength);
-          const wraps = Math.floor(pos / targetLength);
-          pos = wrapLoopTime(pos, targetLength);
-          applyQueuedSequenceAtBoundary(targetLength);
-          for (let i = 1; i < wraps; i++) {
-            fireLoopWindow(0, targetLength, targetLength);
-          }
-          fireLoopWindow(0, pos, targetLength);
         } else {
-          fireLoopWindow(previous, pos, targetLength);
+          scheduleAudioLookahead();
+          const absoluteTick = Math.max(
+            runtime.audioSegmentStartTick,
+            audioTickAtTime(ctx.currentTime),
+          );
+          const currentPass = Math.floor(absoluteTick / SEQUENCE_TICKS);
+          if (currentPass > runtime.audioVisualPass) {
+            runtime.audioVisualPass = currentPass;
+            applyQueuedSequenceAtBoundary(targetLength);
+          }
+          runtime.lastProgress = ticksToMs(absoluteTick, targetLength);
+          runtime.playLastFrameTime = now;
         }
-        if (pos >= targetLength) pos = wrapLoopTime(pos, targetLength);
-        runtime.lastProgress = pos;
-        renderStepReadout(pos, targetLength);
-        renderEditCurrentCell(pos, targetLength);
+        renderStepReadout(runtime.lastProgress, targetLength);
+        renderEditCurrentCell(runtime.lastProgress, targetLength);
       }
 
       function runSongPlaybackFrame(now) {
         const targetLength = fixedLoopLength();
-        const total = songLengthMs();
-        if (!total || !songTimeline.length) {
+        const totalTicks = songTimeline.length * SEQUENCE_TICKS;
+        if (!totalTicks || !songTimeline.length) {
           stopTransport();
           return;
         }
-        const previous = runtime.lastProgress || 0;
-        const lastFrame = runtime.playLastFrameTime || now;
-        const delta = Math.max(0, now - lastFrame);
-        const rate = runtime.fxPitchRate || 1;
-        const pos = Math.min(total, previous + delta * rate);
+        scheduleAudioLookahead();
+        const absoluteTick = Math.min(
+          totalTicks,
+          Math.max(
+            runtime.audioSegmentStartTick,
+            audioTickAtTime(ctx.currentTime),
+          ),
+        );
+        const pos = (absoluteTick / SEQUENCE_TICKS) * targetLength;
         runtime.playLastFrameTime = now;
-        fireSongWindow(previous, pos, targetLength);
         runtime.lastProgress = pos;
         renderStepReadout(pos % targetLength, targetLength);
-        renderSongPlayhead(pos >= total ? total - 0.0001 : pos);
-        if (pos >= total) {
+        renderSongPlayhead(
+          absoluteTick >= totalTicks ? songLengthMs() - 0.0001 : pos,
+        );
+        if (absoluteTick >= totalTicks) {
           stopTransport();
           lcdMessage.textContent = "SONG COMPLETE";
         }
@@ -7975,25 +8362,13 @@
           stopTransport();
           return;
         }
-        const previous = runtime.lastProgress || 0;
-        const lastFrame = runtime.playLastFrameTime || now;
-        const delta = Math.max(0, now - lastFrame);
-        const rate = runtime.fxPitchRate || 1;
-        let pos = previous + delta * rate;
+        scheduleAudioLookahead();
+        const absoluteTick = Math.max(
+          runtime.audioSegmentStartTick,
+          audioTickAtTime(ctx.currentTime),
+        );
+        const pos = ticksToMs(absoluteTick, targetLength);
         runtime.playLastFrameTime = now;
-
-        if (pos >= targetLength) {
-          fireSequenceWindow(sequence, previous, targetLength, targetLength);
-          const wraps = Math.floor(pos / targetLength);
-          pos = wrapLoopTime(pos, targetLength);
-          for (let i = 1; i < wraps; i++) {
-            fireSequenceWindow(sequence, 0, targetLength, targetLength);
-          }
-          fireSequenceWindow(sequence, 0, pos, targetLength);
-        } else {
-          fireSequenceWindow(sequence, previous, pos, targetLength);
-        }
-
         runtime.lastProgress = pos;
         renderStepReadout(pos, targetLength);
       }
