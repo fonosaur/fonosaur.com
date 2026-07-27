@@ -861,6 +861,10 @@
         min-height: 34px;
       }
 
+      .melodic-controls.is-chords {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
       .melodic-field {
         min-width: 0;
         min-height: 34px;
@@ -877,6 +881,10 @@
         position: relative;
         display: block;
         overflow: hidden;
+      }
+
+      .melodic-field[hidden] {
+        display: none;
       }
 
       .melodic-field > span {
@@ -922,6 +930,24 @@
       .melodic-field select option:checked {
         background: #5a3c12;
         color: #fff1c8;
+      }
+
+      #padBankSelect,
+      #padBankSelect option,
+      #padBankSelect optgroup {
+        color-scheme: dark;
+        background-color: #08100c;
+        color: #c9fbdc;
+      }
+
+      #padBankSelect optgroup {
+        color: #f0c66e;
+        font-weight: 700;
+      }
+
+      #padBankSelect option:checked {
+        background: #173d29;
+        color: #e9fff1;
       }
 
       .melodic-field select:disabled {
@@ -2795,7 +2821,7 @@
                     <option value="oneshots" selected>KIT</option>
                   </select>
                 </label>
-                <label class="melodic-field">
+                <label class="melodic-field" id="melodicScaleField">
                   <span>SCALE</span>
                   <select id="melodicScale" aria-label="Melodic scale" disabled>
                     <option value="chromatic">CHROMATIC</option>
@@ -2805,7 +2831,7 @@
                     <option value="majorPentatonic">MAJ PENTA</option>
                   </select>
                 </label>
-                <label class="melodic-field">
+                <label class="melodic-field" id="melodicRootField">
                   <span>ROOT</span>
                   <select id="melodicRoot" aria-label="Melodic root note" disabled>
                     <option value="0">C</option>
@@ -2820,6 +2846,16 @@
                     <option value="9" selected>A</option>
                     <option value="10">A#</option>
                     <option value="11">B</option>
+                  </select>
+                </label>
+                <label class="melodic-field" id="chordKeyField" hidden>
+                  <span>KEY</span>
+                  <select id="chordKey" aria-label="Chord key">
+                    <option value="amin" selected>A MIN</option>
+                    <option value="dmin">D MIN</option>
+                    <option value="cmaj">C MAJ</option>
+                    <option value="fmaj">F MAJ</option>
+                    <option value="gmin">G MIN</option>
                   </select>
                 </label>
               </div>
@@ -3169,7 +3205,16 @@
         "vox/vox5_attention",
         "vox/vox6_ohsnap",
       ];
-      const PROGRESSIONS = ["amin", "dmin", "cmaj", "fmaj", "gmin"];
+      const CHORD_KEYS = [
+        { id: "amin", label: "A MIN", short: "AM" },
+        { id: "dmin", label: "D MIN", short: "DM" },
+        { id: "cmaj", label: "C MAJ", short: "CM" },
+        { id: "fmaj", label: "F MAJ", short: "FM" },
+        { id: "gmin", label: "G MIN", short: "GM" },
+      ];
+      // Codec order is append-only so existing shared/recorded chord codes stay stable.
+      const CHORD_OCTAVES = [-1, 0, 1, -2];
+      const CHORD_GRID_OCTAVES = [1, 0, -1, -2];
       const NOTE_NAMES = [
         "C",
         "C#",
@@ -3210,8 +3255,20 @@
           folder: "pluck",
           prefix: "pluck",
         },
+        chords: {
+          label: "CHORDS",
+          color: "#a78bfa",
+          kind: "chords",
+          files: CHORD_KEYS.flatMap((key) =>
+            [1, 2, 3, 4].map(
+              (chordNumber) =>
+                "rhodes/rhodes_" + key.id + "_" + chordNumber,
+            ),
+          ),
+        },
       };
       Object.values(MELODIC_INSTRUMENTS).forEach((instrument) => {
+        if (instrument.kind === "chords") return;
         instrument.files = NOTE_NAMES.map(
           (note) =>
             instrument.folder +
@@ -3278,7 +3335,7 @@
         { label: "Q1/32", ticks: PPQ / 8 },
         { label: "Q1/64", ticks: PPQ / 16 },
       ];
-      const FIXED_BPM = 105;
+      const DEFAULT_BPM = 100;
       const MIN_BPM = 85;
       const MAX_BPM = 125;
       const BPM_STEP = 1;
@@ -3288,7 +3345,7 @@
 
       let seed = 0;
       let oneShotBank = [];
-      let bpm = FIXED_BPM;
+      let bpm = DEFAULT_BPM;
       let skinIdx = 0;
       let metronomeOn = true;
       let quantizeIndex = 2;
@@ -3348,6 +3405,7 @@
         padBank: "oneshots",
         melodicScale: "minorPentatonic",
         melodicRoot: 9,
+        chordKey: "amin",
       };
 
       // ---------- sample buffer cache ----------
@@ -3387,16 +3445,29 @@
         const drumRnd = mulberry32((seed & 0xffff) ^ 0xa53c);
         const characterRnd = mulberry32((seed >>> 16) ^ 0x6d2b);
 
-        // 1. Pick progression
-        const progIdx = Math.floor(characterRnd() * PROGRESSIONS.length);
-        const prog = PROGRESSIONS[progIdx];
-
-        // 2. Drums
+        // Drums and percussion are the only sounds changed by Shuffle.
         const kickIdx = Math.floor(drumRnd() * KICK_FILES.length);
         const snareIdx = Math.floor(drumRnd() * SNARE_FILES.length);
         const hatIdx = Math.floor(drumRnd() * HIHAT_MACHINES.length);
         const clapIdx = Math.floor(drumRnd() * CLAP_FILES.length);
-        const percOrder = PERC_FILES.map((_, index) => index);
+        const clapAltIdx =
+          (clapIdx + 1 + Math.floor(drumRnd() * (CLAP_FILES.length - 1))) %
+          CLAP_FILES.length;
+        const kickAltIdx =
+          (kickIdx + 1 + Math.floor(drumRnd() * (KICK_FILES.length - 1))) %
+          KICK_FILES.length;
+        const snareAltIdx =
+          (snareIdx + 1 + Math.floor(drumRnd() * (SNARE_FILES.length - 1))) %
+          SNARE_FILES.length;
+        // Keep one of each percussion type; Shuffle chooses the tamb/shaker variants.
+        const percOrder = [
+          drumRnd() < 0.5 ? 0 : 4,
+          drumRnd() < 0.5 ? 1 : 2,
+          3,
+          5,
+          6,
+          7,
+        ];
         for (let i = percOrder.length - 1; i > 0; i--) {
           const swapIndex = Math.floor(drumRnd() * (i + 1));
           [percOrder[i], percOrder[swapIndex]] = [
@@ -3436,18 +3507,18 @@
             file: "hihats/" + hatMachine + "_op",
             label: "HAT OP",
           },
-          // Row 2: clap perc vox siren
+          // Row 2: the second kick/snare pair sits directly below the first.
           {
-            cat: "clap",
+            cat: "kick",
             key: KEYS[4],
-            file: CLAP_FILES[clapIdx],
-            label: "CLAP",
+            file: KICK_FILES[kickAltIdx],
+            label: "KICK 2",
           },
           {
-            cat: "perc",
+            cat: "snare",
             key: KEYS[5],
-            file: PERC_FILES[percIdx],
-            label: PERC_LABELS[percIdx],
+            file: SNARE_FILES[snareAltIdx],
+            label: "SNARE 2",
           },
           { cat: "vox", key: KEYS[6], file: VOX_FILES[voxIdx], label: "VOX" },
           {
@@ -3456,55 +3527,55 @@
             file: SIREN_FILES[sirenIdx],
             label: "SIREN",
           },
-          // Row 3: rhodes 1-4
+          // Row 3: clap and percussion.
           {
-            cat: "rhodes",
+            cat: "clap",
             key: KEYS[8],
-            file: "rhodes/rhodes_" + prog + "_1",
-            label: "CHORD 1",
+            file: CLAP_FILES[clapIdx],
+            label: "CLAP",
           },
-          {
-            cat: "rhodes",
-            key: KEYS[9],
-            file: "rhodes/rhodes_" + prog + "_2",
-            label: "CHORD 2",
-          },
-          {
-            cat: "rhodes",
-            key: KEYS[10],
-            file: "rhodes/rhodes_" + prog + "_3",
-            label: "CHORD 3",
-          },
-          {
-            cat: "rhodes",
-            key: KEYS[11],
-            file: "rhodes/rhodes_" + prog + "_4",
-            label: "CHORD 4",
-          },
-          // Row 4: extra one-shot percussion, separate from instruments.
           {
             cat: "perc",
-            key: KEYS[12],
+            key: KEYS[9],
             file: PERC_FILES[percOrder[1]],
             label: PERC_LABELS[percOrder[1]],
           },
           {
             cat: "perc",
-            key: KEYS[13],
+            key: KEYS[10],
             file: PERC_FILES[percOrder[2]],
             label: PERC_LABELS[percOrder[2]],
           },
           {
             cat: "perc",
-            key: KEYS[14],
+            key: KEYS[11],
             file: PERC_FILES[percOrder[3]],
             label: PERC_LABELS[percOrder[3]],
+          },
+          // Row 4: second clap plus the remaining unique percussion.
+          {
+            cat: "clap",
+            key: KEYS[12],
+            file: CLAP_FILES[clapAltIdx],
+            label: "CLAP 2",
+          },
+          {
+            cat: "perc",
+            key: KEYS[13],
+            file: PERC_FILES[percIdx],
+            label: PERC_LABELS[percIdx],
+          },
+          {
+            cat: "perc",
+            key: KEYS[14],
+            file: PERC_FILES[percOrder[4]],
+            label: PERC_LABELS[percOrder[4]],
           },
           {
             cat: "perc",
             key: KEYS[15],
-            file: PERC_FILES[percOrder[4]],
-            label: PERC_LABELS[percOrder[4]],
+            file: PERC_FILES[percOrder[5]],
+            label: PERC_LABELS[percOrder[5]],
           },
         ];
       }
@@ -3695,8 +3766,12 @@
       const padsPage = document.getElementById("padsPage");
       const melodicControls = document.getElementById("melodicControls");
       const padBankSelect = document.getElementById("padBankSelect");
+      const melodicScaleField = document.getElementById("melodicScaleField");
+      const melodicRootField = document.getElementById("melodicRootField");
       const melodicScale = document.getElementById("melodicScale");
       const melodicRoot = document.getElementById("melodicRoot");
+      const chordKeyField = document.getElementById("chordKeyField");
+      const chordKey = document.getElementById("chordKey");
       const seqPage = document.getElementById("seqPage");
       const fxPage = document.getElementById("fxPage");
       const sequenceSubtab = document.getElementById("sequenceSubtab");
@@ -4201,8 +4276,8 @@
 
       function chokeGroup(padIndex) {
         const k = oneShotBank[padIndex];
-        if (k.cat === "rhodes") return "rhodes";
-        if (k.cat === "hat") return "hat";
+        if (k?.cat === "rhodes") return "rhodes";
+        if (k?.cat === "hat") return "hat";
         return null;
       }
 
@@ -4227,13 +4302,15 @@
         return release;
       }
 
-      function play(file, padIndex, basePlaybackRate = 1) {
+      function play(file, padIndex, basePlaybackRate = 1, options = {}) {
         if (!ctx) return;
         const url = soundURL(file);
         const buf = bufferCache[url];
         if (!buf) return;
         const t = ctx.currentTime;
-        const group = padIndex !== undefined ? chokeGroup(padIndex) : null;
+        const group =
+          options.chokeGroup ||
+          (padIndex !== undefined ? chokeGroup(padIndex) : null);
 
         // Choke: fade out previous voice in same group
         if (group && chokeVoices[group]) {
@@ -4260,8 +4337,10 @@
         liveSources.add(src);
         src.onended = () => liveSources.delete(src);
         let chordStopTime = null;
-        if (hasTempoScaledRelease(padIndex)) {
-          const release = applyChordEnvelope(g.gain, t, buf.duration);
+        if (options.tempoScaledRelease || hasTempoScaledRelease(padIndex)) {
+          const effectiveDuration =
+            buf.duration / Math.max(0.01, basePlaybackRate);
+          const release = applyChordEnvelope(g.gain, t, effectiveDuration);
           chordStopTime = t + release + 0.08;
         }
         src.start(t);
@@ -4433,9 +4512,72 @@
         );
       }
 
+      function eventLockedValue(event) {
+        const value = Number(event?.[2]);
+        return Number.isInteger(value) && value >= 0 && value <= 127
+          ? value
+          : null;
+      }
+
+      function chordTrack() {
+        return MELODIC_TRACK_BY_ID.get("chords") || null;
+      }
+
+      function isChordSoundIndex(soundIndex) {
+        return soundIndex === chordTrack()?.index;
+      }
+
+      function encodeChordIdentity(keyId, chordIndex, octave) {
+        const keyIndex = Math.max(
+          0,
+          CHORD_KEYS.findIndex((key) => key.id === keyId),
+        );
+        const octaveIndex = Math.max(0, CHORD_OCTAVES.indexOf(octave));
+        return octaveIndex * 20 + keyIndex * 4 + chordIndex;
+      }
+
+      function decodeChordIdentity(value) {
+        if (
+          !Number.isInteger(value) ||
+          value < 0 ||
+          value >= CHORD_OCTAVES.length * 20
+        ) {
+          return null;
+        }
+        const octaveIndex = Math.floor(value / 20);
+        const withinOctave = value % 20;
+        const keyIndex = Math.floor(withinOctave / 4);
+        const chordIndex = withinOctave % 4;
+        const key = CHORD_KEYS[keyIndex];
+        const octave = CHORD_OCTAVES[octaveIndex];
+        if (!key || octave === undefined) return null;
+        return { key, keyIndex, chordIndex, octave };
+      }
+
+      function chordIdentityLabel(identity) {
+        if (!identity) return "";
+        const octaveLabel = identity.octave
+          ? " \u00b7 " + (identity.octave > 0 ? "+" : "") + identity.octave
+          : "";
+        return (
+          identity.key.short +
+          " \u00b7 CH" +
+          (identity.chordIndex + 1) +
+          octaveLabel
+        );
+      }
+
       function eventNoteMidi(event) {
-        const note = Number(event?.[2]);
-        return Number.isInteger(note) && note >= 0 && note <= 127 ? note : null;
+        if (isChordSoundIndex(event?.[0])) return null;
+        return eventLockedValue(event);
+      }
+
+      function eventIdentityLabel(event) {
+        if (isChordSoundIndex(event?.[0])) {
+          return chordIdentityLabel(decodeChordIdentity(eventLockedValue(event)));
+        }
+        const note = eventNoteMidi(event);
+        return note !== null ? midiNoteLabel(note) : "";
       }
 
       function midiNoteLabel(note) {
@@ -4450,7 +4592,7 @@
             layer.events.some(
               (event) =>
                 MELODIC_TRACK_BY_INDEX.has(event[0]) &&
-                eventNoteMidi(event) !== null,
+                eventLockedValue(event) !== null,
             ),
           ),
         );
@@ -4603,6 +4745,7 @@
           padIndex: event[0],
           tick: event[1],
           note: eventNoteMidi(event),
+          identityLabel: eventIdentityLabel(event),
         };
       }
 
@@ -4641,6 +4784,7 @@
               padIndex: i,
               tick,
               note: eventNoteMidi(event),
+              identityLabel: eventIdentityLabel(event),
               step: info.step,
               offset: info.offset,
             });
@@ -4690,9 +4834,7 @@
         if (!selected) return sound.label + " \u00b7 TAP HIT TO EDIT";
         const bar = Math.floor(selected.step / 16) + 1;
         const step = (selected.step % 16) + 1;
-        const eventLabel = selected.note !== null
-          ? midiNoteLabel(selected.note)
-          : sound.label;
+        const eventLabel = selected.identityLabel || sound.label;
         return (
           eventLabel +
           " \u00b7 BAR " +
@@ -5263,8 +5405,15 @@
 
       function currentIdleMessage() {
         if (runtime.viewMode === "pads" && melodicBankActive()) {
+          const track = activeMelodicTrack();
+          if (track.kind === "chords") {
+            const key =
+              CHORD_KEYS.find((entry) => entry.id === runtime.chordKey) ||
+              CHORD_KEYS[0];
+            return "CHORDS \u00b7 " + key.label + " \u00b7 4 OCTAVES";
+          }
           return (
-            activeMelodicTrack().label +
+            track.label +
             " \u00b7 " +
             NOTE_NAMES[runtime.melodicRoot] +
             " " +
@@ -5351,18 +5500,16 @@
               stepInBar +
               (hitData
                 ? " hit " +
-                  (hitData.note !== null
-                    ? midiNoteLabel(hitData.note) + " "
-                    : "") +
+                  (hitData.identityLabel ? hitData.identityLabel + " " : "") +
                   formatTickOffset(hitData.offset)
                 : " empty"),
           );
           if (hitData) {
             const shift = Math.max(-8, Math.min(8, hitData.offset * 0.7));
             cell.innerHTML =
-              (hitData.note !== null
+              (hitData.identityLabel
                 ? '<span class="seq-hit-note">' +
-                  midiNoteLabel(hitData.note) +
+                  hitData.identityLabel +
                   "</span>"
                 : "") +
               '<span class="seq-hit-dot" style="--tick-shift:' +
@@ -5964,13 +6111,20 @@
 
         const layerIndex = ensureEditLayer(sequence);
         const layer = sequence.layers[layerIndex];
-        const melodicNote = MELODIC_TRACK_BY_INDEX.has(runtime.editSoundIndex)
-          ? melodicNoteAt(0, MELODIC_TRACK_BY_INDEX.get(runtime.editSoundIndex)).midi
+        const editTrack = MELODIC_TRACK_BY_INDEX.get(runtime.editSoundIndex);
+        const lockedValue = editTrack
+          ? editTrack.kind === "chords"
+            ? encodeChordIdentity(
+                runtime.chordKey,
+                0,
+                0,
+              )
+            : melodicNoteAt(0, editTrack).midi
           : null;
         layer.events.push(
-          melodicNote === null || melodicNote === undefined
+          lockedValue === null || lockedValue === undefined
             ? [runtime.editSoundIndex, step * editStepTicks()]
-            : [runtime.editSoundIndex, step * editStepTicks(), melodicNote],
+            : [runtime.editSoundIndex, step * editStepTicks(), lockedValue],
         );
         runtime.editSelectAll = false;
         runtime.selectedEditHit = {
@@ -6347,9 +6501,11 @@
         const mutedPads = activeMutedPads();
         const melodicTrack = activeMelodicTrack();
         const isMelodic = Boolean(melodicTrack);
+        const isChords = melodicTrack?.kind === "chords";
         const displayPads = isMelodic
           ? melodicPadLayout(melodicTrack)
           : oneShotBank;
+        grid.classList.toggle("is-chords", isChords);
         displayPads.forEach((k, i) => {
           const col = isMelodic ? melodicTrack.color : CAT_COLOR[k.cat];
           const d = document.createElement("button");
@@ -6357,16 +6513,20 @@
           d.className = "pad";
           d.dataset.i = i;
           d.classList.toggle("is-melodic", isMelodic);
+          d.classList.toggle("is-inactive", Boolean(k.inactive));
           d.classList.toggle("is-root", Boolean(k.isRoot));
           d.classList.toggle(
             "is-muted",
             !isMelodic && mutedPads.has(i),
           );
+          d.disabled = Boolean(k.inactive);
           d.setAttribute(
             "aria-label",
-            isMelodic
-              ? k.label + (k.isRoot ? " root note" : "") + ", key " + k.key
-              : k.label + " pad, key " + k.key,
+            k.inactive
+              ? "Inactive chord pad"
+              : isMelodic
+                ? k.label + (k.isRoot ? " root note" : "") + ", key " + k.key
+                : k.label + " pad, key " + k.key,
           );
           d.setAttribute(
             "aria-pressed",
@@ -6391,13 +6551,15 @@
             k.label +
             "</div>";
           // Mouse/click for desktop — suppressed when touch fires
-          d.addEventListener("click", (e) => {
-            if (touchedRecently) {
-              e.preventDefault();
-              return;
-            }
-            hit(i, false, inputTimestamp(e));
-          });
+          if (!k.inactive) {
+            d.addEventListener("click", (e) => {
+              if (touchedRecently) {
+                e.preventDefault();
+                return;
+              }
+              hit(i, false, inputTimestamp(e));
+            });
+          }
           grid.appendChild(d);
         });
       }
@@ -6426,6 +6588,7 @@
       }
 
       function melodicPadLayout(instrument = activeMelodicTrack()) {
+        if (instrument?.kind === "chords") return chordPadLayout(instrument);
         return KEYS.map((key, index) => {
           const row = Math.floor(index / 4);
           const column = index % 4;
@@ -6434,24 +6597,62 @@
         });
       }
 
+      function chordPadLayout(instrument = chordTrack()) {
+        const keyIndex = Math.max(
+          0,
+          CHORD_KEYS.findIndex((key) => key.id === runtime.chordKey),
+        );
+        const key = CHORD_KEYS[keyIndex];
+        return CHORD_GRID_OCTAVES.flatMap((octave, octaveRow) =>
+          [0, 1, 2, 3].map((chordIndex) => ({
+            key: KEYS[octaveRow * 4 + chordIndex],
+            label:
+              "CH" +
+              (chordIndex + 1) +
+              " \u00b7 " +
+              (octave > 0 ? "+" : "") +
+              octave,
+            file: instrument.files[keyIndex * 4 + chordIndex],
+            playbackRate: Math.pow(2, octave),
+            lockedValue: encodeChordIdentity(key.id, chordIndex, octave),
+            isRoot: false,
+          })),
+        );
+      }
+
       function updateMelodicControls() {
         if (padBankSelect.options.length !== MELODIC_TRACKS.length + 1) {
-          padBankSelect.innerHTML =
-            '<option value="oneshots">KIT</option>';
+          padBankSelect.innerHTML = "";
+          const kitGroup = document.createElement("optgroup");
+          kitGroup.label = "KIT";
+          const kitOption = document.createElement("option");
+          kitOption.value = "oneshots";
+          kitOption.textContent = "KIT";
+          kitGroup.appendChild(kitOption);
+          const instrumentGroup = document.createElement("optgroup");
+          instrumentGroup.label = "INSTRUMENTS";
           MELODIC_TRACKS.forEach((track) => {
             const option = document.createElement("option");
             option.value = track.id;
             option.textContent = track.label;
-            padBankSelect.appendChild(option);
+            instrumentGroup.appendChild(option);
           });
+          padBankSelect.append(kitGroup, instrumentGroup);
         }
         const isMelodic = melodicBankActive();
+        const isChords = activeMelodicTrack()?.kind === "chords";
+        const isNoteInstrument = isMelodic && !isChords;
         melodicControls.classList.toggle("is-active", isMelodic);
-        melodicScale.disabled = !isMelodic;
-        melodicRoot.disabled = !isMelodic;
+        melodicControls.classList.toggle("is-chords", isChords);
+        melodicScaleField.hidden = isChords;
+        melodicRootField.hidden = isChords;
+        chordKeyField.hidden = !isChords;
+        melodicScale.disabled = !isNoteInstrument;
+        melodicRoot.disabled = !isNoteInstrument;
         padBankSelect.value = isMelodic ? runtime.padBank : "oneshots";
         melodicScale.value = runtime.melodicScale;
         melodicRoot.value = String(runtime.melodicRoot);
+        chordKey.value = runtime.chordKey;
       }
 
       function setPadBank(bankId, stopActiveRecording = true) {
@@ -6481,20 +6682,36 @@
 
       function playMelodicPad(index, instrument = activeMelodicTrack()) {
         const note = melodicPadLayout(instrument)[index];
-        if (!note) return null;
-        play(note.file, undefined, note.playbackRate);
+        if (!note || note.inactive) return null;
+        play(note.file, undefined, note.playbackRate, {
+          chokeGroup: instrument.kind === "chords" ? "rhodes" : null,
+          tempoScaledRelease:
+            instrument.kind === "chords" || instrument.id === "bell",
+        });
         return note;
       }
 
-      function playLockedMelodicNote(noteMidi, soundIndex) {
-        const pitchClass = ((noteMidi % 12) + 12) % 12;
-        const sourceMidi = 60 + pitchClass;
+      function playLockedMelodicNote(lockedValue, soundIndex) {
         const instrument = MELODIC_TRACK_BY_INDEX.get(soundIndex);
         if (!instrument) return;
+        if (instrument.kind === "chords") {
+          const identity = decodeChordIdentity(lockedValue);
+          if (!identity) return;
+          play(
+            instrument.files[identity.keyIndex * 4 + identity.chordIndex],
+            undefined,
+            Math.pow(2, identity.octave),
+            { chokeGroup: "rhodes", tempoScaledRelease: true },
+          );
+          return;
+        }
+        const pitchClass = ((lockedValue % 12) + 12) % 12;
+        const sourceMidi = 60 + pitchClass;
         play(
           instrument.files[pitchClass],
           undefined,
-          Math.pow(2, (noteMidi - sourceMidi) / 12),
+          Math.pow(2, (lockedValue - sourceMidi) / 12),
+          { tempoScaledRelease: instrument.id === "bell" },
         );
       }
 
@@ -6528,7 +6745,7 @@
         const el = document.elementFromPoint(touch.clientX, touch.clientY);
         if (!el) return -1;
         const pad = el.closest(".pad");
-        if (!pad || !grid.contains(pad)) return -1;
+        if (!pad || !grid.contains(pad) || pad.disabled) return -1;
         return parseInt(pad.dataset.i, 10);
       }
 
@@ -6649,9 +6866,13 @@
         if (!fromLoop && melodicBankActive()) {
           const melodicTrack = activeMelodicTrack();
           const note = playMelodicPad(i, melodicTrack);
-          flash(i);
           if (note) {
-            recordLiveHit(melodicTrack.index, now, note.midi);
+            flash(i);
+            recordLiveHit(
+              melodicTrack.index,
+              now,
+              melodicTrack.kind === "chords" ? note.lockedValue : note.midi,
+            );
           }
           return;
         }
@@ -6659,9 +6880,9 @@
           ? new Set(playbackSequence?.mutedPads || [])
           : activeMutedPads();
         if (mutedPads.has(i)) return;
-        const lockedNote = fromLoop ? eventNoteMidi(recordedEvent) : null;
-        if (lockedNote !== null) {
-          playLockedMelodicNote(lockedNote, i);
+        const lockedValue = fromLoop ? eventLockedValue(recordedEvent) : null;
+        if (lockedValue !== null && MELODIC_TRACK_BY_INDEX.has(i)) {
+          playLockedMelodicNote(lockedValue, i);
           flashEditHit(i, loopTime);
           return;
         }
@@ -7314,11 +7535,11 @@
             const [i, tick] = event;
             const delta = index === 0 ? tick : tick - prev;
             prev = tick;
-            const note = eventNoteMidi(event);
+            const lockedValue = eventLockedValue(event);
             return (
               i.toString(36) +
               Math.max(0, delta).toString(36) +
-              (note !== null ? "!" + note.toString(36) : "")
+              (lockedValue !== null ? "!" + lockedValue.toString(36) : "")
             );
           })
           .join(".");
@@ -7418,7 +7639,7 @@
         });
         return {
           seed: parseInt(seedValue, 36) || 0,
-          bpm: parseInt(bpmValue, 36) || FIXED_BPM,
+          bpm: parseInt(bpmValue, 36) || DEFAULT_BPM,
           skinIdx: parseInt(skinValue, 36) || 0,
           activeSequenceIndex: parseInt(activeValue, 36) || 0,
           sequences: parsedEntries,
@@ -7450,7 +7671,7 @@
       function loadSongHash(raw) {
         const payload = decodeSongPayload(raw.slice(4));
         seed = (payload.seed || 0) >>> 0;
-        bpm = Math.max(MIN_BPM, Math.min(MAX_BPM, payload.bpm || FIXED_BPM));
+        bpm = Math.max(MIN_BPM, Math.min(MAX_BPM, payload.bpm || DEFAULT_BPM));
         skinIdx = Math.max(
           0,
           Math.min(SKINS.length - 1, payload.skinIdx || 0),
@@ -7506,7 +7727,7 @@
           seed = parseInt(parts[1], 36) >>> 0;
           bpm = Math.max(
             MIN_BPM,
-            Math.min(MAX_BPM, parseInt(parts[2], 36) || FIXED_BPM),
+            Math.min(MAX_BPM, parseInt(parts[2], 36) || DEFAULT_BPM),
           );
           skinIdx = Math.max(
             0,
@@ -7599,6 +7820,13 @@
           0,
           Math.min(11, Number(melodicRoot.value) || 0),
         );
+        renderPads();
+        updateDisplay();
+      });
+
+      chordKey.addEventListener("change", () => {
+        if (!CHORD_KEYS.some((key) => key.id === chordKey.value)) return;
+        runtime.chordKey = chordKey.value;
         renderPads();
         updateDisplay();
       });
