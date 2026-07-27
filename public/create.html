@@ -793,6 +793,14 @@
           0 0 18px rgba(255, 91, 65, 0.18);
       }
 
+      .transport-btn.is-redo {
+        border-color: rgba(255, 209, 122, 0.42);
+        color: #ffe3aa;
+        background:
+          radial-gradient(circle at top, rgba(255, 190, 94, 0.13), transparent 76%),
+          linear-gradient(180deg, rgba(54, 40, 18, 0.76), rgba(17, 17, 20, 0.96));
+      }
+
       .transport-btn.is-copied,
       .bottom-btn.is-copied {
         border-color: rgba(90, 255, 152, 0.78);
@@ -1361,7 +1369,7 @@
       .seq-hit-dot {
         position: absolute;
         left: calc(50% + var(--tick-shift, 0px));
-        top: 50%;
+        top: var(--velocity-y, 50%);
         width: 7px;
         height: 7px;
         border-radius: 999px;
@@ -1392,7 +1400,7 @@
       }
 
       .seq-edit-controls {
-        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-template-columns: repeat(8, minmax(0, 1fr));
       }
 
       .seq-edit-btn {
@@ -1403,6 +1411,13 @@
           linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(10, 10, 12, 0.84)),
           rgba(13, 13, 16, 0.84);
         color: rgba(232, 232, 234, 0.66);
+      }
+
+      .seq-edit-controls .seq-edit-btn {
+        padding-inline: 2px;
+        font-size: 8px;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
       }
 
       .seq-edit-btn.is-active,
@@ -2791,8 +2806,8 @@
               aria-label="Undo last overdub layer"
               title="Undo last overdub layer"
             >
-              <span class="transport-icon">&#8630;</span>
-              <span>UNDO</span>
+              <span class="transport-icon" id="undoIcon">&#8630;</span>
+              <span id="undoLabel">UNDO</span>
             </button>
             <button
               class="transport-btn"
@@ -2965,10 +2980,16 @@
                   ALL
                 </button>
                 <button class="seq-edit-btn" id="seqNudgeLeftBtn" type="button">
-                  &#9664;
+                  TICK &#9664;
                 </button>
                 <button class="seq-edit-btn" id="seqNudgeRightBtn" type="button">
-                  &#9654;
+                  TICK &#9654;
+                </button>
+                <button class="seq-edit-btn" id="seqVelocityDownBtn" type="button">
+                  VEL &#9660;
+                </button>
+                <button class="seq-edit-btn" id="seqVelocityUpBtn" type="button">
+                  VEL &#9650;
                 </button>
                 <button class="seq-edit-btn" id="seqQuantZeroBtn" type="button">
                   Q &#8594;0
@@ -3326,6 +3347,10 @@
       const PPQ = 96;
       const TICKS_PER_BAR = PPQ * 4;
       const SEQUENCE_TICKS = LOOP_BARS * TICKS_PER_BAR;
+      const DEFAULT_VELOCITY = 100;
+      const MIN_VELOCITY = 1;
+      const MAX_VELOCITY = 127;
+      const VELOCITY_STEP = 8;
       const MAX_SEQUENCES = 16;
       const SEQUENCE_LABELS = ["seq", "intro", "break", "outro"];
       const QUANTIZE_VALUES = [
@@ -3350,8 +3375,8 @@
       let metronomeOn = true;
       let quantizeIndex = 2;
 
-      // Hit tuples are [soundIndex, tickOrMs, lockedMidiNote?]. Melodic
-      // tracks follow the 16 one-shots and keep their pitch in the tuple.
+      // Hit tuples are [soundIndex, tickOrMs, lockedValue?, velocity?]. Melodic
+      // tracks keep their note/chord identity; old tuples default to velocity 100.
       const loop = { events: [], length: 0, layers: [] };
       const sequences = Array.from({ length: MAX_SEQUENCES }, (_, index) =>
         index === 0 ? createSequence(index) : null,
@@ -3387,6 +3412,7 @@
         editStartTick: 0,
         seqSolo: false,
         undoStack: [],
+        redoAction: null,
         nudgeTimer: 0,
         nudgeInterval: 0,
         suppressNudgeClick: false,
@@ -3802,6 +3828,8 @@
       const seqSelectAllBtn = document.getElementById("seqSelectAllBtn");
       const seqNudgeLeftBtn = document.getElementById("seqNudgeLeftBtn");
       const seqNudgeRightBtn = document.getElementById("seqNudgeRightBtn");
+      const seqVelocityDownBtn = document.getElementById("seqVelocityDownBtn");
+      const seqVelocityUpBtn = document.getElementById("seqVelocityUpBtn");
       const seqQuantZeroBtn = document.getElementById("seqQuantZeroBtn");
       const seqDeleteHitsBtn = document.getElementById("seqDeleteHitsBtn");
       const seqSoloBtn = document.getElementById("seqSoloBtn");
@@ -3837,6 +3865,8 @@
       const recDot = document.getElementById("recDot");
       const clearBtn = document.getElementById("clearBtn");
       const undoBtn = document.getElementById("undoBtn");
+      const undoIcon = document.getElementById("undoIcon");
+      const undoLabel = document.getElementById("undoLabel");
       const muteBtn = document.getElementById("muteBtn");
       const shareBtn = document.getElementById("shareBtn");
       const shareLabel = document.getElementById("shareLabel");
@@ -4292,12 +4322,12 @@
         return Math.max(0.35, Math.min(bufferDuration - 0.03, musicalRelease));
       }
 
-      function applyChordEnvelope(gain, startTime, bufferDuration) {
+      function applyChordEnvelope(gain, startTime, bufferDuration, peak = 1) {
         const release = chordReleaseSeconds(bufferDuration);
         const hold = Math.min(0.12, release * 0.16);
         gain.cancelScheduledValues(startTime);
-        gain.setValueAtTime(1, startTime);
-        gain.setValueAtTime(1, startTime + hold);
+        gain.setValueAtTime(peak, startTime);
+        gain.setValueAtTime(peak, startTime + hold);
         gain.exponentialRampToValueAtTime(0.0008, startTime + release);
         return release;
       }
@@ -4331,7 +4361,8 @@
         src.playbackRate.value =
           basePlaybackRate * (runtime.fxPitchRate || 1);
         const g = ctx.createGain();
-        g.gain.value = 1;
+        const velocityPeak = velocityGain(options.velocity);
+        g.gain.value = velocityPeak;
         src.connect(g);
         connectToFx(g);
         liveSources.add(src);
@@ -4340,7 +4371,12 @@
         if (options.tempoScaledRelease || hasTempoScaledRelease(padIndex)) {
           const effectiveDuration =
             buf.duration / Math.max(0.01, basePlaybackRate);
-          const release = applyChordEnvelope(g.gain, t, effectiveDuration);
+          const release = applyChordEnvelope(
+            g.gain,
+            t,
+            effectiveDuration,
+            velocityPeak,
+          );
           chordStopTime = t + release + 0.08;
         }
         src.start(t);
@@ -4443,29 +4479,40 @@
         sequence.lengthTicks = snapshot.lengthTicks || SEQUENCE_TICKS;
       }
 
+      function invalidateRedoState(refresh = false) {
+        if (!runtime.redoAction) return;
+        runtime.redoAction = null;
+        if (refresh) updateButtons();
+      }
+
+      function pushUndoEntry(action, clearRedo = true) {
+        if (clearRedo) invalidateRedoState(false);
+        runtime.undoStack.push(action);
+        if (runtime.undoStack.length > 12) runtime.undoStack.shift();
+      }
+
       function pushUndoSnapshot(reason) {
         const sequence = activeSequence();
         if (!sequence) return;
-        runtime.undoStack.push({
+        pushUndoEntry({
           type: "sequence",
           reason,
           sequenceIndex: activeSequenceIndex,
           snapshot: cloneSequenceState(sequence),
         });
-        if (runtime.undoStack.length > 12) runtime.undoStack.shift();
       }
 
       function pushSongUndoSnapshot(reason) {
-        runtime.undoStack.push({
+        pushUndoEntry({
           type: "song",
           reason,
           timeline: songTimeline.slice(),
           selectedSongBlockIndex: runtime.selectedSongBlockIndex,
         });
-        if (runtime.undoStack.length > 12) runtime.undoStack.shift();
       }
 
       function canUndoSequenceAction() {
+        if (runtime.redoAction) return true;
         if (runtime.viewMode === "seq" && runtime.seqView === "song") {
           return runtime.undoStack.length > 0;
         }
@@ -4513,10 +4560,37 @@
       }
 
       function eventLockedValue(event) {
+        if (event?.[2] === null || event?.[2] === undefined) return null;
         const value = Number(event?.[2]);
         return Number.isInteger(value) && value >= 0 && value <= 127
           ? value
           : null;
+      }
+
+      function normalizeVelocity(value) {
+        const parsed = Number(value);
+        if (!Number.isFinite(parsed)) return DEFAULT_VELOCITY;
+        return Math.max(
+          MIN_VELOCITY,
+          Math.min(MAX_VELOCITY, Math.round(parsed)),
+        );
+      }
+
+      function eventVelocity(event) {
+        return normalizeVelocity(event?.[3]);
+      }
+
+      function setEventVelocity(event, value) {
+        while (event.length < 3) event.push(null);
+        event[3] = normalizeVelocity(value);
+      }
+
+      function velocityGain(value) {
+        const velocity = normalizeVelocity(value);
+        return Math.max(
+          0.02,
+          Math.min(1.2, Math.pow(velocity / DEFAULT_VELOCITY, 1.35)),
+        );
       }
 
       function chordTrack() {
@@ -4593,6 +4667,16 @@
               (event) =>
                 MELODIC_TRACK_BY_INDEX.has(event[0]) &&
                 eventLockedValue(event) !== null,
+            ),
+          ),
+        );
+      }
+
+      function sequenceHasVelocityEdits(sequence = activeSequence()) {
+        return Boolean(
+          sequence?.layers.some((layer) =>
+            layer.events.some(
+              (event) => eventVelocity(event) !== DEFAULT_VELOCITY,
             ),
           ),
         );
@@ -4746,6 +4830,7 @@
           tick: event[1],
           note: eventNoteMidi(event),
           identityLabel: eventIdentityLabel(event),
+          velocity: eventVelocity(event),
         };
       }
 
@@ -4785,6 +4870,7 @@
               tick,
               note: eventNoteMidi(event),
               identityLabel: eventIdentityLabel(event),
+              velocity: eventVelocity(event),
               step: info.step,
               offset: info.offset,
             });
@@ -4842,13 +4928,16 @@
           " \u00b7 STEP " +
           step +
           " \u00b7 " +
-          formatTickOffset(selected.offset)
+          formatTickOffset(selected.offset) +
+          " \u00b7 VEL " +
+          selected.velocity
         );
       }
 
       function commitSequenceEdit() {
         const sequence = activeSequence();
         if (!sequence) return;
+        invalidateRedoState(false);
         sequence.layers.forEach((layer) => {
           layer.events = layer.events.map((event) => {
             const normalized = event.slice();
@@ -5029,30 +5118,23 @@
       function undoSequenceAction() {
         if (runtime.mode === "countin" || runtime.mode === "recording") return;
         stopTransport();
+        if (runtime.redoAction) {
+          redoSequenceAction();
+          return;
+        }
         const action = runtime.undoStack.pop();
         if (action) {
-          if (action.type === "song") {
-            songTimeline.length = 0;
-            songTimeline.push(...action.timeline);
-            runtime.selectedSongBlockIndex = action.selectedSongBlockIndex;
-            renderSongPanel();
-            updateButtons();
-            updateDisplay();
-            return;
-          }
-          if (!sequences[action.sequenceIndex]) {
-            sequences[action.sequenceIndex] = createSequence(action.sequenceIndex);
-          }
-          activeSequenceIndex = action.sequenceIndex;
-          restoreSequenceState(sequences[action.sequenceIndex], action.snapshot);
-          syncLoopFromActiveSequence();
-          resetEditSelection();
-          updatePadMuteStates();
-          updateButtons();
-          updateDisplay();
+          runtime.redoAction = captureHistoryState(action);
+          restoreHistoryState(action);
           return;
         }
         if (!sequenceHasContent()) return;
+        runtime.redoAction = {
+          type: "sequence",
+          reason: "redo-layer",
+          sequenceIndex: activeSequenceIndex,
+          snapshot: cloneSequenceState(activeSequence()),
+        };
         activeSequence().layers.pop();
         syncLoopFromActiveSequence();
         if (!loop.events.length) loop.length = fixedLoopLength();
@@ -5061,6 +5143,54 @@
         resetEditSelection();
         updateButtons();
         updateDisplay();
+      }
+
+      function captureHistoryState(action) {
+        if (action.type === "song") {
+          return {
+            type: "song",
+            reason: "redo-" + (action.reason || "song"),
+            timeline: songTimeline.slice(),
+            selectedSongBlockIndex: runtime.selectedSongBlockIndex,
+          };
+        }
+        const sequence = sequences[action.sequenceIndex];
+        return {
+          type: "sequence",
+          reason: "redo-" + (action.reason || "sequence"),
+          sequenceIndex: action.sequenceIndex,
+          snapshot: cloneSequenceState(sequence),
+        };
+      }
+
+      function restoreHistoryState(action) {
+        if (action.type === "song") {
+          songTimeline.length = 0;
+          songTimeline.push(...action.timeline);
+          runtime.selectedSongBlockIndex = action.selectedSongBlockIndex;
+          renderSongPanel();
+          updateButtons();
+          updateDisplay();
+          return;
+        }
+        if (!sequences[action.sequenceIndex]) {
+          sequences[action.sequenceIndex] = createSequence(action.sequenceIndex);
+        }
+        activeSequenceIndex = action.sequenceIndex;
+        restoreSequenceState(sequences[action.sequenceIndex], action.snapshot);
+        syncLoopFromActiveSequence();
+        resetEditSelection();
+        updatePadMuteStates();
+        updateButtons();
+        updateDisplay();
+      }
+
+      function redoSequenceAction() {
+        const action = runtime.redoAction;
+        if (!action) return;
+        runtime.redoAction = null;
+        pushUndoEntry(captureHistoryState(action), false);
+        restoreHistoryState(action);
       }
 
       function canClearCurrentContext() {
@@ -5406,6 +5536,9 @@
       function currentIdleMessage() {
         if (runtime.viewMode === "pads" && melodicBankActive()) {
           const track = activeMelodicTrack();
+          if (activeMutedPads().has(track.index)) {
+            return track.label + " TRACK MUTED";
+          }
           if (track.kind === "chords") {
             const key =
               CHORD_KEYS.find((entry) => entry.id === runtime.chordKey) ||
@@ -5501,11 +5634,18 @@
               (hitData
                 ? " hit " +
                   (hitData.identityLabel ? hitData.identityLabel + " " : "") +
-                  formatTickOffset(hitData.offset)
+                  formatTickOffset(hitData.offset) +
+                  " velocity " +
+                  hitData.velocity
                 : " empty"),
           );
           if (hitData) {
             const shift = Math.max(-8, Math.min(8, hitData.offset * 0.7));
+            const velocityY =
+              76 -
+              ((hitData.velocity - MIN_VELOCITY) /
+                (MAX_VELOCITY - MIN_VELOCITY)) *
+                52;
             cell.innerHTML =
               (hitData.identityLabel
                 ? '<span class="seq-hit-note">' +
@@ -5514,7 +5654,9 @@
                 : "") +
               '<span class="seq-hit-dot" style="--tick-shift:' +
               shift.toFixed(1) +
-              'px"></span>' +
+              "px;--velocity-y:" +
+              velocityY.toFixed(1) +
+              '%"></span>' +
               (hitData.offset
                 ? '<span class="seq-hit-offset">' +
                   formatTickOffset(hitData.offset) +
@@ -5530,6 +5672,8 @@
         seqSelectAllBtn.setAttribute("aria-pressed", String(runtime.editSelectAll));
         seqNudgeLeftBtn.disabled = !hasSelection;
         seqNudgeRightBtn.disabled = !hasSelection;
+        seqVelocityDownBtn.disabled = !hasSelection;
+        seqVelocityUpBtn.disabled = !hasSelection;
         seqQuantZeroBtn.disabled = !hasSelection;
         seqDeleteHitsBtn.disabled = !hasSelection;
         seqSoloBtn.classList.toggle("is-active", runtime.seqSolo);
@@ -5750,7 +5894,13 @@
         }
 
         if (runtime.viewMode === "pads" && melodicBankActive()) {
-          lcdStatus.textContent = runtime.mode === "playing" ? "PLAY + MEL" : "MELODIC";
+          const track = activeMelodicTrack();
+          const trackMuted = activeMutedPads().has(track.index);
+          lcdStatus.textContent = trackMuted
+            ? "MUTED"
+            : runtime.mode === "playing"
+              ? "PLAY + MEL"
+              : "MELODIC";
           lcdMessage.textContent = currentIdleMessage();
           return;
         }
@@ -5830,9 +5980,13 @@
         const live = runtime.mode === "countin" || runtime.mode === "recording";
         const playing = runtime.mode === "playing";
         const onPads = runtime.viewMode === "pads";
-        const oneShotPadsActive = onPads && !melodicBankActive();
+        const activeInstrument = onPads ? activeMelodicTrack() : null;
+        const instrumentMuted = Boolean(
+          activeInstrument && activeMutedPads().has(activeInstrument.index),
+        );
         const canClear = canClearCurrentContext();
         const canUndo = canUndoSequenceAction();
+        const canRedo = Boolean(runtime.redoAction);
         playBtn.classList.toggle("is-playing", playing);
         recBtn.classList.toggle("is-live", live);
         playIcon.innerHTML = playing ? "&#9632;" : "&#9654;";
@@ -5843,16 +5997,38 @@
         recBtn.disabled = !onPads;
         clearBtn.disabled = !canClear || live;
         undoBtn.disabled = !canUndo || live;
-        muteBtn.disabled = !oneShotPadsActive;
-        muteBtn.classList.toggle("is-mute", runtime.muteMode);
-        muteBtn.setAttribute("aria-pressed", String(runtime.muteMode));
+        undoBtn.classList.toggle("is-redo", canRedo);
+        undoIcon.innerHTML = canRedo ? "&#8631;" : "&#8630;";
+        undoLabel.textContent = canRedo ? "REDO" : "UNDO";
+        undoBtn.setAttribute(
+          "aria-label",
+          canRedo ? "Redo last undone action" : "Undo last action",
+        );
+        undoBtn.setAttribute(
+          "title",
+          canRedo ? "Redo last undone action" : "Undo last action",
+        );
+        muteBtn.disabled = !onPads;
+        muteBtn.classList.toggle(
+          "is-mute",
+          runtime.muteMode || instrumentMuted,
+        );
+        muteBtn.setAttribute(
+          "aria-pressed",
+          String(runtime.muteMode || instrumentMuted),
+        );
+        const instrumentMuteLabel = activeInstrument
+          ? (instrumentMuted ? "Unmute " : "Mute ") + activeInstrument.label
+          : null;
         muteBtn.setAttribute(
           "aria-label",
-          runtime.muteMode ? "Exit mute mode" : "Enter mute mode",
+          instrumentMuteLabel ||
+            (runtime.muteMode ? "Exit mute mode" : "Enter mute mode"),
         );
         muteBtn.setAttribute(
           "title",
-          runtime.muteMode ? "Exit mute mode" : "Mute pads",
+          instrumentMuteLabel ||
+            (runtime.muteMode ? "Exit mute mode" : "Mute pads"),
         );
         updateSeqPanel();
       }
@@ -6109,8 +6285,6 @@
           return;
         }
 
-        const layerIndex = ensureEditLayer(sequence);
-        const layer = sequence.layers[layerIndex];
         const editTrack = MELODIC_TRACK_BY_INDEX.get(runtime.editSoundIndex);
         const lockedValue = editTrack
           ? editTrack.kind === "chords"
@@ -6121,11 +6295,15 @@
               )
             : melodicNoteAt(0, editTrack).midi
           : null;
-        layer.events.push(
-          lockedValue === null || lockedValue === undefined
-            ? [runtime.editSoundIndex, step * editStepTicks()]
-            : [runtime.editSoundIndex, step * editStepTicks(), lockedValue],
-        );
+        pushUndoSnapshot("add-hit");
+        const layerIndex = ensureEditLayer(sequence);
+        const layer = sequence.layers[layerIndex];
+        layer.events.push([
+          runtime.editSoundIndex,
+          step * editStepTicks(),
+          lockedValue === undefined ? null : lockedValue,
+          DEFAULT_VELOCITY,
+        ]);
         runtime.editSelectAll = false;
         runtime.selectedEditHit = {
           layerIndex,
@@ -6135,10 +6313,11 @@
         commitSequenceEdit();
       }
 
-      function nudgeSelectedHit(delta) {
+      function nudgeSelectedHit(delta, captureUndo = true) {
         const sequence = activeSequence();
         const selectedHits = selectedEditHits();
         if (!sequence || !selectedHits.length) return;
+        if (captureUndo) pushUndoSnapshot("nudge-hit");
         selectedHits.forEach((hitData) => {
           const event = sequence.layers[hitData.layerIndex]?.events[hitData.eventIndex];
           if (!event || event[0] !== hitData.padIndex) return;
@@ -6151,10 +6330,36 @@
         const sequence = activeSequence();
         const selectedHits = selectedEditHits();
         if (!sequence || !selectedHits.length) return;
+        const needsQuantize = selectedHits.some((hitData) => {
+          const event = sequence.layers[hitData.layerIndex]?.events[hitData.eventIndex];
+          return event && editStepInfo(event[1]).offset !== 0;
+        });
+        if (!needsQuantize) return;
+        pushUndoSnapshot("quantize-hit");
         selectedHits.forEach((hitData) => {
           const event = sequence.layers[hitData.layerIndex]?.events[hitData.eventIndex];
           if (!event || event[0] !== hitData.padIndex) return;
           event[1] = editStepInfo(event[1]).gridTick;
+        });
+        commitSequenceEdit();
+      }
+
+      function adjustSelectedVelocity(delta, captureUndo = true) {
+        const sequence = activeSequence();
+        const selectedHits = selectedEditHits();
+        if (!sequence || !selectedHits.length) return;
+        const editableHits = selectedHits.filter((hitData) => {
+          const event = sequence.layers[hitData.layerIndex]?.events[hitData.eventIndex];
+          return (
+            event &&
+            normalizeVelocity(eventVelocity(event) + delta) !== eventVelocity(event)
+          );
+        });
+        if (!editableHits.length) return;
+        if (captureUndo) pushUndoSnapshot("velocity-hit");
+        editableHits.forEach((hitData) => {
+          const event = sequence.layers[hitData.layerIndex]?.events[hitData.eventIndex];
+          setEventVelocity(event, eventVelocity(event) + delta);
         });
         commitSequenceEdit();
       }
@@ -6197,13 +6402,13 @@
         runtime.nudgeInterval = 0;
       }
 
-      function startNudgeRepeat(delta) {
+      function startEditRepeat(action) {
         if (!hasEditSelection()) return;
-        nudgeSelectedHit(delta);
         stopNudgeRepeat();
+        action(true);
         runtime.nudgeTimer = window.setTimeout(() => {
           runtime.nudgeInterval = window.setInterval(() => {
-            nudgeSelectedHit(delta);
+            action(false);
           }, 70);
         }, 280);
       }
@@ -6405,15 +6610,23 @@
         updateDisplay();
       });
       seqSelectAllBtn.addEventListener("click", toggleSelectAllEditHits);
+      seqNudgeLeftBtn.title = "Nudge timing one tick earlier";
+      seqNudgeRightBtn.title = "Nudge timing one tick later";
+      seqVelocityDownBtn.title = "Lower velocity";
+      seqVelocityUpBtn.title = "Raise velocity";
       [
-        [seqNudgeLeftBtn, -1],
-        [seqNudgeRightBtn, 1],
-      ].forEach(([button, delta]) => {
+        [seqNudgeLeftBtn, (capture) => nudgeSelectedHit(-1, capture)],
+        [seqNudgeRightBtn, (capture) => nudgeSelectedHit(1, capture)],
+        [seqVelocityDownBtn, (capture) =>
+          adjustSelectedVelocity(-VELOCITY_STEP, capture)],
+        [seqVelocityUpBtn, (capture) =>
+          adjustSelectedVelocity(VELOCITY_STEP, capture)],
+      ].forEach(([button, action]) => {
         button.addEventListener("pointerdown", (event) => {
           event.preventDefault();
           button.setPointerCapture?.(event.pointerId);
           runtime.suppressNudgeClick = true;
-          startNudgeRepeat(delta);
+          startEditRepeat(action);
         });
         ["pointerup", "pointercancel", "pointerleave"].forEach((type) => {
           button.addEventListener(type, stopNudgeRepeat);
@@ -6423,7 +6636,7 @@
             runtime.suppressNudgeClick = false;
             return;
           }
-          nudgeSelectedHit(delta);
+          action(true);
         });
       });
       seqQuantZeroBtn.addEventListener("click", quantizeSelectedHitToZero);
@@ -6502,6 +6715,9 @@
         const melodicTrack = activeMelodicTrack();
         const isMelodic = Boolean(melodicTrack);
         const isChords = melodicTrack?.kind === "chords";
+        const melodicTrackMuted = Boolean(
+          melodicTrack && mutedPads.has(melodicTrack.index),
+        );
         const displayPads = isMelodic
           ? melodicPadLayout(melodicTrack)
           : oneShotBank;
@@ -6517,7 +6733,7 @@
           d.classList.toggle("is-root", Boolean(k.isRoot));
           d.classList.toggle(
             "is-muted",
-            !isMelodic && mutedPads.has(i),
+            isMelodic ? melodicTrackMuted : mutedPads.has(i),
           );
           d.disabled = Boolean(k.inactive);
           d.setAttribute(
@@ -6530,7 +6746,7 @@
           );
           d.setAttribute(
             "aria-pressed",
-            String(!isMelodic && mutedPads.has(i)),
+            String(isMelodic ? melodicTrackMuted : mutedPads.has(i)),
           );
           d.setAttribute("aria-keyshortcuts", k.key);
           d.innerHTML =
@@ -6680,18 +6896,27 @@
         updateDisplay();
       }
 
-      function playMelodicPad(index, instrument = activeMelodicTrack()) {
+      function playMelodicPad(
+        index,
+        instrument = activeMelodicTrack(),
+        velocity = DEFAULT_VELOCITY,
+      ) {
         const note = melodicPadLayout(instrument)[index];
         if (!note || note.inactive) return null;
         play(note.file, undefined, note.playbackRate, {
           chokeGroup: instrument.kind === "chords" ? "rhodes" : null,
           tempoScaledRelease:
             instrument.kind === "chords" || instrument.id === "bell",
+          velocity,
         });
         return note;
       }
 
-      function playLockedMelodicNote(lockedValue, soundIndex) {
+      function playLockedMelodicNote(
+        lockedValue,
+        soundIndex,
+        velocity = DEFAULT_VELOCITY,
+      ) {
         const instrument = MELODIC_TRACK_BY_INDEX.get(soundIndex);
         if (!instrument) return;
         if (instrument.kind === "chords") {
@@ -6701,7 +6926,7 @@
             instrument.files[identity.keyIndex * 4 + identity.chordIndex],
             undefined,
             Math.pow(2, identity.octave),
-            { chokeGroup: "rhodes", tempoScaledRelease: true },
+            { chokeGroup: "rhodes", tempoScaledRelease: true, velocity },
           );
           return;
         }
@@ -6711,14 +6936,41 @@
           instrument.files[pitchClass],
           undefined,
           Math.pow(2, (lockedValue - sourceMidi) / 12),
-          { tempoScaledRelease: instrument.id === "bell" },
+          { tempoScaledRelease: instrument.id === "bell", velocity },
         );
+      }
+
+      function playbackPadIndexForEvent(soundIndex, lockedValue) {
+        if (runtime.viewMode !== "pads") return -1;
+        const visibleInstrument = activeMelodicTrack();
+        if (!visibleInstrument) {
+          return MELODIC_TRACK_BY_INDEX.has(soundIndex) ? -1 : soundIndex;
+        }
+        if (visibleInstrument.index !== soundIndex || lockedValue === null) {
+          return -1;
+        }
+        return melodicPadLayout(visibleInstrument).findIndex((pad) =>
+          visibleInstrument.kind === "chords"
+            ? pad.lockedValue === lockedValue
+            : pad.midi === lockedValue,
+        );
+      }
+
+      function flashPlaybackEvent(soundIndex, lockedValue) {
+        const padIndex = playbackPadIndexForEvent(soundIndex, lockedValue);
+        if (padIndex >= 0) flash(padIndex);
       }
 
       function updatePadMuteStates() {
         const mutedPads = activeMutedPads();
+        const melodicTrack = activeMelodicTrack();
+        const melodicTrackMuted = Boolean(
+          melodicTrack && mutedPads.has(melodicTrack.index),
+        );
         Array.from(grid.children).forEach((pad, index) => {
-          const isMuted = !melodicBankActive() && mutedPads.has(index);
+          const isMuted = melodicTrack
+            ? melodicTrackMuted
+            : mutedPads.has(index);
           pad.classList.toggle("is-muted", isMuted);
           pad.setAttribute("aria-pressed", String(isMuted));
         });
@@ -6738,6 +6990,33 @@
           mutedPads.add(i);
         }
         updatePadMuteStates();
+        updateButtons();
+        updateDisplay();
+      }
+
+      function silenceChokeGroup(group) {
+        const voice = chokeVoices[group];
+        if (!voice || !ctx) return;
+        const now = ctx.currentTime;
+        try {
+          voice.gain.cancelScheduledValues(now);
+          voice.gain.setValueAtTime(voice.gain.value, now);
+          voice.gain.linearRampToValueAtTime(0, now + 0.02);
+          voice.src.stop(now + 0.025);
+        } catch (error) {
+          // The source may already have finished between the tap and this frame.
+        }
+        chokeVoices[group] = null;
+      }
+
+      function toggleInstrumentTrackMute(track = activeMelodicTrack()) {
+        if (!track) return;
+        const mutedPads = activeMutedPads();
+        const willMute = !mutedPads.has(track.index);
+        togglePadMute(track.index);
+        if (willMute && track.kind === "chords") {
+          silenceChokeGroup("rhodes");
+        }
       }
 
       // Multi-touch: handle touchstart on the grid (delegated)
@@ -6818,8 +7097,9 @@
         return now;
       }
 
-      function recordLiveHit(i, now, noteMidi = null) {
+      function recordLiveHit(i, now, lockedValue = null) {
         if (!runtime.recordLayer) return;
+        invalidateRedoState(false);
         const total = fixedLoopLength();
         let eventTime = null;
         if (runtime.mode === "recording") {
@@ -6832,8 +7112,12 @@
           }
         }
         if (eventTime === null) return;
-        const event = [i, wrapLoopTime(eventTime, total)];
-        if (noteMidi !== null) event.push(noteMidi);
+        const event = [
+          i,
+          wrapLoopTime(eventTime, total),
+          lockedValue,
+          DEFAULT_VELOCITY,
+        ];
         runtime.recordLayer.events.push(event);
       }
 
@@ -6865,6 +7149,7 @@
             : performance.now();
         if (!fromLoop && melodicBankActive()) {
           const melodicTrack = activeMelodicTrack();
+          if (activeMutedPads().has(melodicTrack.index)) return;
           const note = playMelodicPad(i, melodicTrack);
           if (note) {
             flash(i);
@@ -6881,16 +7166,24 @@
           : activeMutedPads();
         if (mutedPads.has(i)) return;
         const lockedValue = fromLoop ? eventLockedValue(recordedEvent) : null;
+        const velocity = fromLoop
+          ? eventVelocity(recordedEvent)
+          : DEFAULT_VELOCITY;
         if (lockedValue !== null && MELODIC_TRACK_BY_INDEX.has(i)) {
-          playLockedMelodicNote(lockedValue, i);
+          playLockedMelodicNote(lockedValue, i, velocity);
+          if (fromLoop) flashPlaybackEvent(i, lockedValue);
           flashEditHit(i, loopTime);
           return;
         }
         const k = oneShotBank[i];
         if (!k) return;
-        play(k.file, i);
-        flash(i);
-        if (fromLoop) flashEditHit(i, loopTime);
+        play(k.file, i, 1, { velocity });
+        if (fromLoop) {
+          flashPlaybackEvent(i, null);
+          flashEditHit(i, loopTime);
+        } else {
+          flash(i);
+        }
         if (!fromLoop) recordLiveHit(i, now);
       }
 
@@ -6974,6 +7267,7 @@
       function finishRecording() {
         loop.length = fixedLoopLength();
         if (runtime.recordLayer && runtime.recordLayer.events.length) {
+          pushUndoSnapshot("record-layer");
           activeSequence().layers.push({
             events: quantizeToTickLayer(runtime.recordLayer.events, loop.length),
           });
@@ -7536,10 +7830,14 @@
             const delta = index === 0 ? tick : tick - prev;
             prev = tick;
             const lockedValue = eventLockedValue(event);
+            const velocity = eventVelocity(event);
             return (
               i.toString(36) +
               Math.max(0, delta).toString(36) +
-              (lockedValue !== null ? "!" + lockedValue.toString(36) : "")
+              (lockedValue !== null ? "!" + lockedValue.toString(36) : "") +
+              (velocity !== DEFAULT_VELOCITY
+                ? "@" + velocity.toString(36)
+                : "")
             );
           })
           .join(".");
@@ -7553,15 +7851,22 @@
             .split(".")
             .filter(Boolean)
             .map((token, index) => {
-              const [timingToken, noteToken] = token.split("!");
+              const [identityToken, velocityToken] = token.split("@");
+              const [timingToken, noteToken] = identityToken.split("!");
               const padIndex = parseInt(timingToken.charAt(0), 36) || 0;
               const delta = parseInt(timingToken.slice(1) || "0", 36) || 0;
               const tick = index === 0 ? delta : prev + delta;
               prev = tick;
               const note = parseInt(noteToken, 36);
-              return Number.isInteger(note)
+              const velocity = parseInt(velocityToken, 36);
+              const event = Number.isInteger(note)
                 ? [padIndex, tick, note]
                 : [padIndex, tick];
+              if (Number.isInteger(velocity)) {
+                if (event.length < 3) event.push(null);
+                event.push(normalizeVelocity(velocity));
+              }
+              return event;
             }),
         );
       }
@@ -7875,7 +8180,28 @@
         undoSequenceAction();
       });
 
+      document.addEventListener(
+        "pointerdown",
+        (event) => {
+          if (!event.target.closest?.("#undoBtn")) invalidateRedoState(true);
+        },
+        true,
+      );
+
+      document.addEventListener(
+        "keydown",
+        (event) => {
+          if (!event.target.closest?.("#undoBtn")) invalidateRedoState(true);
+        },
+        true,
+      );
+
       muteBtn.addEventListener("click", () => {
+        const activeInstrument = activeMelodicTrack();
+        if (runtime.viewMode === "pads" && activeInstrument) {
+          toggleInstrumentTrackMute(activeInstrument);
+          return;
+        }
         const nextMuteMode = !runtime.muteMode;
         if (nextMuteMode) setViewMode("pads");
         setMuteMode(nextMuteMode);
@@ -7885,7 +8211,7 @@
         const encodedLoop =
           runtime.viewMode === "seq" && runtime.seqView === "song" && songHasContent()
             ? encodeSong()
-            : sequenceHasMelodicHits()
+            : sequenceHasMelodicHits() || sequenceHasVelocityEdits()
               ? encodeSong(true)
               : encode();
         const url = standaloneShareUrl(encodedLoop);
@@ -7993,6 +8319,7 @@
           updateDisplay();
         }
       }
+
     </script>
   </body>
 </html>
