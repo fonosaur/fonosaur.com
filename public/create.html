@@ -1112,6 +1112,7 @@
       .seq-label-option,
       .seq-edit,
       .seq-edit-btn,
+      .seq-edit-bracket,
       .seq-sound-select,
       .seq-edit-cell,
       .seq-empty {
@@ -1440,10 +1441,22 @@
 
       .seq-edit-controls {
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         align-items: center;
         justify-content: center;
         gap: 0.45rem 0.75rem;
+      }
+
+      .seq-edit-btn,
+      .seq-edit-bracket {
+        height: 40px;
+        min-height: 40px;
+        border-radius: 11px;
+        border: 1px solid var(--line-strong);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(10, 10, 12, 0.84)),
+          var(--panel-2);
+        color: rgba(232, 232, 234, 0.66);
       }
 
       .seq-edit-btn {
@@ -1451,15 +1464,53 @@
         align-items: center;
         justify-content: center;
         gap: 0.2em;
-        min-height: 29px;
         padding: 0.35em 0.6em;
-        border-radius: 11px;
-        border: 1px solid var(--line-strong);
-        background:
-          linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(10, 10, 12, 0.84)),
-          rgba(13, 13, 16, 0.84);
-        color: rgba(232, 232, 234, 0.66);
         line-height: 1;
+      }
+
+      .seq-edit-bracket {
+        flex-shrink: 0;
+        gap: 0.4em;
+        padding: 0 11px;
+        font-size: 8px;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+      }
+
+      .lcd-stepper.seq-edit-bracket > span {
+        min-width: 0;
+        color: inherit;
+        font-size: inherit;
+        line-height: 1;
+        letter-spacing: inherit;
+      }
+
+      .seq-edit-bracket > button {
+        position: relative;
+        width: 19px;
+        height: 19px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: color-mix(in srgb, var(--text) 78%, transparent);
+        font-family: inherit;
+        font-size: inherit;
+        font-weight: inherit;
+        line-height: 1;
+      }
+
+      .seq-edit-bracket > button::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 40px;
+        height: 40px;
+        transform: translate(-50%, -50%);
+      }
+
+      .seq-edit-bracket > button:disabled {
+        opacity: 0.38;
       }
 
       .seq-edit-controls .seq-edit-btn {
@@ -1478,7 +1529,9 @@
       }
 
       .seq-edit-btn:disabled {
-        opacity: 0.62;
+        opacity: 1;
+        border-color: var(--line);
+        color: color-mix(in srgb, var(--text) 38%, transparent);
         cursor: default;
       }
 
@@ -2336,7 +2389,7 @@
         }
 
         .seq-edit-controls {
-          column-gap: 0.625rem;
+          column-gap: 0.45rem;
         }
 
         .seq-pitch-label {
@@ -3072,18 +3125,48 @@
                 >
                   ALL
                 </button>
-                <button class="seq-edit-btn" id="seqNudgeLeftBtn" type="button">
-                  <span>TICK</span><span aria-hidden="true">&#9664;</span>
-                </button>
-                <button class="seq-edit-btn" id="seqNudgeRightBtn" type="button">
-                  <span>TICK</span><span aria-hidden="true">&#9654;</span>
-                </button>
-                <button class="seq-edit-btn" id="seqVelocityDownBtn" type="button">
-                  <span>VEL</span><span aria-hidden="true">&#9660;</span>
-                </button>
-                <button class="seq-edit-btn" id="seqVelocityUpBtn" type="button">
-                  <span>VEL</span><span aria-hidden="true">&#9650;</span>
-                </button>
+                <div
+                  class="lcd-stepper seq-edit-bracket"
+                  role="group"
+                  aria-label="Tick timing"
+                >
+                  <button
+                    id="seqNudgeLeftBtn"
+                    type="button"
+                    aria-label="Nudge timing one tick earlier"
+                  >
+                    &#9664;
+                  </button>
+                  <span>TICK</span>
+                  <button
+                    id="seqNudgeRightBtn"
+                    type="button"
+                    aria-label="Nudge timing one tick later"
+                  >
+                    &#9654;
+                  </button>
+                </div>
+                <div
+                  class="lcd-stepper seq-edit-bracket"
+                  role="group"
+                  aria-label="Velocity"
+                >
+                  <button
+                    id="seqVelocityDownBtn"
+                    type="button"
+                    aria-label="Lower velocity"
+                  >
+                    &#9660;
+                  </button>
+                  <span>VEL</span>
+                  <button
+                    id="seqVelocityUpBtn"
+                    type="button"
+                    aria-label="Raise velocity"
+                  >
+                    &#9650;
+                  </button>
+                </div>
                 <button class="seq-edit-btn" id="seqQuantZeroBtn" type="button">
                   <span>Q</span><span aria-hidden="true">&#8594;0</span>
                 </button>
