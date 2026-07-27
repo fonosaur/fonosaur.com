@@ -2139,6 +2139,32 @@
         padding: 8px 4px 4px;
       }
 
+      html:not(.is-embedded) .wrap {
+        width: min(960px, calc(100% - 24px));
+        max-width: none;
+        justify-content: flex-start;
+        padding: 10px 0 28px;
+      }
+
+      .device-frame {
+        display: contents;
+      }
+
+      html:not(.is-embedded) .device-frame {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        height: clamp(560px, 84svh, 860px);
+        padding: 8px 4px 4px;
+        box-sizing: border-box;
+        overflow: hidden;
+        flex-shrink: 0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+      }
+
       @media (min-width: 700px) {
         .wrap {
           padding: 8px 16px 18px;
@@ -2162,6 +2188,10 @@
         .wrap {
           gap: 8px;
           padding: 6px 4px 24px;
+        }
+
+        html:not(.is-embedded) .wrap {
+          padding: 6px 0 24px;
         }
 
         .share-intro {
@@ -2666,7 +2696,8 @@
         </p>
         <a class="share-explore" href="/">Make your own &#9656;</a>
       </section>
-      <div class="device">
+      <div class="device-frame">
+        <div class="device">
         <div class="skin" id="skin"></div>
         <div class="skinveil"></div>
 
@@ -3164,6 +3195,7 @@
               SKIN
             </button>
           </div>
+        </div>
         </div>
       </div>
 
@@ -3834,6 +3866,7 @@
       const rootEl = document.documentElement;
       const wrapEl = document.querySelector(".wrap");
       const shareIntroEl = document.getElementById("shareIntro");
+      const deviceFrameEl = document.querySelector(".device-frame");
       const deviceEl = document.querySelector(".device");
       const deviceUiEl = document.querySelector(".device-ui");
       const padsModeBtn = document.getElementById("padsModeBtn");
@@ -5318,34 +5351,49 @@
       }
 
       function syncDeviceFrame() {
-        const viewportWidth =
-          (window.visualViewport && window.visualViewport.width) ||
-          window.innerWidth;
-        const viewportHeight =
-          (window.visualViewport && window.visualViewport.height) ||
-          window.innerHeight;
-        const wrapStyle = getComputedStyle(wrapEl);
+        const viewportWidth = embedded
+          ? (window.visualViewport && window.visualViewport.width) ||
+            window.innerWidth
+          : deviceFrameEl.clientWidth;
+        const viewportHeight = embedded
+          ? (window.visualViewport && window.visualViewport.height) ||
+            window.innerHeight
+          : deviceFrameEl.clientHeight;
+        const sizingContainer = embedded ? wrapEl : deviceFrameEl;
+        const sizingStyle = getComputedStyle(sizingContainer);
         const padY =
-          parseFloat(wrapStyle.paddingTop || 0) +
-          parseFloat(wrapStyle.paddingBottom || 0);
-        const gap = parseFloat(wrapStyle.rowGap || wrapStyle.gap || 0);
-        const siblings = Array.from(wrapEl.children).filter(
-          (child) =>
-            child !== deviceEl && getComputedStyle(child).display !== "none",
-        );
-        const extrasHeight = siblings.reduce(
-          (sum, child) => sum + child.getBoundingClientRect().height,
-          0,
-        );
+          parseFloat(sizingStyle.paddingTop || 0) +
+          parseFloat(sizingStyle.paddingBottom || 0);
+        const gap = parseFloat(sizingStyle.rowGap || sizingStyle.gap || 0);
+        let extrasHeight;
+        let reservedGapCount;
+
+        if (embedded) {
+          const siblings = Array.from(wrapEl.children).filter(
+            (child) =>
+              child !== deviceEl && getComputedStyle(child).display !== "none",
+          );
+          extrasHeight = siblings.reduce(
+            (sum, child) => sum + child.getBoundingClientRect().height,
+            0,
+          );
+          reservedGapCount = siblings.length;
+        } else {
+          // Match the embedded iframe's device/toast spacing within the outer panel.
+          extrasHeight = toastEl.getBoundingClientRect().height;
+          reservedGapCount = 2;
+        }
+
         const availableHeight = Math.max(
           392,
-          viewportHeight - padY - extrasHeight - gap * siblings.length,
+          viewportHeight - padY - extrasHeight - gap * reservedGapCount,
         );
         const horizontalReserve =
           viewportWidth <= 360 ? 10 : viewportWidth <= 420 ? 8 : 0;
         const availableWidth = Math.max(
           260,
-          Math.min(wrapEl.clientWidth, viewportWidth) - horizontalReserve,
+          Math.min(sizingContainer.clientWidth, viewportWidth) -
+            horizontalReserve,
         );
         const widthFromHeight = availableHeight * DEVICE_RATIO;
         const targetWidth = Math.min(
