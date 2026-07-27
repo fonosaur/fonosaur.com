@@ -1421,6 +1421,9 @@ const screenFromHash = () => {
 export default function FonosaurSite({ notes = [] }) {
   const [isMobile, setIsMobile] = useState(isMobileNow);
   const [screen, setScreen] = useState(screenFromHash);
+  const [visitedZones, setVisitedZones] = useState(
+    () => new Set([screenFromHash()]),
+  );
   const [ambientOn, setAmbientOn] = useState(false);
   const [warpKey, setWarpKey] = useState(0);
   const [warpImages, setWarpImages] = useState([]);
@@ -1451,7 +1454,16 @@ export default function FonosaurSite({ notes = [] }) {
       const m = isMobileNow();
       setIsMobile(m);
     };
-    const onHashChange = () => setScreen(screenFromHash());
+    const onHashChange = () => {
+      const target = screenFromHash();
+      setVisitedZones((visited) => {
+        if (visited.has(target)) return visited;
+        const next = new Set(visited);
+        next.add(target);
+        return next;
+      });
+      setScreen(target);
+    };
     window.addEventListener("resize", onResize);
     window.addEventListener("hashchange", onHashChange);
     return () => {
@@ -1630,6 +1642,12 @@ export default function FonosaurSite({ notes = [] }) {
 
   const go = (target) => {
     if (target === screen) return;
+    setVisitedZones((visited) => {
+      if (visited.has(target)) return visited;
+      const next = new Set(visited);
+      next.add(target);
+      return next;
+    });
     setWarpKey((k) => k + 1);
     setScreen(target);
   };
@@ -1653,24 +1671,14 @@ export default function FonosaurSite({ notes = [] }) {
   /* --------------------------- desktop compass --------------------------- */
   const EASE = "cubic-bezier(.66,0,.2,1)";
   const renderDesktop = () => {
-    if (screen === "hub") {
-      return (
-        <ConstellationLanding
-          go={go}
-          ambientOn={ambientOn}
-          onAmbientToggle={toggleAmbient}
-          isMobile={false}
-        />
-      );
-    }
-    if (screen === "about") {
-      return <AboutScene go={go} isMobile={false} reduced={reduced} />;
-    }
+    const inZone = ORDER.includes(screen);
     const cur = DESK_POS[screen] || DESK_POS.listen;
     const world = {
       position: "absolute",
       inset: 0,
       zIndex: 1,
+      visibility: inZone ? "visible" : "hidden",
+      pointerEvents: inZone ? "auto" : "none",
       willChange: "transform",
       transform: `translate3d(${-cur.col * size.w}px, ${-cur.row * size.h}px, 0)`,
       transition: reduced ? "none" : `transform 1.05s ${EASE}`,
@@ -1693,100 +1701,116 @@ export default function FonosaurSite({ notes = [] }) {
     };
     return (
       <>
-        <div style={world}>
-          {ORDER.map((id) => (
-            <div key={id} style={roomStyle(id)}>
-              <div style={{ height: "100%", overflowY: "auto" }}>
-                <div
-                  style={{
-                    minHeight: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: "80px 24px 100px",
-                    boxSizing: "border-box",
-                  }}
-                >
+        <div key="desktop-world" style={world} aria-hidden={!inZone}>
+          {ORDER.map((id) =>
+            visitedZones.has(id) ? (
+              <div key={id} style={roomStyle(id)}>
+                <div style={{ height: "100%", overflowY: "auto" }}>
                   <div
                     style={{
-                      width: "100%",
-                      maxWidth: id === "create" || id === "play" ? 960 : 620,
+                      minHeight: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "80px 24px 100px",
+                      boxSizing: "border-box",
                     }}
                   >
-                    {renderZone(id)}
+                    <div
+                      style={{
+                        width: "100%",
+                        maxWidth:
+                          id === "create" || id === "play" ? 960 : 620,
+                      }}
+                    >
+                      {renderZone(id)}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ) : null,
+          )}
         </div>
-        <header
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 8,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "14px 20px",
-            background: "rgba(10,10,12,0.82)",
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
-          }}
-        >
-          <BrandMark
-            onClick={() => go("hub")}
-            size="15px"
-            style={{ flexShrink: 0, letterSpacing: "0.14em" }}
+        {screen === "hub" && (
+          <ConstellationLanding
+            go={go}
+            ambientOn={ambientOn}
+            onAmbientToggle={toggleAmbient}
+            isMobile={false}
           />
-          <nav
-            className="navwrap"
+        )}
+        {screen === "about" && (
+          <AboutScene go={go} isMobile={false} reduced={reduced} />
+        )}
+        {inZone && (
+          <header
             style={{
-              display: "flex",
-              justifyContent: "center",
-              gap: 6,
-              flexWrap: "wrap",
-            }}
-          >
-            {ORDER.map((id) => {
-              const on = id === screen;
-              const a = ZONES[id].accent;
-              return (
-                <button
-                  key={id}
-                  className="navbtn"
-                  onClick={() => go(id)}
-                  style={{
-                    fontFamily: "'Space Mono', monospace",
-                    fontSize: 11,
-                    letterSpacing: "0.14em",
-                    textTransform: "uppercase",
-                    background: on ? `${a}22` : "transparent",
-                    color: on ? a : C.sub,
-                    border: `1px solid ${on ? a : C.line}`,
-                    borderRadius: 999,
-                    padding: "7px 13px",
-                    cursor: "pointer",
-                  }}
-                >
-                  {ZONES[id].label}
-                </button>
-              );
-            })}
-          </nav>
-          <div
-            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              zIndex: 8,
               display: "flex",
               alignItems: "center",
-              flexShrink: 0,
+              justifyContent: "space-between",
+              padding: "14px 20px",
+              background: "rgba(10,10,12,0.82)",
+              backdropFilter: "blur(10px)",
+              WebkitBackdropFilter: "blur(10px)",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
             }}
           >
-            <AmbientToggle active={ambientOn} onToggle={toggleAmbient} />
-          </div>
-        </header>
+            <BrandMark
+              onClick={() => go("hub")}
+              size="15px"
+              style={{ flexShrink: 0, letterSpacing: "0.14em" }}
+            />
+            <nav
+              className="navwrap"
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                gap: 6,
+                flexWrap: "wrap",
+              }}
+            >
+              {ORDER.map((id) => {
+                const on = id === screen;
+                const a = ZONES[id].accent;
+                return (
+                  <button
+                    key={id}
+                    className="navbtn"
+                    onClick={() => go(id)}
+                    style={{
+                      fontFamily: "'Space Mono', monospace",
+                      fontSize: 11,
+                      letterSpacing: "0.14em",
+                      textTransform: "uppercase",
+                      background: on ? `${a}22` : "transparent",
+                      color: on ? a : C.sub,
+                      border: `1px solid ${on ? a : C.line}`,
+                      borderRadius: 999,
+                      padding: "7px 13px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {ZONES[id].label}
+                  </button>
+                );
+              })}
+            </nav>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                flexShrink: 0,
+              }}
+            >
+              <AmbientToggle active={ambientOn} onToggle={toggleAmbient} />
+            </div>
+          </header>
+        )}
       </>
     );
   };
@@ -1885,15 +1909,15 @@ export default function FonosaurSite({ notes = [] }) {
             WebkitOverflowScrolling: "touch",
           }}
         >
-          <div
-            className="screen"
-            key={screen}
-            style={{
-              animation: reduced ? "none" : "screenIn .5s ease both",
-              minHeight: "100%",
-            }}
-          >
-            {screen === "hub" ? (
+          {screen === "hub" && (
+            <div
+              key="mobile-hub"
+              className="screen"
+              style={{
+                animation: reduced ? "none" : "screenIn .5s ease both",
+                minHeight: "100%",
+              }}
+            >
               <div
                 style={{ ...FRAME, position: "relative", minHeight: "100dvh" }}
               >
@@ -1905,25 +1929,52 @@ export default function FonosaurSite({ notes = [] }) {
                   viewport={size}
                 />
               </div>
-            ) : screen === "about" ? (
+            </div>
+          )}
+          {screen === "about" && (
+            <div
+              key="mobile-about"
+              className="screen"
+              style={{
+                animation: reduced ? "none" : "screenIn .5s ease both",
+                minHeight: "100%",
+              }}
+            >
               <div
                 style={{ ...FRAME, position: "relative", minHeight: "100dvh" }}
               >
                 <AboutScene go={go} isMobile reduced={reduced} />
               </div>
-            ) : (
+            </div>
+          )}
+          {ORDER.map((id) =>
+            visitedZones.has(id) ? (
               <div
+                key={id}
+                className={id === screen ? "screen" : undefined}
+                aria-hidden={id !== screen}
                 style={{
-                  ...FRAME,
-                  position: "relative",
-                  padding: "70px 12px 150px",
-                  boxSizing: "border-box",
+                  display: id === screen ? "block" : "none",
+                  animation:
+                    id === screen && !reduced
+                      ? "screenIn .5s ease both"
+                      : "none",
+                  minHeight: "100%",
                 }}
               >
-                {renderZone(screen)}
+                <div
+                  style={{
+                    ...FRAME,
+                    position: "relative",
+                    padding: "70px 12px 150px",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  {renderZone(id)}
+                </div>
               </div>
-            )}
-          </div>
+            ) : null,
+          )}
         </div>
         {inZone && (
           <div style={{ position: "fixed", bottom: 0, zIndex: 20, ...FRAME }}>
