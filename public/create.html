@@ -1445,6 +1445,7 @@
         align-items: center;
         justify-content: center;
         gap: 0.45rem 0.75rem;
+        padding: 0 6px 7px;
       }
 
       .seq-edit-btn,
@@ -1464,6 +1465,7 @@
         align-items: center;
         justify-content: center;
         gap: 0.2em;
+        min-width: 40px;
         padding: 0.35em 0.6em;
         line-height: 1;
       }
@@ -1519,6 +1521,49 @@
         white-space: nowrap;
       }
 
+      .seq-edit-controls.has-structural-action:not(.is-more):not(.is-copying) {
+        display: grid;
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+        gap: 5px;
+      }
+
+      .seq-edit-controls.has-structural-action:not(.is-more):not(.is-copying)
+        > * {
+        width: 100%;
+        min-width: 0;
+        justify-self: stretch;
+      }
+
+      .seq-edit-controls.has-structural-action #seqSelectAllBtn {
+        grid-column: 1 / 3;
+      }
+
+      .seq-edit-controls.has-structural-action
+        .seq-edit-bracket:nth-of-type(1) {
+        grid-column: 3 / 5;
+      }
+
+      .seq-edit-controls.has-structural-action
+        .seq-edit-bracket:nth-of-type(2) {
+        grid-column: 5 / 7;
+      }
+
+      .seq-edit-controls.has-structural-action #seqQuantZeroBtn {
+        grid-column: 7 / 9;
+      }
+
+      .seq-edit-controls.has-structural-action #seqDeleteHitsBtn {
+        grid-column: 2 / 4;
+      }
+
+      .seq-edit-controls.has-structural-action #seqSoloBtn {
+        grid-column: 4 / 6;
+      }
+
+      .seq-edit-controls.has-structural-action #seqMoreBtn {
+        grid-column: 6 / 8;
+      }
+
       .seq-edit-btn.is-active,
       .seq-edit-btn:not(:disabled):active {
         border-color: rgba(125, 255, 184, 0.34);
@@ -1533,6 +1578,56 @@
         border-color: var(--line);
         color: color-mix(in srgb, var(--text) 38%, transparent);
         cursor: default;
+      }
+
+      .seq-more-actions,
+      .seq-copy-targets {
+        width: 100%;
+        display: grid;
+        gap: 5px;
+      }
+
+      .seq-more-actions {
+        grid-template-columns: repeat(
+          var(--more-action-count, 2),
+          minmax(0, 1fr)
+        );
+      }
+
+      .seq-copy-targets {
+        grid-template-columns: repeat(
+          var(--copy-target-count, 3),
+          minmax(0, 1fr)
+        );
+      }
+
+      .seq-more-actions[hidden],
+      .seq-copy-targets[hidden] {
+        display: none;
+      }
+
+      .seq-more-btn[hidden] {
+        display: none;
+      }
+
+      .seq-more-actions .seq-edit-btn,
+      .seq-copy-targets .seq-edit-btn {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .seq-more-actions .seq-edit-btn[hidden] {
+        display: none;
+      }
+
+      .seq-edit-controls.is-more > :not(.seq-more-actions),
+      .seq-edit-controls.is-copying > :not(.seq-copy-targets) {
+        display: none;
+      }
+
+      .seq-edit-controls.is-more .seq-more-actions,
+      .seq-edit-controls.is-copying .seq-copy-targets {
+        display: grid;
       }
 
       .seq-song-panel {
@@ -2392,6 +2487,11 @@
           column-gap: 0.45rem;
         }
 
+        .seq-edit-controls.is-more,
+        .seq-edit-controls.is-copying {
+          display: block;
+        }
+
         .seq-pitch-label {
           font-size: 6px;
         }
@@ -3115,7 +3215,7 @@
                 id="seqEditGrid"
                 aria-label="Sequence edit grid"
               ></div>
-              <div class="seq-edit-controls">
+              <div class="seq-edit-controls" id="seqEditControls">
                 <button
                   class="seq-edit-btn"
                   id="seqSelectAllBtn"
@@ -3181,6 +3281,54 @@
                 >
                   SOLO
                 </button>
+                <button
+                  class="seq-edit-btn seq-more-btn"
+                  id="seqMoreBtn"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="seqMoreActions"
+                  hidden
+                >
+                  MORE
+                </button>
+                <div
+                  class="seq-more-actions"
+                  id="seqMoreActions"
+                  role="group"
+                  aria-label="Structural edit actions"
+                  hidden
+                >
+                  <button
+                    class="seq-edit-btn"
+                    id="seqCopyToBtn"
+                    type="button"
+                    aria-expanded="false"
+                    aria-controls="seqCopyTargets"
+                  >
+                    COPY TO
+                  </button>
+                  <button
+                    class="seq-edit-btn"
+                    id="seqDupBarBtn"
+                    type="button"
+                  >
+                    DUP BAR
+                  </button>
+                  <button
+                    class="seq-edit-btn"
+                    id="seqMoreCancelBtn"
+                    type="button"
+                  >
+                    CANCEL
+                  </button>
+                </div>
+                <div
+                  class="seq-copy-targets"
+                  id="seqCopyTargets"
+                  role="group"
+                  aria-label="Copy selected notes to instrument"
+                  hidden
+                ></div>
               </div>
             </div>
             <div class="seq-panel seq-song-panel" id="songPanel" hidden>
@@ -3494,6 +3642,9 @@
       const MELODIC_TRACK_BY_INDEX = new Map(
         MELODIC_TRACKS.map((track) => [track.index, track]),
       );
+      const COPYABLE_MELODIC_TRACKS = MELODIC_TRACKS.filter(
+        (track) => track.kind !== "chords",
+      );
       const PERC_LABELS = [
         "SHAKER",
         "TAMB",
@@ -3594,6 +3745,7 @@
         editPitchValue: null,
         selectedEditHit: null,
         editSelectAll: false,
+        editToolbarView: "primary",
         editStartTick: 0,
         seqSolo: false,
         undoStack: [],
@@ -4020,6 +4172,7 @@
       const seqSoundSelect = document.getElementById("seqSoundSelect");
       const seqEditTitle = document.getElementById("seqEditTitle");
       const seqEditGrid = document.getElementById("seqEditGrid");
+      const seqEditControls = document.getElementById("seqEditControls");
       const seqSelectAllBtn = document.getElementById("seqSelectAllBtn");
       const seqNudgeLeftBtn = document.getElementById("seqNudgeLeftBtn");
       const seqNudgeRightBtn = document.getElementById("seqNudgeRightBtn");
@@ -4028,6 +4181,12 @@
       const seqQuantZeroBtn = document.getElementById("seqQuantZeroBtn");
       const seqDeleteHitsBtn = document.getElementById("seqDeleteHitsBtn");
       const seqSoloBtn = document.getElementById("seqSoloBtn");
+      const seqMoreBtn = document.getElementById("seqMoreBtn");
+      const seqMoreActions = document.getElementById("seqMoreActions");
+      const seqMoreCancelBtn = document.getElementById("seqMoreCancelBtn");
+      const seqCopyToBtn = document.getElementById("seqCopyToBtn");
+      const seqDupBarBtn = document.getElementById("seqDupBarBtn");
+      const seqCopyTargets = document.getElementById("seqCopyTargets");
       const xyPad = document.getElementById("xyPad");
       const xyCursor = document.getElementById("xyCursor");
       const xAxisBtn = document.getElementById("xAxisBtn");
@@ -5052,6 +5211,7 @@
       function resetEditSelection() {
         runtime.selectedEditHit = null;
         runtime.editSelectAll = false;
+        runtime.editToolbarView = "primary";
       }
 
       function selectedEditHits() {
@@ -5062,6 +5222,129 @@
 
       function hasEditSelection() {
         return selectedEditHits().length > 0;
+      }
+
+      function copyableEditTrack() {
+        return COPYABLE_MELODIC_TRACKS.find(
+          (track) => track.index === runtime.editSoundIndex,
+        );
+      }
+
+      function closeEditDisclosures() {
+        runtime.editToolbarView = "primary";
+      }
+
+      function toggleEditMoreActions() {
+        if (!activeSequence()) return;
+        runtime.editToolbarView =
+          runtime.editToolbarView === "more" ? "primary" : "more";
+        renderSeqEditPanel();
+      }
+
+      function openEditCopyTargets() {
+        if (!copyableEditTrack() || !hasEditSelection()) return;
+        runtime.editToolbarView = "copy";
+        renderSeqEditPanel();
+      }
+
+      function copySelectedNotesTo(targetIndex) {
+        const sequence = activeSequence();
+        const sourceTrack = copyableEditTrack();
+        const targetTrack = COPYABLE_MELODIC_TRACKS.find(
+          (track) => track.index === targetIndex,
+        );
+        const selectedHits = selectedEditHits();
+        if (
+          !sequence ||
+          !sourceTrack ||
+          !targetTrack ||
+          targetTrack.index === sourceTrack.index ||
+          !selectedHits.length
+        ) {
+          closeEditDisclosures();
+          renderSeqEditPanel();
+          return;
+        }
+
+        const copiedEvents = selectedHits
+          .map((hitData) =>
+            sequence.layers[hitData.layerIndex]?.events[hitData.eventIndex],
+          )
+          .filter(
+            (event) =>
+              event &&
+              event[0] === sourceTrack.index &&
+              Number.isInteger(eventLockedValue(event)),
+          )
+          .map((event) => [
+            targetTrack.index,
+            event[1],
+            eventLockedValue(event),
+            eventVelocity(event),
+          ]);
+        if (!copiedEvents.length) {
+          closeEditDisclosures();
+          renderSeqEditPanel();
+          return;
+        }
+
+        pushUndoSnapshot("copy-melodic-hits");
+        const layerIndex = ensureEditLayer(sequence);
+        sequence.layers[layerIndex].events.push(...copiedEvents);
+        closeEditDisclosures();
+        commitSequenceEdit();
+        lcdMessage.textContent =
+          "COPIED " + copiedEvents.length + " \u2192 " + targetTrack.label;
+      }
+
+      function currentEditBarIndex() {
+        return Math.min(
+          LOOP_BARS - 1,
+          Math.floor(wrapSequenceTick(runtime.editStartTick || 0) / TICKS_PER_BAR),
+        );
+      }
+
+      function duplicateCurrentBar() {
+        const sequence = activeSequence();
+        if (!sequence) return;
+        const sourceBar = currentEditBarIndex();
+        const targetBar = (sourceBar + 1) % LOOP_BARS;
+        const stepsPerBar = QUANTIZE_STEPS / LOOP_BARS;
+        const copiedByLayer = [];
+
+        sequence.layers.forEach((layer, layerIndex) => {
+          layer.events.forEach((event) => {
+            const info = editStepInfo(event[1]);
+            if (Math.floor(info.step / stepsPerBar) !== sourceBar) return;
+            const targetStep =
+              targetBar * stepsPerBar + (info.step % stepsPerBar);
+            const copy = event.slice();
+            copy[1] = wrapSequenceTick(targetStep * editStepTicks() + info.offset);
+            if (!copiedByLayer[layerIndex]) copiedByLayer[layerIndex] = [];
+            copiedByLayer[layerIndex].push(copy);
+          });
+        });
+
+        const copiedCount = copiedByLayer.reduce(
+          (total, events) => total + (events?.length || 0),
+          0,
+        );
+        closeEditDisclosures();
+        if (!copiedCount) {
+          renderSeqEditPanel();
+          lcdMessage.textContent = "BAR " + (sourceBar + 1) + " EMPTY";
+          return;
+        }
+
+        pushUndoSnapshot("duplicate-bar");
+        copiedByLayer.forEach((events, layerIndex) => {
+          if (!events?.length) return;
+          sequence.layers[layerIndex].events.push(...events);
+        });
+        runtime.editStartTick = targetBar * TICKS_PER_BAR;
+        commitSequenceEdit();
+        lcdMessage.textContent =
+          "DUP BAR " + (sourceBar + 1) + " \u2192 " + (targetBar + 1);
       }
 
       function ensureEditLayer(sequence) {
@@ -6068,6 +6351,41 @@
         return cell;
       }
 
+      function renderEditCopyTargets(sourceTrack) {
+        seqCopyTargets.innerHTML = "";
+        if (!sourceTrack) return;
+        const targets = COPYABLE_MELODIC_TRACKS.filter(
+          (track) => track.index !== sourceTrack.index,
+        );
+        targets.forEach((track) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "seq-edit-btn";
+          button.textContent = track.label;
+          button.setAttribute(
+            "aria-label",
+            "Copy selected notes to " + track.label,
+          );
+          button.addEventListener("click", () =>
+            copySelectedNotesTo(track.index),
+          );
+          seqCopyTargets.appendChild(button);
+        });
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.className = "seq-edit-btn";
+        cancel.textContent = "CANCEL";
+        cancel.addEventListener("click", () => {
+          closeEditDisclosures();
+          renderSeqEditPanel();
+        });
+        seqCopyTargets.appendChild(cancel);
+        seqCopyTargets.style.setProperty(
+          "--copy-target-count",
+          String(targets.length + 1),
+        );
+      }
+
       function renderSeqEditPanel() {
         if (!seqEditPanel || runtime.seqView !== "edit") return;
         const sequence = activeSequence();
@@ -6149,6 +6467,45 @@
         seqDeleteHitsBtn.disabled = !hasSelection;
         seqSoloBtn.classList.toggle("is-active", runtime.seqSolo);
         seqSoloBtn.setAttribute("aria-pressed", String(runtime.seqSolo));
+        const sourceCopyTrack = copyableEditTrack();
+        if (
+          !sequence ||
+          (runtime.editToolbarView === "copy" &&
+            (!sourceCopyTrack || !hasSelection))
+        ) {
+          closeEditDisclosures();
+        }
+        const showStructuralActions = Boolean(sequence);
+        const toolbarView = runtime.editToolbarView;
+        seqMoreBtn.hidden = !showStructuralActions;
+        seqMoreBtn.disabled = !showStructuralActions;
+        seqMoreBtn.setAttribute(
+          "aria-expanded",
+          String(toolbarView === "more"),
+        );
+        seqCopyToBtn.hidden = !sourceCopyTrack;
+        seqCopyToBtn.disabled = !hasSelection;
+        seqCopyToBtn.setAttribute(
+          "aria-expanded",
+          String(toolbarView === "copy"),
+        );
+        seqDupBarBtn.disabled = !sequence;
+        seqMoreActions.style.setProperty(
+          "--more-action-count",
+          String(sourceCopyTrack ? 3 : 2),
+        );
+        seqEditControls.classList.toggle(
+          "has-structural-action",
+          showStructuralActions,
+        );
+        seqEditControls.classList.toggle("is-more", toolbarView === "more");
+        seqEditControls.classList.toggle(
+          "is-copying",
+          toolbarView === "copy",
+        );
+        seqMoreActions.hidden = toolbarView !== "more";
+        seqCopyTargets.hidden = toolbarView !== "copy";
+        renderEditCopyTargets(sourceCopyTrack);
         renderEditCurrentCell(runtime.lastProgress || 0, loop.length || fixedLoopLength());
       }
 
@@ -7137,6 +7494,13 @@
       });
       seqQuantZeroBtn.addEventListener("click", quantizeSelectedHitToZero);
       seqDeleteHitsBtn.addEventListener("click", deleteSelectedEditHits);
+      seqMoreBtn.addEventListener("click", toggleEditMoreActions);
+      seqMoreCancelBtn.addEventListener("click", () => {
+        closeEditDisclosures();
+        renderSeqEditPanel();
+      });
+      seqCopyToBtn.addEventListener("click", openEditCopyTargets);
+      seqDupBarBtn.addEventListener("click", duplicateCurrentBar);
       seqSoloBtn.addEventListener("click", () => {
         runtime.seqSolo = !runtime.seqSolo;
         renderSeqEditPanel();
@@ -8662,12 +9026,23 @@
               const delta = parseInt(timingToken.slice(1) || "0", 36) || 0;
               const tick = index === 0 ? delta : prev + delta;
               prev = tick;
-              const note = parseInt(noteToken, 36);
-              const velocity = parseInt(velocityToken, 36);
+              const note =
+                noteToken === undefined ? Number.NaN : parseInt(noteToken, 36);
+              const velocity =
+                velocityToken === undefined
+                  ? Number.NaN
+                  : parseInt(velocityToken, 36);
               const event = Number.isInteger(note)
-                ? [padIndex, tick, note]
+                ? [
+                    padIndex,
+                    tick,
+                    note,
+                    Number.isInteger(velocity)
+                      ? normalizeVelocity(velocity)
+                      : DEFAULT_VELOCITY,
+                  ]
                 : [padIndex, tick];
-              if (Number.isInteger(velocity)) {
+              if (!Number.isInteger(note) && Number.isInteger(velocity)) {
                 if (event.length < 3) event.push(null);
                 event.push(normalizeVelocity(velocity));
               }
