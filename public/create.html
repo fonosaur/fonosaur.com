@@ -1610,6 +1610,10 @@
         display: none;
       }
 
+      .seq-mobile-quantize-btn {
+        display: none;
+      }
+
       .seq-more-actions .seq-edit-btn,
       .seq-copy-targets .seq-edit-btn {
         width: 100%;
@@ -2591,6 +2595,68 @@
         }
       }
 
+      @media (max-width: 500px) {
+        .seq-edit-controls.has-structural-action:not(.is-more):not(.is-copying) {
+          grid-template-columns:
+            minmax(36px, 0.75fr)
+            minmax(58px, 1.2fr)
+            minmax(58px, 1.2fr)
+            repeat(3, minmax(36px, 0.75fr));
+          gap: 4px;
+        }
+
+        .seq-edit-controls.has-structural-action #seqSelectAllBtn {
+          grid-column: 1;
+        }
+
+        .seq-edit-controls.has-structural-action
+          .seq-edit-bracket:nth-of-type(1) {
+          grid-column: 2;
+        }
+
+        .seq-edit-controls.has-structural-action
+          .seq-edit-bracket:nth-of-type(2) {
+          grid-column: 3;
+        }
+
+        .seq-edit-controls.has-structural-action #seqQuantZeroBtn {
+          display: none;
+        }
+
+        .seq-edit-controls.has-structural-action #seqDeleteHitsBtn {
+          grid-column: 4;
+        }
+
+        .seq-edit-controls.has-structural-action #seqSoloBtn {
+          grid-column: 5;
+        }
+
+        .seq-edit-controls.has-structural-action #seqMoreBtn {
+          grid-column: 6;
+        }
+
+        .seq-edit-controls .seq-edit-bracket {
+          gap: 0.1em;
+          padding-inline: 4px;
+        }
+
+        .seq-edit-controls .seq-edit-bracket > button {
+          width: 14px;
+        }
+
+        .seq-mobile-quantize-btn {
+          display: inline-flex;
+        }
+
+        .seq-more-actions {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .seq-edit-controls.has-copy-action .seq-more-actions {
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+      }
+
       @media (max-width: 420px) {
         .wrap {
           padding: 6px 3px 22px;
@@ -3298,6 +3364,13 @@
                   aria-label="Structural edit actions"
                   hidden
                 >
+                  <button
+                    class="seq-edit-btn seq-mobile-quantize-btn"
+                    id="seqMoreQuantZeroBtn"
+                    type="button"
+                  >
+                    <span>Q</span><span aria-hidden="true">&#8594;0</span>
+                  </button>
                   <button
                     class="seq-edit-btn"
                     id="seqCopyToBtn"
@@ -4184,6 +4257,9 @@
       const seqMoreBtn = document.getElementById("seqMoreBtn");
       const seqMoreActions = document.getElementById("seqMoreActions");
       const seqMoreCancelBtn = document.getElementById("seqMoreCancelBtn");
+      const seqMoreQuantZeroBtn = document.getElementById(
+        "seqMoreQuantZeroBtn",
+      );
       const seqCopyToBtn = document.getElementById("seqCopyToBtn");
       const seqDupBarBtn = document.getElementById("seqDupBarBtn");
       const seqCopyTargets = document.getElementById("seqCopyTargets");
@@ -6464,6 +6540,7 @@
         seqVelocityDownBtn.disabled = !hasSelection;
         seqVelocityUpBtn.disabled = !hasSelection;
         seqQuantZeroBtn.disabled = !hasSelection;
+        seqMoreQuantZeroBtn.disabled = !hasSelection;
         seqDeleteHitsBtn.disabled = !hasSelection;
         seqSoloBtn.classList.toggle("is-active", runtime.seqSolo);
         seqSoloBtn.setAttribute("aria-pressed", String(runtime.seqSolo));
@@ -6497,6 +6574,10 @@
         seqEditControls.classList.toggle(
           "has-structural-action",
           showStructuralActions,
+        );
+        seqEditControls.classList.toggle(
+          "has-copy-action",
+          Boolean(sourceCopyTrack),
         );
         seqEditControls.classList.toggle("is-more", toolbarView === "more");
         seqEditControls.classList.toggle(
@@ -7493,6 +7574,11 @@
         });
       });
       seqQuantZeroBtn.addEventListener("click", quantizeSelectedHitToZero);
+      seqMoreQuantZeroBtn.addEventListener("click", () => {
+        quantizeSelectedHitToZero();
+        closeEditDisclosures();
+        renderSeqEditPanel();
+      });
       seqDeleteHitsBtn.addEventListener("click", deleteSelectedEditHits);
       seqMoreBtn.addEventListener("click", toggleEditMoreActions);
       seqMoreCancelBtn.addEventListener("click", () => {
