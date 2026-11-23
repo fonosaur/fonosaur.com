@@ -1,0 +1,13 @@
+{
+  "title": "Pockets - EP",
+  "artist": "FONOSAUR",
+  "cover": "/pockets-ep/cover-placeholder.svg",
+  "tracks": [
+    { "title": "Edo", "src": "/pockets-ep/audio/01-edo.mp3", "bpm": 110, "duration": 22 },
+    { "title": "Back", "src": "/pockets-ep/audio/05-back.mp3", "bpm": 115, "duration": 18 },
+    { "title": "Universal Thing", "src": "/pockets-ep/audio/04-universal-thing.mp3", "bpm": 108, "duration": 24 },
+    { "title": "Your Move", "src": "/pockets-ep/audio/03-your-move.mp3", "bpm": 97, "duration": 20 },
+    { "title": "Motherland", "src": "/pockets-ep/audio/02-motherland.mp3", "bpm": 90, "duration": 26 },
+    { "title": "Found", "src": "/pockets-ep/audio/06-found.mp3", "bpm": 108, "duration": 28 }
+  ]
+}

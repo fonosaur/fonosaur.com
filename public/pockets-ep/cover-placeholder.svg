@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" width="1000" height="1000">
+  <!-- PLACEHOLDER COVER: swap for the real artwork and update ep.config.json -->
+  <defs>
+    <radialGradient id="g1" cx="28%" cy="24%" r="70%">
+      <stop offset="0" stop-color="#3b8bff"/>
+      <stop offset="1" stop-color="#3b8bff" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g2" cx="78%" cy="70%" r="65%">
+      <stop offset="0" stop-color="#a06820"/>
+      <stop offset="1" stop-color="#a06820" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g3" cx="60%" cy="20%" r="45%">
+      <stop offset="0" stop-color="#8b5cf6"/>
+      <stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1000" height="1000" fill="#121016"/>
+  <rect width="1000" height="1000" fill="url(#g1)"/>
+  <rect width="1000" height="1000" fill="url(#g2)"/>
+  <rect width="1000" height="1000" fill="url(#g3)"/>
+  <g fill="none" stroke="#00cc50" stroke-opacity="0.55" stroke-width="3">
+    <circle cx="500" cy="520" r="120"/>
+    <circle cx="500" cy="520" r="210"/>
+    <circle cx="500" cy="520" r="300"/>
+    <circle cx="500" cy="520" r="390"/>
+  </g>
+  <g fill="#e8e8ea" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle">
+    <text x="500" y="150" font-size="88" letter-spacing="10">FONOSAUR</text>
+    <text x="500" y="900" font-size="34" letter-spacing="14" fill-opacity="0.7">PLACEHOLDER COVER</text>
+  </g>
+</svg>
