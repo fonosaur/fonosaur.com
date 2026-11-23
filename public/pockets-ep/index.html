@@ -13,11 +13,10 @@
       /pockets-ep/ep.config.json. Styling is copied (not shared) from /create.html so the
       sampler is never touched. Only the transport is interactive.
 
-      Stage 2 hook: window.FS86EP.engine exposes the single <audio> element, the
-      single AudioContext, its MediaElementSource and an output GainNode.
-      Attach an AnalyserNode with:  engine.output.connect(analyser)
-      Pads are already rendered with .glow layers (toggle .hit, or drive
-      --pad-level) via window.FS86EP.pads.
+      window.FS86EP.engine exposes the single <audio> element, the single
+      AudioContext, its MediaElementSource and an output GainNode.
+      Stage 2 (pads.js) hangs one AnalyserNode off engine.output and drives
+      --pad-level / --pad-press on window.FS86EP.pads.
     -->
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Unbounded:wght@200;400;700&display=swap");
@@ -450,27 +449,6 @@
         border-radius: 50%;
       }
 
-      .pad .key {
-        position: absolute;
-        top: 6px;
-        right: 8px;
-        font-family: "Space Mono", monospace;
-        font-size: 9px;
-        color: rgba(255, 255, 255, 0.62);
-      }
-
-      .pad .lab {
-        padding: 7px 9px;
-        font-size: 10px;
-        font-weight: 700;
-        font-family: "Space Mono", monospace;
-        letter-spacing: 0.03em;
-        color: var(--sub);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
       /* Stage 2 drives either .hit or --pad-level (0..1) on each pad. */
       .pad .glow {
         position: absolute;
@@ -484,6 +462,16 @@
       .pad.hit .glow {
         opacity: 0.85;
         transition: opacity 0s;
+      }
+
+      /* Stage 2 (pads.js): while reacting, JS animates every frame, so the CSS
+         fade is off; removing .is-reactive on pause lets the fade run to off. */
+      .grid .pad {
+        transform: translateY(var(--pad-press, 0px));
+      }
+
+      .grid.is-reactive .pad .glow {
+        transition: none;
       }
 
       .bottom-row {
@@ -593,16 +581,6 @@
           left: 5px;
         }
 
-        .pad .key {
-          top: 4px;
-          right: 5px;
-          font-size: 6px;
-        }
-
-        .pad .lab {
-          padding: 4px 4px 5px;
-          font-size: 6px;
-        }
       }
 
       @container stage (max-width: 320px) {
@@ -621,9 +599,13 @@
 
       @media (prefers-reduced-motion: reduce) {
         .skin,
-        .pad .glow,
         .transport-btn {
           transition: none;
+        }
+
+        /* Slow, gentle fade instead of none, so pads never snap off. */
+        .pad .glow {
+          transition: opacity 0.8s ease-out;
         }
       }
     </style>
@@ -706,36 +688,30 @@
         "use strict";
 
         const CONFIG_URL = "/pockets-ep/ep.config.json";
+        // Local tuning override (gitignored, never deployed). Only looked for
+        // on local/LAN hosts so production never requests it or logs a 404.
+        const LOCAL_CONFIG_URL = "/pockets-ep/ep.config.local.json";
+        const IS_LOCAL_HOST =
+          /^(localhost|127\.0\.0\.1|\[::1\]|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)$/.test(
+            location.hostname,
+          ) || location.hostname.endsWith(".local");
         const RESTART_THRESHOLD_S = 3;
 
-        // ---------- decorative pads (default FS86 kit layout, no handlers) ----------
-        const CAT_COLOR = {
-          kick: "#a06820",
-          snare: "#8b5cf6",
-          hat: "#3b8bff",
-          clap: "#ff6b5c",
-          perc: "#00cc50",
-        };
-        const PADS = [
-          ["kick", "1", "KICK"], ["snare", "2", "SNARE"], ["hat", "3", "HAT CL"], ["hat", "4", "HAT OP"],
-          ["kick", "Q", "KICK 2"], ["snare", "W", "SNARE 2"], ["clap", "E", "CLAP"], ["hat", "R", "HAT 2"],
-          ["perc", "A", "SHAKER"], ["perc", "S", "TAMB"], ["perc", "D", "COWBELL"], ["perc", "F", "CLAVE"],
-          ["perc", "Z", "TRIANGLE"], ["perc", "X", "BLOCK"], ["clap", "C", "SNAP"], ["perc", "V", "PERC"],
-        ];
+        // ---------- decorative pads: unlabelled, inert, no handlers ----------
+        // Corner dot colour = the row's lighting colour (keep in sync with
+        // TUNING.BANDS in pads.js). Top row first.
+        const ROW_COLORS = ["#3b8bff", "#00cc50", "#8b5cf6", "#a06820"]; // high, mid, low-mid, low
+        const PAD_DOTS = ROW_COLORS.flatMap((c) => [c, c, c, c]);
 
         const $ = (id) => document.getElementById(id);
         const grid = $("grid");
-        const padEls = PADS.map(([cat, key, label], i) => {
-          const col = CAT_COLOR[cat];
+        const padEls = PAD_DOTS.map((col, i) => {
           const d = document.createElement("div");
           d.className = "pad";
           d.dataset.pad = String(i);
-          d.dataset.cat = cat;
           d.innerHTML =
             '<span class="dot" style="background:' + col + '"></span>' +
-            '<span class="key">' + key + "</span>" +
-            '<div class="glow" style="box-shadow:inset 0 0 22px ' + col + ", 0 0 16px " + col + "; border:1px solid " + col + '"></div>' +
-            '<div class="lab">' + label + "</div>";
+            '<div class="glow" style="box-shadow:inset 0 0 22px ' + col + ", 0 0 16px " + col + "; border:1px solid " + col + '"></div>';
           grid.appendChild(d);
           return d;
         });
@@ -1040,11 +1016,23 @@
           img.src = src;
         }
 
-        fetch(CONFIG_URL, { cache: "no-cache" })
-          .then((r) => {
+        function fetchConfig(url) {
+          return fetch(url, { cache: "no-cache" }).then((r) => {
             if (!r.ok) throw new Error("HTTP " + r.status);
             return r.json();
-          })
+          });
+        }
+
+        (IS_LOCAL_HOST
+          ? fetchConfig(LOCAL_CONFIG_URL).then(
+              (cfg) => {
+                console.info("[FS86EP] using local config override", LOCAL_CONFIG_URL);
+                return cfg;
+              },
+              () => fetchConfig(CONFIG_URL), // absent or invalid: silently use the real one
+            )
+          : fetchConfig(CONFIG_URL)
+        )
           .then((cfg) => {
             if (!cfg || !Array.isArray(cfg.tracks) || !cfg.tracks.length) {
               throw new Error("config has no tracks");
@@ -1074,5 +1062,7 @@
         };
       })();
     </script>
+    <!-- Stage 2: audio-reactive pads (tuning constants at the top of the file). -->
+    <script src="/pockets-ep/pads.js"></script>
   </body>
 </html>

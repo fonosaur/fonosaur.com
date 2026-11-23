@@ -7,3 +7,7 @@ out
 *.log
 .vercel
 next-env.d.ts
+
+# Pockets EP: local tuning override + rough-mix audio (never commit/deploy)
+public/pockets-ep/ep.config.local.json
+public/pockets-ep/audio-local/
